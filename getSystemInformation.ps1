@@ -395,13 +395,6 @@ function _parseLinuxLines {
 	return ''
 }
 
-<# $script:nonDisplayCharsMap = @{
-	[char]0 = '␀'; [char]1 = '␁'; [char]2 = '␂'; [char]3 = '␃'; [char]4 = '␄'; [char]5 = '␅'; [char]6 = '␆'; [char]7 = '␇';
-	[char]8 = '␈'; [char]9 = '␉'; [char]0x0a = '␊'; [char]0x0b = '␋'; [char]0x0c = '␌'; [char]0x0d = '␍'; [char]0x0e = '␎'; [char]0x0f = '␏'; [char]0x10 = '␐';
-	[char]0x11 = '␑'; [char]0x12 = '␒'; [char]0x13 = '␓'; [char]0x14 = '␔'; [char]0x15 = '␕'; [char]0x16 = '␖'; [char]0x17 = '␗';
-	[char]0x18 = '␘'; [char]0x19 = '␙'; [char]0x1a = '␚'; [char]0x1b = '␛'; [char]0x1c = '␜'; [char]0x1d = '␝'; [char]0x1e = '␞'; [char]0x1f = '␟';
-	[char]0x20 = '␠'; [char]0x7f = '␡'; [char]0xa0<#NBSP#><# = ' '; [char]0x85<#NEL#><# = ' '; [char]0x2028<#LS#><# = ' '; [char]0x2029<#PS#><# = ' ';
-} #>
 $script:nonDisplayCharsMap = @{
 	[char]0 = '\x00'; [char]1 = '\x01'; [char]2 = '\x02'; [char]3 = '\x03'; [char]4 = '\x04'; [char]5 = '\x05'; [char]6 = '\x05'; [char]7 = '\x07';
 	[char]8 = '\b'; [char]9 = '\t'; [char]0x0a = '\n'; [char]0x0b = '\x0b'; [char]0x0c = '\f'; [char]0x0d = '\r'; [char]0x0e = '\x0e'; [char]0x0f = '\x0f';
