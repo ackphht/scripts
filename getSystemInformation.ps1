@@ -1,5 +1,7 @@
 ﻿#Requires -Version 5.1
 
+using namespace System.Collections.Generic
+
 [CmdletBinding(SupportsShouldProcess=$true)]
 param()
 
@@ -15,17 +17,15 @@ function Main {
 	param()
 	WriteHeader -text 'Environment Variables' -includeExtraSpace $false
 	WriteVerboseMessage 'dumping environment vars'
-	Get-ChildItem -Path env:
+	$envVars = Get-ChildItem -Path env: | Select-Object -Property Name,Value
+	$envVars | Sort-Object -Property Name | Format-Table
 
 	# dump out special folder paths (??)
 	WriteHeader -text 'System Special Folders'
 	WriteVerboseMessage 'getting special folders'
-	[System.Enum]::GetValues([System.Environment+SpecialFolder]) |
-		ForEach-Object {
-			[PSCustomObject]@{ Folder = $_.ToString(); Path = [System.Environment]::GetFolderPath($_); }
-		} |
-		Sort-Object -Property Folder |
-		Format-Table -Property Folder,Path
+	$specFldrs = [System.Enum]::GetValues([System.Environment+SpecialFolder]) |
+					ForEach-Object { [PSCustomObject]@{ Folder = $_.ToString(); Path = [System.Environment]::GetFolderPath($_); } }
+	$specFldrs | Sort-Object -Property Folder | Format-Table -Property Folder,Path
 
 	$unameAvail = [bool](Get-Command -Name 'uname' -ErrorAction Ignore)
 	$cimInstanceAvail = [bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)
@@ -33,22 +33,23 @@ function Main {
 	if ($unameAvail) {
 		WriteHeader -text 'uname'
 		WriteVerboseMessage 'getting uname info'
-		@(@{ nm = 'kernel-name'; op = 's'; }, @{ nm = 'kernel-release'; op = 'r'; }, @{ nm = 'kernel-version'; op = 'v'; },
-			@{ nm = 'machine'; op = 'm'; }, @{ nm = 'processor'; op = 'p'; }, @{ nm = 'hardware-platform'; op = 'i'; },
-			@{ nm = 'operating-system'; op = 'o'; }) |
-			ForEach-Object {
-				$v = uname -$($_.op) 2>/dev/null
-				if ($LASTEXITCODE -eq 0) {
-					[PSCustomObject]@{ Name = $_.nm; Value = $v; }
+		$unameVals =  @(@{ nm = 'kernel-name'; op = 's'; }, @{ nm = 'kernel-release'; op = 'r'; }, @{ nm = 'kernel-version'; op = 'v'; },
+					@{ nm = 'machine'; op = 'm'; }, @{ nm = 'processor'; op = 'p'; }, @{ nm = 'hardware-platform'; op = 'i'; },
+					@{ nm = 'operating-system'; op = 'o'; }) |
+				ForEach-Object {
+					$v = uname -$($_.op) 2>/dev/null
+					if ($LASTEXITCODE -eq 0) {
+						[PSCustomObject]@{ Name = $_.nm; Value = $v; }
+					}
 				}
-			} | Format-Table
+		$unameVals | Format-Table
 	}
 
 	# get system properties/data/etc:
 	WriteHeader -text 'System Properties'
 	WriteVerboseMessage 'getting system properties'
 
-	$results = [PSObject]::new()
+	$results = [List[PSObject]]::new(16) #[PSObject]::new()
 	_addProperty -obj $results -propName 'PSVersion_PowerShell' -propValue $PSVersionTable.PSVersion
 	_addProperty -obj $results -propName 'PSVersion_Edition' -propValue $PSVersionTable.PSEdition
 	_addProperty -obj $results -propName 'PSVersion_Platform' -propValue $PSVersionTable.Platform
@@ -127,8 +128,8 @@ function Main {
 			_setProperty -obj $results -propName 'OS_Version' -propValue $os.Version
 			_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $os.OSArchitecture
 			_setProperty -obj $results -propName 'OS_Kernel' -propValue $os.Version
-			_addProperty -obj $results -propName 'OS_SKU' -propValue $os.OperatingSystemSKU
-			_addProperty -obj $results -propName 'OS_OSType' -propValue $os.OSType
+			_setProperty -obj $results -propName 'OS_SKU' -propValue $os.OperatingSystemSKU
+			_setProperty -obj $results -propName 'OS_OSType' -propValue $os.OSType
 		}
 	} elseif ($IsMacOS) {
 		_setProperty -obj $results -propName 'OS_Manufacturer' -propValue 'Apple'
@@ -145,7 +146,7 @@ function Main {
 			_setProperty -obj $results -propName 'OS_Version' -propValue (_parseLinuxLines -lines $lsb -lookFor 'Release' -type 1)
 			$oscodename = (_parseLinuxLines -lines $lsb -lookFor 'Codename' -type 1)
 			if ($oscodename -and $oscodename -ne 'n/a') {
-				_addProperty -obj $results -propName 'OS_Codename' -propValue $oscodename
+				_setProperty -obj $results -propName 'OS_Codename' -propValue $oscodename
 			}
 		} elseif ((Test-Path -Path '/etc/os-release' -ErrorAction Ignore)) {
 			$osrelease = Get-Content -Path '/etc/os-release'
@@ -158,7 +159,7 @@ function Main {
 			_setProperty -obj $results -propName 'OS_Version' -propValue $osversion
 			$oscodename = (_parseLinuxLines -lines $osrelease -lookFor 'VERSION_CODENAME' -type 2)
 			if ($oscodename -and $oscodename -ne 'n/a') {
-				_addProperty -obj $results -propName 'OS_Codename' -propValue $oscodename
+				_setProperty -obj $results -propName 'OS_Codename' -propValue $oscodename
 			}
 		}
 		if ($unameAvail) {
@@ -221,15 +222,18 @@ function Main {
 		_setProperty -obj $results -propName 'Processor_LogicalProcessors' -propValue (_parseLinuxLines -lines $cpuinfo -lookFor 'siblings' -type 1)
 		_setProperty -obj $results -propName 'Processor_L3CacheSize' -propValue (_parseLinuxLines -lines $cpuinfo -lookFor 'cache size' -type 1)
 	}
-	if ((-not $results.Processor_Architecture -or $results.Processor_Architecture -eq $script:NA) -and $unameAvail) {
+	$procArch = $results | Where-Object { $_.Name -eq 'Processor_Architecture' }
+	if ((-not $procArch -or $procArch.Value -eq $script:NA) -and $unameAvail) {
 		$procarch = (uname --processor <# right ?? #>)
 		if (-not $procarch -or $procarch -eq 'unknown') {
 			$procarch = (uname --machine)	<# fall back; or should we just leave it blank ?? #>
 		}
 		_setProperty -obj $results -propName 'Processor_Architecture' -propValue $procarch
 	}
-	if (-not $results.Processor_Description -or $results.Processor_Description -eq $script:NA) {
-		$results.Processor_Description = $results.Processor_Name
+	$procDesc = $results | Where-Object { $_.Name -eq 'Processor_Description' }
+	$procName = $results | Where-Object { $_.Name -eq 'Processor_Name' }
+	if ($procName -and (-not $procDesc -or $procDesc.Value -eq $script:NA)) {
+		_setProperty -obj $results -propName 'Processor_Description' -propValue $procName.Value
 	}
 	_addProperty -obj $results -propName 'Processor_IsVectorHardwareAccelerated' -propValue ([AckWare.Intrinsics]::IsVectorHardwareAccelerated)
 	_addProperty -obj $results -propName 'Processor_IsVector64HardwareAccelerated' -propValue ([AckWare.Intrinsics]::IsVector64HardwareAccelerated)
@@ -243,32 +247,36 @@ function Main {
 	_addProperty -obj $results -propName 'EnvVar_HostType' -propValue (_getEnvVarValue -envVarName 'HostType')
 	_addProperty -obj $results -propName 'EnvVar_OsType' -propValue (_getEnvVarValue -envVarName 'OsType')
 
-	#return $results
-	$results | Format-List -Property *
+	$results | Format-Table
 }
 
 function _addProperty {
 	[OutputType([void])]
 	param(
-		[Parameter(Mandatory=$true)] [PSObject] $obj,
+		<# [Parameter(Mandatory=$true)] #> [ValidateNotNull()] [List[PSObject]] $obj,
 		[Parameter(Mandatory=$true)] [string] $propName,
 		[object] $propValue,
 		[switch] $allowNull
 	)
 	if (-not $allowNull -and ($propValue -eq $null -or ($propValue -is [string] -and $propValue -eq ''))) { $propValue = $script:NA }
-	Add-Member -InputObject $obj -MemberType NoteProperty -Name $propName -Value $propValue
+	$obj.Add([PSCustomObject]@{ Name = $propName; Value = $propValue; })
 }
 
 function _setProperty {
 	[OutputType([void])]
 	param(
-		[Parameter(Mandatory=$true)] [PSObject] $obj,
+		[Parameter(Mandatory=$true)] [List[PSObject]] $obj,
 		[Parameter(Mandatory=$true)] [string] $propName,
 		[object] $propValue,
 		[switch] $allowNull
 	)
 	if (-not $allowNull -and -not $propValue) { $propValue = $script:NA }
-	$obj.$propName = $propValue
+	$nv = $obj | Where-Object { $_.Name -eq $propName }
+	if ($nv) {
+		$nv.Value = $propValue
+	} else {
+		Write-Error "supposed to set a property named '$propName' but no property found with that name"
+	}
 }
 
 function _getVariableValue {
