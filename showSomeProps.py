@@ -1,0 +1,115 @@
+#!python3
+# -*- coding: utf-8 -*-
+
+import sys
+import os
+import time
+import platform
+
+def main():
+	print('')
+	print('=' * 40)
+	print('values from sys module:')
+	print('=' * 40)
+	print(f'sys.argv = |{sys.argv}|')
+	print(f'sys.byteorder = |{sys.byteorder}|')
+	#print(f'sys.copyright = |{sys.copyright}|')
+	print(f'sys.platform = |{sys.platform}|')
+	print(f'sys.exec_prefix = |{sys.exec_prefix}|')
+	print(f'sys.executable = |{sys.executable}|')
+	print(f'sys.flags = |{sys.flags}|')
+	print(f'sys.float_info = |{sys.float_info}|')
+	print(f'sys.getdefaultencoding() = |{sys.getdefaultencoding()}|')
+	print(f'sys.getfilesystemencoding() = |{sys.getfilesystemencoding()}|')
+	print(f'sys.getrecursionlimit() = |{sys.getrecursionlimit()}|')
+	print(f'sys.getswitchinterval() = |{sys.getswitchinterval()}|')
+	if sys.platform == 'win32':
+		print(f'sys.getwindowsversion() = |{sys.getwindowsversion()}|')
+	print(f'sys.hexversion = |{sys.hexversion}| [hex() = ', hex(sys.hexversion), ']')
+	print(f'sys.implementation = |{sys.implementation}|')
+	print(f'sys.int_info = |{sys.int_info}|')
+	print(f'sys.maxsize = |{sys.maxsize}| [hex() = ', hex(sys.maxsize), ']')
+	print(f'sys.maxunicode = |{sys.maxunicode}| [hex() = ', hex(sys.maxunicode), ']')
+	print(f'sys.path = |{sys.path}|')
+	print(f'sys.prefix = |{sys.prefix}|')
+	#print(f'sys.ps1 = |{sys.ps1}|')
+	#print(f'sys.ps2 = |{sys.ps2}|')
+	print(f'sys.thread_info = |{sys.thread_info}|')
+	#print(f'sys.tracebacklimit = |{sys.tracebacklimit}|')
+	print(f'sys.version = |{sys.version}|')
+	print(f'sys.version_info = |{sys.version_info}|')
+	if sys.platform == 'win32':
+		print(f'sys.winver = |{sys.winver}|')
+	print('=' * 40)
+	print('values from os module:')
+	print('=' * 40)
+	print(f'os.name = |{os.name}|')
+	print(f'os.sep = |{os.sep}|')
+	print(f'os.altsep = |{os.altsep}|')
+	print(f'os.extsep = |{os.extsep}|')
+	print(f'os.pathsep = |{os.pathsep}|')
+	print(f'os.defpath = |{os.defpath}|')
+	mylinesep = os.linesep.replace('\n','\\n').replace('\r','\\r')
+	print(f'os.linesep = |{mylinesep}|')
+	if sys.platform == 'win32':
+		print(f"os.environ['UserProfile'] = |{os.environ['UserProfile']}|")
+	else:
+		print(f"os.environ['HOME'] = |{os.environ['HOME']}|")
+	print("os.environ['Zzzzzzz'] = |<throws an error>|")
+	if sys.platform == 'win32':
+		print(f"os.getenv('UserProfile') = |{os.getenv('UserProfile')}|")
+	else:
+		print(f"os.getenv('HOME') = |{os.getenv('HOME')}|")
+	print(f"os.getenv('ZZZZZZZZ') = |{os.getenv('ZZZZZZZZ')}|")
+	print(f"os.getcwd() = |{os.getcwd()}|")
+	print(f"os.strerror(2) = |{os.strerror(2)}|")
+	print(f"os.times() = |{os.times()}|")
+	if sys.platform != 'win32':
+		print(f"os.uname() = |{os.uname()}|")
+	else:
+		print("os.uname() = |<not supported on windows>|")
+	print(f"os.cpu_count() = |{os.cpu_count()}|")
+	#print("os.urandom(8) = |", hex(os.urandom(8)), "|")
+	print(f"os.urandom(8) = |{os.urandom(8)}|")
+	print(f"os.path.exists('C:/Windows/System32/notepad.exe') = |{os.path.exists('C:/Windows/System32/notepad.exe')}|")
+	print(f"os.path.isfile('C:/Windows/System32/notepad.exe') = |{os.path.isfile('C:/Windows/System32/notepad.exe')}|")
+	print(f"os.path.isdir('C:/Windows/System32/notepad.exe') = |{os.path.isdir('C:/Windows/System32/notepad.exe')}|")
+	print(f"os.path.basename('C:/Windows/System32/notepad.exe') = |{os.path.basename('C:/Windows/System32/notepad.exe')}|")
+	print(f"os.path.dirname('C:/Windows/System32/notepad.exe') = |{os.path.dirname('C:/Windows/System32/notepad.exe')}|")
+	print(f"os.path.join('C:','Windows','System32','notepad.exe') = |{os.path.join('C:','Windows','System32','notepad.exe')}|")
+	print(f"os.path.normpath('C:/Windows/Fonts/../System32/notepad.exe') = |{os.path.normpath('C:/Windows/Fonts/../System32/notepad.exe')}|")
+	print(f"os.path.abspath('../notepad.exe') = |{os.path.abspath('../notepad.exe')}|")
+	print(f"os.path.relpath('C:/Windows/System32/notepad.exe','C:/Windows/Fonts') = |{os.path.relpath('C:/Windows/System32/notepad.exe','C:/Windows/Fonts')}|")
+	print(f"os.path.split('C:/Windows/System32/notepad.exe') = |{os.path.split('C:/Windows/System32/notepad.exe')}|")
+	print(f"os.path.splitdrive('C:/Windows/System32/notepad.exe') = |{os.path.splitdrive('C:/Windows/System32/notepad.exe')}|")
+	shareFile = '\\\\server\\folder01\\folder02\\file.txt'
+	print(f"os.path.splitdrive({shareFile}) = |{os.path.splitdrive(shareFile)}|")
+	print(f"os.path.splitext('C:/Windows/System32/notepad.exe') = |{os.path.splitext('C:/Windows/System32/notepad.exe')}|")
+	print(f'os.path.supports_unicode_filenames = |{os.path.supports_unicode_filenames}|')
+	#print('=' * 40)
+	#print('values from time module:')
+	#print('=' * 40)
+	#print(f'time.daylight = |{time.daylight}|')
+	#print(f'time.timezone = |{time.timezone}|')
+	#print(f'time.altzone = |{time.altzone}|')
+	#print(f'time.tzname = |{time.tzname}|')
+	print('=' * 40)
+	print('values from platform module:')
+	print('=' * 40)
+	print(f'platform.architecture() = |{platform.architecture()}|')
+	print(f'platform.machine() = |{platform.machine()}|')
+	print(f'platform.node() = |{platform.node()}|')
+	print(f'platform.platform() = |{platform.platform()}|')
+	print(f'platform.processor() = |{platform.processor()}|')
+	print(f'platform.release() = |{platform.release()}|')
+	print(f'platform.system() = |{platform.system()}|')
+	#print(f'platform.system_alias() = |{platform.system_alias()}|')
+	print(f'platform.version() = |{platform.version()}|')
+	print(f'platform.uname() = |{platform.uname()}|')
+	if sys.platform == 'win32':
+		print(f'platform.win32_ver() = |{platform.win32_ver()}|')
+		print(f'platform.win32_edition() = |{platform.win32_edition()}|')
+
+
+if __name__ == "__main__":
+	main()
