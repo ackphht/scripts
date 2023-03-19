@@ -27,7 +27,9 @@ which neofetch > /dev/null 2>&1 && neofetch --stdout > neofetch.txt 2>/dev/null 
 
 test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > showSomeProps.py.log
 
-which pwsh > /dev/null 2>&1 && test -f $scriptRoot/getSystemInformation.ps1 && pwsh -command "& { $scriptRoot/getSystemInformation.ps1 | Out-File getSystemInformation.log }"
+which pwsh > /dev/null 2>&1 && test -f $scriptRoot/getSystemInformation.ps1 && \
+	pwsh -command "& { $scriptRoot/getSystemInformation.ps1 | Out-File getSystemInformation.log -Width 4096 }" && \
+	pwsh -command "& { $scriptRoot/getSystemInformation.ps1 -asJson }"
 
 #uname -a > uname.txt
 echo -n '' > uname.log
