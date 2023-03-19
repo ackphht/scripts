@@ -20,6 +20,8 @@ param(
 #Set-StrictMode -Version Latest
 #[System.Environment]::CurrentDirectory = (Get-Location).Path
 
+. $PSScriptRoot/helpers.ps1
+
 $script:regClassesRootPath = 'HKLM:\Software\Classes'
 $script:regSysClassesRootPath = 'HKLM:\Software\Classes'
 $script:regUserClassesRootPath = 'HKCU:\Software\Classes'
@@ -102,7 +104,7 @@ function SetWindowsOptions {
 function UninstallUnwantedApps {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage "uninstalling unwanted apps";
+	WriteHeaderMessage 'uninstalling unwanted apps'
 	$appsList = $null
 	@(
 		"Microsoft Advertising *"	# got installed by older Visual Studios
@@ -128,7 +130,7 @@ function UninstallUnwantedApps {
 function UninstallUnwantedStoreApps {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage 'uninstalling unwanted store apps'
+	WriteHeaderMessage 'uninstalling unwanted store apps'
 	@(
 		#'Facebook.Facebook'
 		#'9E2F88E3.Twitter'
@@ -162,7 +164,7 @@ function UninstallUnwantedStoreApps {
 			WriteVerboseMessage 'check for store app "{0}"' $_
 			$a = Get-AppxPackage -Name $_
 			if ($a) {
-				WriteStatusMessageWorking "uninstalling store app '$_'"
+				WriteStatusMessage "uninstalling store app '$_'"
 				Remove-AppxPackage -Package $a -WhatIf:$WhatIfPreference <#-Confirm:$ConfirmPreference#>
 			}
 		}
@@ -171,7 +173,7 @@ function UninstallUnwantedStoreApps {
 function CleanUpFlashUpdateFiles {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage "cleaning up Adobe Flash files";
+	WriteHeaderMessage 'cleaning up Adobe Flash files'
 	@(
 		# 64 bit exe's in System32 for 64 bit OS
 		"C:\Windows\System32\Macromed\Flash\FlashUtil64_*_Plugin.exe"
@@ -194,7 +196,7 @@ function CleanUpFlashUpdateFiles {
 function CleanUpNvidiaFiles {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage "cleaning up extra nVidia files"
+	WriteHeaderMessage 'cleaning up extra nVidia files'
 
 	#
 	# TODO: these might be running; we should try to kill them first
@@ -209,7 +211,7 @@ function CleanUpNvidiaFiles {
 function CleanUpOtherFiles {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage "cleaning up various files";
+	WriteHeaderMessage 'cleaning up various files'
 	@(
 		"$env:LocalAppData\GitHubDesktop\Update.exe"
 		"$env:LocalAppData\GitKraken\Update.exe"
@@ -221,7 +223,7 @@ function CleanUpOtherFiles {
 function CleanUpCrapFolders {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage 'cleaning up junk folders';
+	WriteHeaderMessage 'cleaning up junk folders'
 	@(
 		"$env:UserProfile\.DVDFab64"
 
@@ -247,7 +249,7 @@ function CleanUpCrapFolders {
 		"$env:UserProfile\Videos\UltraViolet"
 	) |	ForEach-Object {
 		if (Test-Path -Path $_ -PathType Container) {
-			WriteStatusMessageWorking "removing folder `"$_`""
+			WriteStatusMessage "removing folder `"$_`""
 			Remove-Item -Path $_ -Force -Recurse
 		}
 	}
@@ -256,7 +258,7 @@ function CleanUpCrapFolders {
 function CleanUpDesktopIcons {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage 'cleaning up desktop icons';
+	WriteHeaderMessage 'cleaning up desktop icons'
 	@(
 		'IDrive'
 		'iSpy*'
@@ -305,7 +307,7 @@ function RemoveDesktopIcon {
 		Get-ChildItem $maybeFiles |
 			ForEach-Object {
 				$filename = $_.FullName
-				WriteStatusMessageWorking "removing |$($_.Name)| from user's Desktop folder"
+				WriteStatusMessage "removing |$($_.Name)| from user's Desktop folder"
 				Remove-Item -LiteralPath $filename -Force -WhatIf:$WhatIfPreference -ErrorAction Stop
 			}
 	}
@@ -314,7 +316,7 @@ function RemoveDesktopIcon {
 		Get-ChildItem $maybeFiles |
 			ForEach-Object {
 				$filename = $_.FullName
-				WriteStatusMessageWorking "removing |$($_.Name)| from Public Desktop folder"
+				WriteStatusMessage "removing |$($_.Name)| from Public Desktop folder"
 				Remove-Item -LiteralPath $filename -Force -WhatIf:$WhatIfPreference -ErrorAction Stop
 			}
 	}
@@ -323,7 +325,7 @@ function RemoveDesktopIcon {
 function DisableUnwantedServices {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage "cleaning up unwanted services";
+	WriteHeaderMessage 'cleaning up unwanted services'
 	@(
 		@{ Name = 'AdobeFlashPlayerUpdateSvc'; Start = ''; }
 		@{ Name = 'AdobeARMservice'; Start = ''; }					# Adobe Acrobat Update Service
@@ -385,7 +387,7 @@ function DisableService {
 	}
 	#if ($services -ne $null -and $services.Count -gt 0) {
 	if ($services) {
-		WriteSubSectionMessage "found $($services.Count) services to disable for param |$($service.Name)|";
+		WriteSubHeaderMessage "found $($services.Count) services to disable for param |$($service.Name)|"
 		$services |
 			ForEach-Object {
 				## why the heck am i using WMI for this??
@@ -394,23 +396,23 @@ function DisableService {
 				#if (($wmiService -eq $null -or $wmiService.StartMode -ne $desiredStartMode) -or $_.Status -ne "Stopped") {
 				if ($_.StartType -ne $desiredStartMode -or $_.Status -ne 'Stopped') {
 					# can stop service and disable it at same time with Set-Service, but doesn't work right for some services, so we'll do it in two steps
-					WriteStatusMessageWorking "    stopping service |$($_.DisplayName)|";
+					WriteStatusMessage "    stopping service |$($_.DisplayName)|"
 					Stop-Service -Name $_.Name -WhatIf:$WhatIfPreference
-					WriteStatusMessageWorking "    setting service |$($_.DisplayName)| to '$desiredStartMode'";
+					WriteStatusMessage "    setting service |$($_.DisplayName)| to '$desiredStartMode'"
 					Set-Service -InputObject $_ -StartupType $desiredStartMode -WhatIf:$WhatIfPreference
 				} else {
-					WriteStatusMessageNoWork "    service |$($_.DisplayName)| already disabled; skipping...";
+					WriteStatusMessageLow "    service |$($_.DisplayName)| already disabled; skipping..."
 				}
 			}
 	} else {
-		WriteStatusMessageNoWork "no services found for |$($service.Name)|";
+		WriteStatusMessageLow "no services found for |$($service.Name)|"
 	}
 }
 
 function DisableUnwantedScheduledTasks {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage "cleaning up unwanted scheduled tasks";
+	WriteHeaderMessage 'cleaning up unwanted scheduled tasks'
 	$allTasks = @(Get-ScheduledTask)
 	@(
 		@{ Name = 'User_Feed_Synchronization*'; Path='\'; }
@@ -448,28 +450,28 @@ function DisableScheduledTask {
 		$tasks = $allSchedTasks | Where-Object { $_.TaskName -like $taskName }
 	}
 	if ($tasks -ne $null -and $tasks.Count -gt 0) {
-		WriteSubSectionMessage "found $($tasks.Count) scheduled tasks for |${taskPath}${taskName}|"
+		WriteSubHeaderMessage "found $($tasks.Count) scheduled tasks for |${taskPath}${taskName}|"
 		$tasks |
 			ForEach-Object {
 				if ($_.Settings.Enabled) {
 					# Disable-ScheduleTask does not have a -WhatIf
 					if ($PSCmdlet.ShouldProcess($_.TaskName, "Disable-ScheduledTask")) {
-						WriteStatusMessageWorking "    disabling scheduled task |$($_.URI)|"
+						WriteStatusMessage "    disabling scheduled task |$($_.URI)|"
 						[void] (Disable-ScheduledTask -InputObject $_)
 					}
 				} else {
-					WriteStatusMessageNoWork "    scheduled task |$($_.URI)| already disabled; skipping..."
+					WriteStatusMessageLow "    scheduled task |$($_.URI)| already disabled; skipping..."
 				}
 			}
 	} else {
-		WriteStatusMessageNoWork "no scheduled tasks found for |${taskPath}${taskName}|"
+		WriteStatusMessageLow "no scheduled tasks found for |${taskPath}${taskName}|"
 	}
 }
 
 function CleanUpRegistryAutoruns {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage "cleaning up unwanted registry Autoruns";
+	WriteHeaderMessage 'cleaning up unwanted registry Autoruns'
 	$autorunsToLookFor = @(
 		@{ Name = 'Adobe ARM'; Value = '' }
 		@{ Name = 'SunJavaUpdateSched'; Value = '' }
@@ -524,7 +526,7 @@ function DisableRegistryAutorun {
 		[Parameter(Mandatory=$true)] [string] $valueName,
 		[Parameter(Mandatory=$true)] [string] $friendlyName
 	)
-	WriteStatusMessageWorking "disabling Autorun |$friendlyName| from |$regPath|"
+	WriteStatusMessage "disabling Autorun |$friendlyName| from |$regPath|"
 	$disabledLocation = Join-Path $regPath 'AutorunsDisabled'
 	# make sure disabled key exists
 	Confirm-RegistryKeyExists -registryPath $disabledLocation
@@ -541,7 +543,7 @@ function DisableRegistryAutorun {
 function CleanUpStartMenuAutoruns {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage "cleaning up unwanted StartMenu Autoruns";
+	WriteHeaderMessage 'cleaning up unwanted StartMenu Autoruns'
 	$autorunsToLookFor = @(
 		'Send to OneNote'
 	);
@@ -555,7 +557,7 @@ function CleanUpStartMenuAutoruns {
 			WriteVerboseMessage 'looking for Autorun |{0}| in |{1}|' $app,$location
 			$filepath = Join-Path $location $filename;
 			if (Test-Path $filepath) {
-				WriteStatusMessageWorking "disabling Autorun |$app| from |$location|";
+				WriteStatusMessage "disabling Autorun |$app| from |$location|"
 				$disabledLocation = Join-Path $location 'AutorunsDisabled';
 				$disabledFilepath = Join-Path $disabledLocation $filename;
 				# make sure disabled folder exists
@@ -584,7 +586,7 @@ function CleanUpStartMenuAutoruns {
 function CleanUpStartMenuItems {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage "cleaning up StartMenu entries"
+	WriteHeaderMessage 'cleaning up StartMenu entries'
 	@(
 		# moves:
 		[StartMenuCleanupItem]::FromCommonPrograms('Access.lnk', 'Applications')
@@ -800,7 +802,7 @@ function CleanUpStartMenuItems {
 function KillBackgroundProcesses {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param ()
-	WriteSectionMessage "killing background processes"
+	WriteHeaderMessage 'killing background processes'
 	@(
 		# Name is required (no '.exe'), Description and Company can be extra checks to make sure we get the right one:
 		<#@{ Name = ''; Description = ''; Company = ''; },#>
@@ -826,12 +828,12 @@ function KillBackgroundProcesses {
 		if ($p) {
 			$desc = "'$($p.ProcessName)'"
 			if ($p.Description) { $desc += "/'$($p.Description)'" } elseif ($p.Company) { $desc += "/'$($p.Company)'" }
-			WriteStatusMessageWorking "    killing background process $desc with PID $($p.Id)"
+			WriteStatusMessage "    killing background process $desc with PID $($p.Id)"
 			if ($PSCmdlet.ShouldProcess("PID $($p.Id) [$desc]", "Kill")) {
 				$p.Kill()
 			}
 		} else {
-			WriteStatusMessageNoWork "    background process named '$($app.Name)' not found"
+			WriteStatusMessageLow "    background process named '$($app.Name)' not found"
 		}
 	}
 }
@@ -878,7 +880,7 @@ function CleanUpOldFilesForPattern {
 	Get-ChildItem $mutatedFilePath -ErrorAction Ignore |
 		ForEach-Object {
 			$fullname = $_.FullName
-			WriteStatusMessageWorking "deleting file |$fullname|"
+			WriteStatusMessage "deleting file |$fullname|"
 			try {
 				# telling cmdlet to make all errors 'terminating' errors so that the catch will see them
 				Remove-Item -LiteralPath $fullname -Force -WhatIf:$WhatIfPreference -ErrorAction Stop
@@ -896,7 +898,7 @@ function RenameFile {
 	$folderName = Split-Path $filename -Parent
 	$mutatedFileName = GetMutatedFilename $filename
 	$mutatedFilePath = Join-Path $folderName $mutatedFileName
-	WriteStatusMessageWorking "renaming file |$filename| to |$mutatedFileName|"
+	WriteStatusMessage "renaming file |$filename| to |$mutatedFileName|"
 	try {
 		# telling cmdlet to make all errors 'terminating' errors so that the catch will see them
 		Move-Item -LiteralPath $filename -Destination $mutatedFilePath -Force -WhatIf:$WhatIfPreference -ErrorAction Stop
@@ -945,7 +947,7 @@ function UninstallApp {
 		ForEach-Object {
 			if ($_.DisplayName -match $displayName) {
 				$found = $true
-				WriteStatusMessageWorking "starting uninstall of |$($_.DisplayName)|"
+				WriteStatusMessage "starting uninstall of |$($_.DisplayName)|"
 				$uninstallCommand = $_.UninstallString
 				if (![System.String]::IsNullOrWhitespace($uninstallCommand)) {
 					WriteVerboseMessage 'running command |{0}|' $uninstallCommand -continuation
@@ -983,7 +985,7 @@ function UninstallApp {
 			}
 		};
 	if (!$found) {
-		WriteStatusMessageNoWork "no apps matching |$displayName| found..."
+		WriteStatusMessageLow "no apps matching |$displayName| found..."
 	} else {
 		$cachedInstalledApps = $null
 	}
@@ -994,12 +996,12 @@ function CleanUpEnvVars {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param()
 
-	WriteSectionMessage "cleaning up unwanted environment variables"
+	WriteHeaderMessage 'cleaning up unwanted environment variables'
 	@(
 		'POSH_THEMES_PATH'
 	) | ForEach-Object { RemoveUnwantedEnvVar -envVarName $_ }
 
-	WriteSectionMessage "cleaning up unwanted Path variable entries"
+	WriteHeaderMessage 'cleaning up unwanted Path variable entries'
 	CleanUpPathVars
 }
 
@@ -1046,7 +1048,7 @@ function CleanUpRandomStuff {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param()
 
-	#WriteSectionMessage 'cleaning up some random stuff'
+	#WriteHeaderMessage 'cleaning up some random stuff'
 	#FixUpHtmlFileIcon
 	#FixUpXmlFileIcon
 	#FixUpIrfanViewIcons
@@ -1072,7 +1074,7 @@ function SetDefaultIcon {
 		$progIdPath = $sysProgIdPath
 	}
 	if (-not $progIdPath) {
-		WriteStatusMessageNoWork "prog id '$progId' not found under HKEY_CLASSES_ROOT"
+		WriteStatusMessageLow "prog id '$progId' not found under HKEY_CLASSES_ROOT"
 		return $madeChanges
 	}
 	WriteVerboseMessage 'using progId |{0}|' $progIdPath
@@ -1080,7 +1082,7 @@ function SetDefaultIcon {
 
 	$currDefIcon = Get-RegistryKeyValue -registryPath $defaultIconPath -valueName $script:regDefaultPropName
 	if ($currDefIcon -notlike $checkMatch) {
-		WriteStatusMessageWorking "setting icon path to $nameForLogging"
+		WriteStatusMessage "setting icon path to $nameForLogging"
 		if ($currDefIcon) {
 			# make a backup of the existing one (just in case ... of something ...):
 			$backupPropName = "${progId}.Default"
@@ -1093,7 +1095,7 @@ function SetDefaultIcon {
 		New-RegistryKeyValue -registryPath $defaultIconPath -valueName $script:regDefaultPropName -valueData $newValue -valueType $type -force
 		$madeChanges = $true
 	} else {
-		WriteStatusMessageNoWork "icon path is already set to $nameForLogging"
+		WriteStatusMessageLow "icon path is already set to $nameForLogging"
 	}
 	return $madeChanges
 }
@@ -1106,15 +1108,15 @@ function FixUpXmlFileIcon {
 	$madeChanges = $false
 
 	# make sure Office hasn't set it's broken IconHandler:
-	WriteSubSectionMessage 'checking XML File icon'
+	WriteSubHeaderMessage 'checking XML File icon'
 	$xmlfileRegPathBase = Join-Path $script:regSysClassesRootPath 'xmlfile'
 	$xmlfileIconHandler = Join-Path $xmlfileRegPathBase 'ShellEx\IconHandler'
 	if (Test-RegistryKey -registryPath $xmlfileIconHandler) {
-		WriteStatusMessageWorking 'removing IconHandler'
+		WriteStatusMessage 'removing IconHandler'
 		Remove-RegistryKey -registryPath $xmlfileIconHandler
 		$madeChanges = $true
 	} else {
-		WriteStatusMessageNoWork 'no IconHandler found'
+		WriteStatusMessageLow 'no IconHandler found'
 	}
 
 	# now check that the default icon path is set to somethig decent:
@@ -1132,17 +1134,17 @@ function FixUpHtmlFileIcon {
 	$defaultIconValue = '"%UserProfile%\OneDrive\Pictures\icons\iexplore_17.ico",0'
 	$madeChanges = $false
 
-	WriteSubSectionMessage 'checking HTML File icon'
+	WriteSubHeaderMessage 'checking HTML File icon'
 
 	$userHtmlSelRegPath = Join-Path $script:regUserFileExtsPath '.html\UserChoice'
 	$userProgId = Get-RegistryKeyValue -registryPath $userHtmlSelRegPath -valueName 'ProgId'
-	if (-not $userProgId) { WriteStatusMessageNoWork 'no user selection for HTML files found'; return }
+	if (-not $userProgId) { WriteStatusMessageLow 'no user selection for HTML files found'; return }
 	WriteVerboseMessage 'found user progId |{0}|' $userProgId
 
 	$madeChanges = (SetDefaultIcon -progId $userProgId -checkMatch '*iexplore_17.ico*' -nameForLogging 'iexplore.ico' -newValue $defaultIconValue -asExpandString) -or $madeChanges
 
 	if ($userProgId -like 'Firefox*') {
-		WriteSubSectionMessage 'checking Firefox URL File icon'
+		WriteSubHeaderMessage 'checking Firefox URL File icon'
 		# firefox has two (FirefoxHTML-xxxxxx and FirefoxURL-xxxxxx, need to set URL one too)
 		$userProgId = $userProgId -replace 'FirefoxHTML','FirefoxURL'
 		$madeChanges = (SetDefaultIcon -progId $userProgId -checkMatch '*iexplore_17.ico*' -nameForLogging 'iexplore.ico' -newValue $defaultIconValue -asExpandString) -or $madeChanges
@@ -1157,7 +1159,7 @@ function FixUpIrfanViewIcons {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param()
 
-	WriteSubSectionMessage 'checking IrfanView icons'
+	WriteSubHeaderMessage 'checking IrfanView icons'
 	$madeChanges = $false
 	@(
 		@{ ProgId = 'IrfanView.bmp'; Icon = '"%UserProfile%\OneDrive\Pictures\icons\imageres_70.bmp.ico",0'; Match = '*imageres_70.bmp.ico*'; LogName = 'imageres_70.bmp.ico'; }
@@ -1182,13 +1184,13 @@ function RemoveUnwantedEnvVar {
 	)
 	WriteVerboseMessage 'removing envirnment variable |{0}|' $envVarName
 	if ([System.Environment]::GetEnvironmentVariable($envVarName, [System.EnvironmentVariableTarget]::User)) {
-		WriteSubSectionMessage "    removing environment variable 'USER/$envVarName'"
+		WriteSubHeaderMessage "    removing environment variable 'USER/$envVarName'"
 		if ($PSCmdlet.ShouldProcess("User/$envVarName = <null>", 'SetEnvironmentVariable')) {
 			[System.Environment]::SetEnvironmentVariable($envVarName, $null, [System.EnvironmentVariableTarget]::User)
 		}
 	}
 	if ([System.Environment]::GetEnvironmentVariable($envVarName, [System.EnvironmentVariableTarget]::Machine)) {
-		WriteSubSectionMessage "    removing environment variable 'SYSTEM/$envVarName'"
+		WriteSubHeaderMessage "    removing environment variable 'SYSTEM/$envVarName'"
 		if ($PSCmdlet.ShouldProcess("System/$envVarName = <null>", 'SetEnvironmentVariable')) {
 			[System.Environment]::SetEnvironmentVariable($envVarName, $null, [System.EnvironmentVariableTarget]::Machine)
 		}
@@ -1217,13 +1219,13 @@ function RemoveUnwantedPathsForTarget {
 		WriteVerboseMessage 'original: {0}' $originalPathVar -continuation
 		$cleanedPathVar = RemoveUnwantedPaths -pathVar $originalPathVar -targetName $targetName -removals $removals -replacements $replacements
 		if ($cleanedPathVar -ne $originalPathVar) {
-			WriteStatusMessageWorking "    updating $targetName Path variable"
+			WriteStatusMessage "    updating $targetName Path variable"
 			WriteVerboseMessage 'cleaned: {0}' $cleanedPathVar -continuation
 			if ($PSCmdlet.ShouldProcess("$targetName/@Path", 'SetEnvironmentVariable')) {
 				$regKey.SetValue($envVarName, $cleanedPathVar, 'ExpandString')
 			}
 		} else {
-			WriteStatusMessageNoWork "    no changes for $targetName Path variable"
+			WriteStatusMessageLow "    no changes for $targetName Path variable"
 		}
 	} finally {
 		if ($regKey) { $regKey.Dispose() }
@@ -1244,7 +1246,7 @@ function RemoveUnwantedPaths {
 		$match = $false
 		foreach ($c in $removals) {
 			if ($p -like $c) {
-				WriteSubSectionMessage "    removing $targetName path '$p'"
+				WriteSubHeaderMessage "    removing $targetName path '$p'"
 				$match = $true
 				break
 			}
@@ -1254,7 +1256,7 @@ function RemoveUnwantedPaths {
 				foreach ($r in $replacements) {
 					if ($p -like $r.SearchFor) {
 						$p2 = (& $r.ReplaceWith -val $p)
-						WriteSubSectionMessage "    patching $targetName path '$p' with '$p2'"
+						WriteSubHeaderMessage "    patching $targetName path '$p' with '$p2'"
 						$p = $p2
 						break
 					}
@@ -1297,7 +1299,7 @@ function CleanUpStartMenuItem {
 			}
 			# do move (might have '*' in Source, so expand it; the move doesn't work with folders and a '*' in the source, think our exception handling move only works for single folder):
 			foreach ($srcPath in @(Convert-Path -Path $startMenuItem.Source)) {
-				WriteStatusMessageWorking "    moving item: |$(GetStartMenuPathForLogging -path $srcPath)| to |$(GetStartMenuPathForLogging -path $trg)|"
+				WriteStatusMessage "    moving item: |$(GetStartMenuPathForLogging -path $srcPath)| to |$(GetStartMenuPathForLogging -path $trg)|"
 				$canDeleteSource = $false
 				try {
 					# telling cmdlet to make all errors 'terminating' errors so that the catch will see them
@@ -1344,14 +1346,14 @@ function CleanUpStartMenuItem {
 			return
 		}
 	} else {
-		#WriteStatusMessageNoWork "start menu item not found: '$($startMenuItem.Source)'; skipping"
+		#WriteStatusMessageLow "start menu item not found: '$($startMenuItem.Source)'; skipping"
 		WriteVerboseMessage 'start menu item |{0}| not found and DeleteSourceFolder != true; skipping' $startMenuItem.Source
 		return
 	}
 	# do we need to clean anything up?
 	foreach ($deleteThis in $deleteThese) {
 		if ($deleteThis -and [StartMenuCleanupItem]::SafeToDelete($deleteThis)) {
-			WriteStatusMessageWorking "deleting folder: |$(GetStartMenuPathForLogging -path $deleteThis)|"
+			WriteStatusMessage "deleting folder: |$(GetStartMenuPathForLogging -path $deleteThis)|"
 			try {
 				# telling cmdlet to make all errors 'terminating' errors so that the catch will see them
 				Remove-Item -LiteralPath $deleteThis -Force -Recurse -ErrorAction Stop
@@ -1371,74 +1373,6 @@ function GetStartMenuPathForLogging {
 		[Parameter(Mandatory=$true)] [string] $path
 	)
 	return (($path -replace $script:commonStartMenu, '<CommonStartMenu>') -replace $script:userStartMenu, '<UserStartMenu>')
-}
-
-function WriteSectionMessage {
-	param (
-		[Parameter(Mandatory=$true)] [string]$message
-	)
-	Write-Host ""
-	Write-Host $message -ForegroundColor DarkMagenta
-}
-
-function WriteSubSectionMessage {
-	param (
-		[Parameter(Mandatory=$true)] [string]$message
-	)
-	Write-Host $message -ForegroundColor DarkCyan
-}
-
-function WriteStatusMessageWorking {
-	param (
-		[Parameter(Mandatory=$true)] [string]$message
-	)
-	Write-Host $message -ForegroundColor DarkGreen
-}
-
-function WriteStatusMessageNoWork {
-	param (
-		[Parameter(Mandatory=$true)] [string]$message
-	)
-	Write-Host $message -ForegroundColor DarkGray
-}
-
-function WriteStatusMessageWarning {
-	param (
-		[Parameter(Mandatory=$true)] [string]$message
-	)
-	Write-Host $message -ForegroundColor DarkYellow
-}
-
-function WriteVerboseMessage {
-	[CmdletBinding(SupportsShouldProcess=$false)]
-	[OutputType([void])]
-	param(
-		# pass in a simple string to write out, or a .NET format string with params
-		[Parameter(ParameterSetName='ByString',Mandatory=$true,Position=0,ValueFromPipeline=$true)] [string] $message,
-		[Parameter(ParameterSetName='ByString',Mandatory=$false,Position=1)] [object[]] $formatParams = $null,
-		# or can alternately pass in a script block that returns a message;
-		# it will only be invoked if Verbose is turned on, that way, if there's
-		# something 'expensive' you need to calculate, it will only be done if necessary
-		[Parameter(ParameterSetName='ByScript',Mandatory=$true,Position=0)] [scriptblock] $msgScript,
-		# if message is a 'continuation' of a previous message, no invocationName will be written and message will be indented
-		[Parameter(Mandatory=$false)] [switch] $continuation
-	)
-	process {
-		if ($VerbosePreference -ne [System.Management.Automation.ActionPreference]::Continue) { return }
-
-		$msg = if ($msgScript) { $msgScript.Invoke() } elseif ($formatParams) { $message -f $formatParams } else { $message }
-		if (-not $continuation) {
-			# get invocation name from first stack frame that's not this function and is not a script block:
-			foreach ($frame in (@(Get-PSCallStack) | Select-Object -Skip 1 <# skip current #>)) {
-				if ($frame -and $frame.InvocationInfo -and $frame.InvocationInfo.InvocationName <# empty for script blocks #>) {
-					$msg = '[{0}] {1}' -f $frame.InvocationInfo.InvocationName,$msg
-					break
-				}
-			}
-		} else { $msg = '    ' + $msg }
-		# now write out the message [some platforms can't use Write-Verbose (??) (e.g. Azure Functions). Fall back to Write-Output in that case]:
-		try { Write-Verbose $msg } catch { Write-Output "VERBOSE: $msg" }
-	}
 }
 
 class StartMenuCleanupItem {
