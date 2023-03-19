@@ -15,25 +15,22 @@ $script:NA = 'N/A'
 function Main {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	param()
-	WriteHeader -text 'Environment Variables' -includeExtraSpace $false
+	$allResults = @{}
 	WriteVerboseMessage 'dumping environment vars'
-	$envVars = Get-ChildItem -Path env: | Select-Object -Property Name,Value
-	$envVars | Sort-Object -Property Name | Format-Table
+	$allResults.EnvVars = Get-ChildItem -Path env: | Select-Object -Property Name,Value | Sort-Object -Property Name
 
 	# dump out special folder paths (??)
-	WriteHeader -text 'System Special Folders'
 	WriteVerboseMessage 'getting special folders'
-	$specFldrs = [System.Enum]::GetValues([System.Environment+SpecialFolder]) |
-					ForEach-Object { [PSCustomObject]@{ Folder = $_.ToString(); Path = [System.Environment]::GetFolderPath($_); } }
-	$specFldrs | Sort-Object -Property Folder | Format-Table -Property Folder,Path
+	$allResults.SpecFldrs = [System.Enum]::GetValues([System.Environment+SpecialFolder]) |
+					ForEach-Object { [PSCustomObject]@{ Folder = $_.ToString(); Path = [System.Environment]::GetFolderPath($_); } } |
+					Sort-Object -Property Folder
 
 	$unameAvail = [bool](Get-Command -Name 'uname' -ErrorAction Ignore)
 	$cimInstanceAvail = [bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)
 
 	if ($unameAvail) {
-		WriteHeader -text 'uname'
 		WriteVerboseMessage 'getting uname info'
-		$unameVals =  @(@{ nm = 'kernel-name'; op = 's'; }, @{ nm = 'kernel-release'; op = 'r'; }, @{ nm = 'kernel-version'; op = 'v'; },
+		$allResults.UnameVals =  @(@{ nm = 'kernel-name'; op = 's'; }, @{ nm = 'kernel-release'; op = 'r'; }, @{ nm = 'kernel-version'; op = 'v'; },
 					@{ nm = 'machine'; op = 'm'; }, @{ nm = 'processor'; op = 'p'; }, @{ nm = 'hardware-platform'; op = 'i'; },
 					@{ nm = 'operating-system'; op = 'o'; }) |
 				ForEach-Object {
@@ -42,11 +39,9 @@ function Main {
 						[PSCustomObject]@{ Name = $_.nm; Value = $v; }
 					}
 				}
-		$unameVals | Format-Table
 	}
 
 	# get system properties/data/etc:
-	WriteHeader -text 'System Properties'
 	WriteVerboseMessage 'getting system properties'
 
 	$results = [List[PSObject]]::new(16) #[PSObject]::new()
@@ -247,7 +242,18 @@ function Main {
 	_addProperty -obj $results -propName 'EnvVar_HostType' -propValue (_getEnvVarValue -envVarName 'HostType')
 	_addProperty -obj $results -propName 'EnvVar_OsType' -propValue (_getEnvVarValue -envVarName 'OsType')
 
-	$results | Format-Table
+	$allResults.SysProps = $results
+
+	WriteHeader -text 'Environment Variables' -includeExtraSpace $false
+	$allResults.EnvVars | Format-Table
+	WriteHeader -text 'System Special Folders'
+	$allResults.SpecFldrs | Format-Table -Property Folder,Path
+	if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
+		WriteHeader -text 'uname'
+		$allResults.UnameVals | Format-Table
+	}
+	WriteHeader -text 'System Properties'
+	$allResults.SysProps | Format-Table
 }
 
 function _addProperty {
