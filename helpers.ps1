@@ -73,3 +73,50 @@ function WriteVerboseMessage {
 		try { Write-Verbose $msg } catch { Write-Output "VERBOSE: $msg" }
 	}
 }
+
+$script:properIndentsCache = @{ 1 = "`t"; 2 = "`t`t"; 3 = "`t`t`t"; 4 = "`t`t`t`t"; }
+$script:stupidIndentsCache = @{ 1 = '    '; 2 = '        '; 3 = '            '; 4 = '                '; }
+$script:twoSpaceIndentRegex = [regex]::new('^((?<fu>  )+)', @('MultiLine', 'Compiled'))
+$script:arrayObjStartRegex = [regex]::new('\[[\r\n\s]+{', @('MultiLine', 'Compiled'))
+$script:multiObjRegex = [regex]::new('},[\r\n\s]+{', @('MultiLine', 'Compiled'))
+function ConvertTo-ProperFormattedJson {
+	[OutputType([string])]
+	param(
+		[Parameter(Mandatory=$true, ValueFromPipeline = $true)] [object] $inputObject,
+		[switch] $useSpaces,
+		[switch] $moreCompact
+	)
+	process {
+		if ($PSEdition -eq 'Core') {
+			$json = ConvertTo-Json -InputObject $inputObject -Depth 100 -EnumsAsStrings
+		} else {
+			$json = ConvertTo-Json -InputObject $inputObject -Depth 100
+		}
+		# do this first as it might avoid some replacements below:
+		if ($moreCompact) {
+			#$json = (($json -replace $script:arrayObjStartRegex,'[{') -replace $script:arrayObjEndRegex,'}]') -replace $script:multiObjRegex,'},{'
+			$json = ($json -replace $script:arrayObjStartRegex,'[{') -replace $script:multiObjRegex,'},{'
+		}
+		if ($PSEdition -eq 'Core') {
+			# old powershell's is already 4 space indented (or some crap), so just leave that alone;
+			# plus this regex stuff doesn't work for that for some reason i'm not bothering to figure out:
+			$json = $json -replace $script:twoSpaceIndentRegex, {
+					$indentCount = $_.Groups['fu'].Captures.Count
+					if ($useSpaces) {
+						if ($script:stupidIndentsCache.ContainsKey($indentCount)) {
+							return $script:stupidIndentsCache[$indentCount]
+						} else {
+							return [string]::new(' ', $indentCount * 4)
+						}
+					} else {
+						if ($script:properIndentsCache.ContainsKey($indentCount)) {
+							return $script:properIndentsCache[$indentCount]
+						} else {
+							return [string]::new("`t", $indentCount)
+						}
+					}
+				}
+		}
+		return $json
+	}
+}
