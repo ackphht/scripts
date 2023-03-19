@@ -6,18 +6,20 @@ param()
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Continue
 #Set-StrictMode -Version Latest
 
+. $PSScriptRoot/helpers.ps1
+
 $script:NA = 'N/A'
 
 function Main {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	param()
 	WriteHeader -text 'Environment Variables' -includeExtraSpace $false
-	WriteVerbose 'dumping environment vars'
+	WriteVerboseMessage 'dumping environment vars'
 	Get-ChildItem -Path env:
 
 	# dump out special folder paths (??)
 	WriteHeader -text 'System Special Folders'
-	WriteVerbose 'getting special folders'
+	WriteVerboseMessage 'getting special folders'
 	[System.Enum]::GetValues([System.Environment+SpecialFolder]) |
 		ForEach-Object {
 			[PSCustomObject]@{ Folder = $_.ToString(); Path = [System.Environment]::GetFolderPath($_); }
@@ -30,7 +32,7 @@ function Main {
 
 	if ($unameAvail) {
 		WriteHeader -text 'uname'
-		WriteVerbose 'getting uname info'
+		WriteVerboseMessage 'getting uname info'
 		@(@{ nm = 'kernel-name'; op = 's'; }, @{ nm = 'kernel-release'; op = 'r'; }, @{ nm = 'kernel-version'; op = 'v'; },
 			@{ nm = 'machine'; op = 'm'; }, @{ nm = 'processor'; op = 'p'; }, @{ nm = 'hardware-platform'; op = 'i'; },
 			@{ nm = 'operating-system'; op = 'o'; }) |
@@ -44,7 +46,7 @@ function Main {
 
 	# get system properties/data/etc:
 	WriteHeader -text 'System Properties'
-	WriteVerbose 'getting system properties'
+	WriteVerboseMessage 'getting system properties'
 
 	$results = [PSObject]::new()
 	_addProperty -obj $results -propName 'PSVersion_PowerShell' -propValue $PSVersionTable.PSVersion
@@ -74,7 +76,7 @@ function Main {
 	_addProperty -obj $results -propName 'Path_InvalidPathChars' -propValue (_charsToString -chars ([System.IO.Path]::InvalidPathChars))
 	_addProperty -obj $results -propName 'Path_InvalidFileNameChars' -propValue (_charsToString -chars ([System.IO.Path]::GetInvalidFileNameChars()))
 
-	WriteVerbose 'getting runtime info'
+	WriteVerboseMessage 'getting runtime info'
 	if ($IsMacOS) {
 		# cache this, avoid a couple redundant calls below:
 		$macOsData = (system_profiler -json SPHardwareDataType SPSoftwareDataType) | ConvertFrom-Json
@@ -91,7 +93,7 @@ function Main {
 		_setProperty -obj $results -propName 'RuntimeInfo_RuntimeIdentifier' -propValue ([System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier)
 	}
 
-	WriteVerbose 'getting Computer info'
+	WriteVerboseMessage 'getting Computer info'
 	@('Manufacturer', 'Model', 'SystemType', 'BIOSVersion', 'SerialNumber') |
 		ForEach-Object { _addProperty -obj $results -propName "Computer_$_" -propValue '' }
 	if ($cimInstanceAvail) {
@@ -114,7 +116,7 @@ function Main {
 		_setProperty -obj $results -propName 'Computer_SystemType' -propValue (uname -m <# --machine; macOS doesn't support the '--' options ??? #>)
 	}
 
-	WriteVerbose 'getting OS info'
+	WriteVerboseMessage 'getting OS info'
 	@('Name', 'Manufacturer', 'Version', 'OSArchitecture', 'Kernel', 'SKU', 'OSType', 'Codename') |
 		ForEach-Object { _addProperty -obj $results -propName "OS_$_" -propValue '' }
 	if ($cimInstanceAvail) {
@@ -169,7 +171,7 @@ function Main {
 		}
 	}
 
-	WriteVerbose 'getting processor info'
+	WriteVerboseMessage 'getting processor info'
 	_addProperty -obj $results -propName 'Processor_IsLittleEndian' -propValue ([System.BitConverter]::IsLittleEndian)
 	@('Name', 'Description', 'Architecture', 'AddressWidth', 'DataWidth', 'L2CacheSize', 'L3CacheSize', 'NumberOfCores', 'LogicalProcessors', 'ProcessorId') |
 		ForEach-Object { _addProperty -obj $results -propName "Processor_$_" -propValue '' }
@@ -234,7 +236,7 @@ function Main {
 	_addProperty -obj $results -propName 'Processor_IsVector128HardwareAccelerated' -propValue ([AckWare.Intrinsics]::IsVector128HardwareAccelerated)
 	_addProperty -obj $results -propName 'Processor_IsVector256HardwareAccelerated' -propValue ([AckWare.Intrinsics]::IsVector256HardwareAccelerated)
 
-	WriteVerbose 'getting env var info'
+	WriteVerboseMessage 'getting env var info'
 	_addProperty -obj $results -propName 'EnvVar_ProcessorArchitecture' -propValue (_getEnvVarValue -envVarName 'Processor_Architecture')
 	_addProperty -obj $results -propName 'EnvVar_ProcessorIdentifier' -propValue (_getEnvVarValue -envVarName 'Processor_Identifier')
 	_addProperty -obj $results -propName 'EnvVar_CPU' -propValue (_getEnvVarValue -envVarName 'CPU')
@@ -279,7 +281,7 @@ function _getVariableValue {
 	if ($v) {
 		$value = $v.Value
 	}
-	WriteVerbose 'value for variable |{0}| = |{1}|' @($varName, $value)
+	WriteVerboseMessage 'value for variable |{0}| = |{1}|' @($varName, $value)
 	return $value
 }
 
@@ -293,7 +295,7 @@ function _getEnvVarValue {
 	if ($v) {
 		$value = $v.Value
 	}
-	WriteVerbose 'value for envVar |{0}| = |{1}|' @($envVarName, $value)
+	WriteVerboseMessage 'value for envVar |{0}| = |{1}|' @($envVarName, $value)
 	return $value
 }
 
@@ -363,34 +365,6 @@ function _charsToString {
 		return $sb.ToString()
 	}
 	return ''
-}
-
-function WriteVerbose {
-	[CmdletBinding(SupportsShouldProcess=$false)]
-	[OutputType([void])]
-	param(
-		# pass in a simple string to write out, or a .NET format string with params
-		[Parameter(ParameterSetName='ByString',Mandatory=$true,Position=0,ValueFromPipeline=$true)] [string] $message,
-		[Parameter(ParameterSetName='ByString',Mandatory=$false,Position=1)] [object[]] $formatParams = $null,
-		# if message is a 'continuation' of a previous message, no invocationName will be written and message will be indented
-		[Parameter(Mandatory=$false)] [switch] $continuation
-	)
-	process {
-		if ($VerbosePreference -ne [System.Management.Automation.ActionPreference]::Continue) { return }
-
-		$msg = if ($formatParams) { $message -f $formatParams } else { $message }
-		if (-not $continuation) {
-			# get invocation name from first stack frame that's not this function and is not a script block:
-			foreach ($frame in (@(Get-PSCallStack) | Select-Object -Skip 1 <# skip current #>)) {
-				if ($frame -and $frame.InvocationInfo -and $frame.InvocationInfo.InvocationName <# empty for script blocks #>) {
-					$msg = '[{0}] {1}' -f $frame.InvocationInfo.InvocationName,$msg
-					break
-				}
-			}
-		} else { $msg = '    ' + $msg }
-		# now write out the message [some platforms can't use Write-Verbose (??) (e.g. Azure Functions). Fall back to Write-Output in that case]:
-		try { Write-Verbose $msg } catch { Write-Output "VERBOSE: $msg" }
-	}
 }
 
 $script:divider = [string]::new('=', 80)
