@@ -4,6 +4,10 @@ param()
 #Set-Location ~\Desktop
 
 function Main {
+	if (!(Test-RunningAsAdmin)) {
+		Write-Warning 'script is not running with admin privileges; some of the data collected by this script will not be available'
+	}
+
 	$netver = GetDotNetVersions
 
 	if (Get-Command -Name Get-CimInstance -ErrorAction SilentlyContinue) {
@@ -17,13 +21,13 @@ function Main {
 	$osver = GetVersion $osname $osinfo
 	$edition = GetEdition $osinfo
 
-	if ($PSScriptRoot) {
-		#$baseFilename = "$PSScriptRoot\${osname}.${osbuild}.${edition}"
-		$baseFilename = "$PSScriptRoot\${osname}.${osver}.${edition}"
-	} else {
-		#$baseFilename = "$(Split-Path -Parent $script:MyInvocation.MyCommand.Path)\${osname}.${osbuild}.${edition}"
-		$baseFilename = "$(Split-Path -Parent $script:MyInvocation.MyCommand.Path)\${osname}.${osver}.${edition}"
-	}
+	#if ($PSScriptRoot) {
+	#	$baseFilename = "$PSScriptRoot\${osname}.${osver}.${edition}"
+	#} else {
+	#	$baseFilename = "$(Split-Path -Parent $script:MyInvocation.MyCommand.Path)\${osname}.${osver}.${edition}"
+	#}
+	$baseFilename = "$((Get-Location).Path)\${osname}.${osver}.${edition}"
+
 	Set-Content -Path "${baseFilename}.dotnetVersion.txt" -Value $netver
 	$osinfo | Format-List ([string[]]($osinfo | Get-Member -MemberType Property | ForEach-Object { $_.Name } | Sort-Object)) > "${baseFilename}.osInfo.txt"
 	Set-Content -Path "${baseFilename}.poshVersion.txt" -Value (GetPowerShellVersion)
@@ -66,7 +70,8 @@ function GetDotNetVersions {
 	$dotnet45ver = [int](GetRegPropertyValue $netfx45RegKeyName $netfx45RegValueName)
 	$dotnet45sp = [int](GetRegPropertyValue $netfx45RegKeyName $netfx4SPxRegValueName)
 	if ($dotnet45ver -ge 378389) {
-		if ($dotnet45ver -ge 528040) { $ver = '4.8' }
+		if ($dotnet45ver -ge 533320) { $ver = '4.8.1' }		# official docs say 533325, but my system has 533320, so ???
+		elseif ($dotnet45ver -ge 528040) { $ver = '4.8' }
 		elseif ($dotnet45ver -ge 461808) { $ver = '4.7.2' }
 		elseif ($dotnet45ver -ge 461308) {	$ver = '4.7.1' }
 		elseif ($dotnet45ver -ge 460798) { $ver = '4.7' }
@@ -371,6 +376,12 @@ function GetWinVersionFromReg {
 		$result = (Get-ItemProperty -path 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion').ReleaseId
 	}
 	return $result
+}
+
+function Test-RunningAsAdmin {
+	$windowsIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+	$windowsPrincipal = New-Object 'System.Security.Principal.WindowsPrincipal' $windowsIdentity
+	return $windowsPrincipal.IsInRole("Administrators")
 }
 
 #==============================
