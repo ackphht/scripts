@@ -2,7 +2,8 @@
 
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
-	[switch] $pauseBeforeCleanup
+	[switch] $pauseBeforeCleanup,
+	[switch] $writeOnesFirst
 )
 
 $ErrorActionPreference = 'Stop'	#'Continue'
@@ -14,18 +15,24 @@ $script:passesFor10MB = (10MB / $script:bufferSize)
 $script:passesFor100MB = (100MB / $script:bufferSize)
 $script:passesFor1GB = (1GB / $script:bufferSize)
 $script:zeroesBuffer = [byte[]]::new($script:bufferSize)
+$script:onesBuffer = [byte[]]::new($script:bufferSize)
 $script:zeroFile = "$env:HOME/zeroes"
 
 function Main {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param(
-		[switch] $pauseCleanup
+		[switch] $pauseCleanup,
+		[switch] $writeOnes
 	)
 
 	if (-not (isLinuxOs)) { Write-Error "this script is only intended for Linux"; return; }
 	if (-not (isRunningAsRoot)) { Write-Error "this script requires root; please run PowerShell with sudo or something"; return; }
 
 	InitBuffer -buffer $script:zeroesBuffer -value 0
+	if ($writeOnes) {
+		$script:onesBuffer = [byte[]]::new($script:bufferSize)
+		InitBuffer -buffer $script:onesBuffer -value 0xff
+	}
 
 	$fsInfo = Get-FSInfo
 
@@ -38,7 +45,7 @@ function Main {
 	}
 
 	# create our file we're going to write to
-	Write-Host "writing zeroes to file '$script:zeroFile'" -ForegroundColor DarkCyan
+	Write-Host "writing zeroes to file '$script:zeroFile' (writeOnesFirst = $writeOnes)" -ForegroundColor DarkCyan
 	$trgFile = [File]::Open($script:zeroFile, [FileMode]::Create)
 	try {
 		if ($fsInfo.FileSystem -eq 'btrfs' -and $fsInfo.Compression) {
@@ -53,16 +60,16 @@ function Main {
 			Write-Progress -Activity 'Zero''ing free space' -PercentComplete $percentDone
 			if ($freeSpace -ge 1.1GB) {
 				Write-Verbose "$($MyInvocation.InvocationName): freespace = $freeSpace, writing 1GB data"
-				WriteSomeData -file $trgFile -passes $script:passesFor1GB
+				WriteSomeData -file $trgFile -passes $script:passesFor1GB -writeOnes:$writeOnes
 			} elseif ($freeSpace -ge 110MB) {
 				Write-Verbose "$($MyInvocation.InvocationName): freespace = $freeSpace, writing 100MB data"
-				WriteSomeData -file $trgFile -passes $script:passesFor100MB
+				WriteSomeData -file $trgFile -passes $script:passesFor100MB -writeOnes:$writeOnes
 			} elseif ($freeSpace -ge 20MB) {
 				Write-Verbose "$($MyInvocation.InvocationName): freespace = $freeSpace, writing 10MB data"
-				WriteSomeData -file $trgFile -passes $script:passesFor10MB
+				WriteSomeData -file $trgFile -passes $script:passesFor10MB -writeOnes:$writeOnes
 			} elseif ($freeSpace -ge 10MB) {
 				Write-Verbose "$($MyInvocation.InvocationName): freespace = $freeSpace, writing 1MB data"
-				WriteSomeData -file $trgFile -passes $script:passesFor1MB
+				WriteSomeData -file $trgFile -passes $script:passesFor1MB -writeOnes:$writeOnes
 			} else {
 				Write-Verbose "$($MyInvocation.InvocationName): freespace = $freeSpace, breaking out of loop"
 				sync
@@ -72,6 +79,7 @@ function Main {
 			$freeSpace = (Get-PSDrive -Name '/').Free
 		}
 	} finally {
+		Write-Progress -Activity 'Zero''ing free space' -PercentComplete 100 -Completed
 		if ($pauseCleanup) {
 			Read-Host -Prompt 'press enter to clean up space'
 		}
@@ -93,9 +101,15 @@ function WriteSomeData {
 	[OutputType([void])]
 	param(
 		[Parameter(Mandatory=$true)] [FileStream] $file,
-		[Parameter(Mandatory=$true)] [int] $passes
+		[Parameter(Mandatory=$true)] [int] $passes,
+		[switch] $writeOnes
 	)
 	for ($i = 0; $i -lt $passes; ++$i) {
+		if ($writeOnes) {
+			$startPos = $file.Position
+			$file.Write($script:onesBuffer)
+			$file.Position = $startPos
+		}
 		$file.Write($script:zeroesBuffer)
 	}
 }
@@ -141,5 +155,5 @@ function isRunningAsRoot {
 }
 
 #==============================
-Main -pauseCleanup:$pauseBeforeCleanup
+Main -pauseCleanup:$pauseBeforeCleanup -writeOnes:$writeOnesFirst
 #==============================
