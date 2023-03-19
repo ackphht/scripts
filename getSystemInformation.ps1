@@ -3,7 +3,12 @@
 using namespace System.Collections.Generic
 
 [CmdletBinding(SupportsShouldProcess=$true)]
-param()
+param(
+	[switch] $asJson,
+	[switch] $asCsv,
+	[switch] $asText,
+	[string] $outputFolder
+)
 
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Continue
 #Set-StrictMode -Version Latest
@@ -14,7 +19,12 @@ $script:NA = 'N/A'
 
 function Main {
 	[CmdletBinding(SupportsShouldProcess=$false)]
-	param()
+	param(
+		[switch] $saveJson,
+		[switch] $saveCsv,
+		[switch] $saveText,
+		[string] $saveToFldr
+	)
 	$allResults = @{}
 	WriteVerboseMessage 'dumping environment vars'
 	$allResults.EnvVars = Get-ChildItem -Path env: | Select-Object -Property Name,Value | Sort-Object -Property Name
@@ -244,16 +254,48 @@ function Main {
 
 	$allResults.SysProps = $results
 
-	WriteHeader -text 'Environment Variables' -includeExtraSpace $false
-	$allResults.EnvVars | Format-Table
-	WriteHeader -text 'System Special Folders'
-	$allResults.SpecFldrs | Format-Table -Property Folder,Path
-	if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
-		WriteHeader -text 'uname'
-		$allResults.UnameVals | Format-Table
+	if ($saveJson -or $saveCsv -or $saveText) {
+		$scriptname = Split-Path -Path $PSCommandPath -LeafBase
+		$outputBaseName = if ($saveToFldr) { Join-Path $saveToFldr $scriptname } else { $scriptname }
+		if ($saveJson) {
+			$encoding = if ($PSEdition -ne 'Core') { 'UTF8' } else { 'UTF8NoBOM' }
+			ConvertTo-ProperFormattedJson -InputObject $allResults.EnvVars | Set-Content -LiteralPath "$outputBaseName.EnvVars.json" -Encoding $encoding -NoNewline
+			ConvertTo-ProperFormattedJson -InputObject $allResults.SpecFldrs | Set-Content -LiteralPath "$outputBaseName.SpecFldrs.json" -Encoding $encoding -NoNewline
+			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
+				ConvertTo-ProperFormattedJson -InputObject $allResults.UnameVals | Set-Content -LiteralPath "$outputBaseName.Uname.json" -Encoding $encoding -NoNewline
+			}
+			ConvertTo-ProperFormattedJson -InputObject $allResults.SysProps | Set-Content -LiteralPath "$outputBaseName.SysProps.json" -Encoding $encoding -NoNewline
+		}
+		if ($saveCsv) {
+			$parms = @{ NoTypeInformation = $true; }
+			if ($PSEdition -eq 'Core') { $parms.Add('UseQuotes', 'AsNeeded') }
+			$allResults.EnvVars | Export-Csv -LiteralPath "$outputBaseName.EnvVars.csv" @parms
+			$allResults.SpecFldrs | Export-Csv -LiteralPath "$outputBaseName.SpecFldrs.csv" @parms
+			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
+				$allResults.UnameVals | Export-Csv -LiteralPath "$outputBaseName.Uname.csv" @parms
+			}
+			$allResults.SysProps | Export-Csv -LiteralPath "$outputBaseName.SysProps.csv" @parms
+		}
+		if ($saveText) {
+			$allResults.EnvVars | Format-Table -AutoSize | Out-File -LiteralPath "$outputBaseName.EnvVars.txt" -Width 4096
+			$allResults.SpecFldrs | Format-Table -AutoSize -Property Folder,Path | Out-File -LiteralPath "$outputBaseName.SpecFldrs.txt" -Width 4096
+			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
+				$allResults.UnameVals | Format-Table -AutoSize | Out-File -LiteralPath "$outputBaseName.Uname.txt" -Width 4096
+			}
+			$allResults.SysProps | Format-Table -AutoSize | Out-File -LiteralPath "$outputBaseName.SysProps.txt" -Width 4096
+		}
+	} else {
+		WriteHeader -text 'Environment Variables' -includeExtraSpace $false
+		$allResults.EnvVars | Format-Table -AutoSize
+		WriteHeader -text 'System Special Folders'
+		$allResults.SpecFldrs | Format-Table -Property Folder,Path -AutoSize
+		if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
+			WriteHeader -text 'uname'
+			$allResults.UnameVals | Format-Table -AutoSize
+		}
+		WriteHeader -text 'System Properties'
+		$allResults.SysProps | Format-Table -AutoSize
 	}
-	WriteHeader -text 'System Properties'
-	$allResults.SysProps | Format-Table
 }
 
 function _addProperty {
@@ -427,5 +469,5 @@ namespace AckWare {
 }
 
 #==============================
-Main
+Main -saveJson:$asJson -saveCsv:$asCsv -saveText:$asText -saveToFldr $outputFolder
 #==============================
