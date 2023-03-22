@@ -10,7 +10,7 @@ fi
 
 cd $targetFolder
 
-cp /etc/*-release .
+cp -Lr /etc/*-release .
 test -f /etc/debian_version && cp /etc/debian_version .
 test -f /etc/mime.types && cp /etc/mime.types .
 #test -f /etc/lsb-release && cp /etc/lsb-release .
