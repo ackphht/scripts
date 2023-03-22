@@ -149,24 +149,24 @@ function Main {
 		_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $(if ([System.Environment]::Is64BitOperatingSystem) { '64-bit' } else { '32-bit' })
 	} else {
 		if ((Get-Command -Name 'lsb_release' -ErrorAction Ignore)) {
-			$lsb = lsb_release --all 2>/dev/null
-			_setProperty -obj $results -propName 'OS_Name' -propValue (_parseLinuxLines -lines $lsb -lookFor 'Description' -type 1)
-			_setProperty -obj $results -propName 'OS_Distributor' -propValue (_parseLinuxLines -lines $lsb -lookFor 'Distributor ID' -type 1)
-			_setProperty -obj $results -propName 'OS_Version' -propValue (_parseLinuxLines -lines $lsb -lookFor 'Release' -type 1)
-			$oscodename = (_parseLinuxLines -lines $lsb -lookFor 'Codename' -type 1)
+			$lsb = lsb_release --all 2>/dev/null | _parseLinesToLookup
+			_setProperty -obj $results -propName 'OS_Name' -propValue $lsb['Description']
+			_setProperty -obj $results -propName 'OS_Distributor' -propValue $lsb['Distributor ID']
+			_setProperty -obj $results -propName 'OS_Version' -propValue $lsb['Release']
+			$oscodename = $lsb['Codename']
 			if ($oscodename -and $oscodename -ne 'n/a') {
 				_setProperty -obj $results -propName 'OS_Codename' -propValue $oscodename
 			}
 		} elseif ((Test-Path -Path '/etc/os-release' -ErrorAction Ignore)) {
-			$osrelease = Get-Content -Path '/etc/os-release'
-			_setProperty -obj $results -propName 'OS_Name' -propValue (_parseLinuxLines -lines $osrelease -lookFor 'PRETTY_NAME' -type 2)
-			_setProperty -obj $results -propName 'OS_Distributor' -propValue (_parseLinuxLines -lines $osrelease -lookFor <#'NAME'#> 'ID' -type 2)
-			$osversion = (_parseLinuxLines -lines $osrelease -lookFor 'VERSION' -type 2)
+			$osrelease = Get-Content -Path '/etc/os-release' | _parseLinesToLookup
+			_setProperty -obj $results -propName 'OS_Name' -propValue $osrelease['PRETTY_NAME']
+			_setProperty -obj $results -propName 'OS_Distributor' -propValue $osrelease['ID'] # 'NAME'
+			$osversion = $osrelease['VERSION']
 			if (-not $osversion) {
-				$osversion = (_parseLinuxLines -lines $osrelease -lookFor 'VERSION_ID' -type 2)
+				$osversion = $osrelease['VERSION_ID']
 			}
 			_setProperty -obj $results -propName 'OS_Version' -propValue $osversion
-			$oscodename = (_parseLinuxLines -lines $osrelease -lookFor 'VERSION_CODENAME' -type 2)
+			$oscodename = $osrelease['VERSION_CODENAME']
 			if ($oscodename -and $oscodename -ne 'n/a') {
 				_setProperty -obj $results -propName 'OS_Codename' -propValue $oscodename
 			}
@@ -210,26 +210,26 @@ function Main {
 		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $(if ([System.Environment]::Is64BitOperatingSystem) { '64' } else { '32' })
 		_setProperty -obj $results -propName 'Processor_DataWidth' -propValue $(if ([System.Environment]::Is64BitOperatingSystem) { '64' } else { '32' })
 	} elseif ((Get-Command -Name 'lscpu' -ErrorAction Ignore)) {
-		$lscpu = lscpu
-		_setProperty -obj $results -propName 'Processor_Name' -propValue (_parseLinuxLines -lines $lscpu -lookFor 'Model name' -type 1)
-		_setProperty -obj $results -propName 'Processor_Architecture' -propValue (_parseLinuxLines -lines $lscpu -lookFor 'Architecture' -type 1)
-		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue (_parseLinuxLines -lines $lscpu -lookFor 'Address sizes' -type 1)
-		$coresPerSocket = (_parseLinuxLines -lines $lscpu -lookFor 'Core(s) per socket' -type 1)
-		$socketCnt = (_parseLinuxLines -lines $lscpu -lookFor 'Socket(s)' -type 1)
+		$lscpu = lscpu | _parseLinesToLookup
+		_setProperty -obj $results -propName 'Processor_Name' -propValue $lscpu['Model name']
+		_setProperty -obj $results -propName 'Processor_Architecture' -propValue $lscpu['Architecture']
+		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $lscpu['Address sizes']
+		$coresPerSocket = $lscpu['Core(s) per socket']
+		$socketCnt = $lscpu['Socket(s)']
 		if ($coresPerSocket -and $socketCnt) {
 			_setProperty -obj $results -propName 'Processor_NumberOfCores' -propValue ([int]$coresPerSocket * [int]$socketCnt)
 		}
-		_setProperty -obj $results -propName 'Processor_LogicalProcessors' -propValue (_parseLinuxLines -lines $lscpu -lookFor 'CPU(s)' -type 1)
-		_setProperty -obj $results -propName 'Processor_L2CacheSize' -propValue (_parseLinuxLines -lines $lscpu -lookFor 'L2 cache' -type 1)
-		_setProperty -obj $results -propName 'Processor_L3CacheSize' -propValue (_parseLinuxLines -lines $lscpu -lookFor 'L3 cache' -type 1)
+		_setProperty -obj $results -propName 'Processor_LogicalProcessors' -propValue $lscpu['CPU(s)']
+		_setProperty -obj $results -propName 'Processor_L2CacheSize' -propValue $lscpu['L2 cache']
+		_setProperty -obj $results -propName 'Processor_L3CacheSize' -propValue $lscpu['L3 cache']
 	} elseif ((Test-Path -Path '/proc/cpuinfo' -ErrorAction Ignore)) {
-		$cpuinfo = Get-Content -Path '/proc/cpuinfo'
-		_setProperty -obj $results -propName 'Processor_Name' -propValue (_parseLinuxLines -lines $cpuinfo -lookFor 'model name' -type 1)
-		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue (_parseLinuxLines -lines $cpuinfo -lookFor 'address sizes' -type 1)
-		_setProperty -obj $results -propName 'Processor_NumberOfCores' -propValue (_parseLinuxLines -lines $cpuinfo -lookFor 'cpu cores' -type 1)
+		$cpuinfo = Get-Content -Path '/proc/cpuinfo' | _parseLinesToLookup -saveFirstValue
+		_setProperty -obj $results -propName 'Processor_Name' -propValue $cpuinfo['model name']
+		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $cpuinfo['address sizes']
+		_setProperty -obj $results -propName 'Processor_NumberOfCores' -propValue $cpuinfo['cpu cores']
 		# ???:
-		_setProperty -obj $results -propName 'Processor_LogicalProcessors' -propValue (_parseLinuxLines -lines $cpuinfo -lookFor 'siblings' -type 1)
-		_setProperty -obj $results -propName 'Processor_L3CacheSize' -propValue (_parseLinuxLines -lines $cpuinfo -lookFor 'cache size' -type 1)
+		_setProperty -obj $results -propName 'Processor_LogicalProcessors' -propValue $cpuinfo['siblings']
+		_setProperty -obj $results -propName 'Processor_L3CacheSize' -propValue $cpuinfo['cache size']
 	}
 	$procArch = $results | Where-Object { $_.Name -eq 'Processor_Architecture' }
 	if ((-not $procArch -or $procArch.Value -eq $script:NA) -and $unameAvail) {
@@ -377,26 +377,32 @@ function _mapCimProcArch {
 	}
 }
 
-function _parseLinuxLines {
-	[OutputType([string])]
+$script:splitLine = [regex]::new('^\s*(?<nam>.+?)\s*[:=]\s*("?)\s*(?<val>.+?)\s*\1\s*$', 'Compiled')
+function _parseLinesToLookup {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([hashtable])]
 	param(
-		<# [Parameter(Mandatory=$true)] #> [string[]] $lines,	# some BS error on linux sometimes from calling Get-Content if this mandatory, and it makes no forking sense
-		[Parameter(Mandatory=$true)] [string] $lookFor,
-		[Parameter(Mandatory=$true)] [ValidateSet(1, 2)] [int] $type = 1
+		[Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $inputs,
+		[switch] $saveFirstValue
 	)
-	if ($lines) {
-		$re = ''
-		if ($type -eq 1) {
-			$re = "^\s*$([regex]::Escape($lookFor))\s*:\s+(?<val>.+)$"
-		} elseif ($type -eq 2) {
-			$re = "^\s*$([regex]::Escape($lookFor))\s*=\s*`"?(?<val>.*?)`"?$"
-		}
-		$match = $lines | ForEach-Object { [regex]::Match($_, $re) } | Where-Object { $_.Success } | Select-Object -First 1
-		if ($match) {
-			return $match.Groups['val'].Value
+	begin { $results = @{} }
+	process {
+		WriteVerboseMessage 'trying to match line |{0}|' $_
+		if ($_) {
+			$match = $script:splitLine.Match($_)
+			if ($match.Success) {
+				$nam = $match.Groups['nam'].Value; $val = $match.Groups['val'].Value;
+				# if value is just an empty pair of quotes (e.g. Fedora's os-release), regex doesn't catch that; but this is probably
+				# better anyway because we still get the key instead of no match at all; could probably get regex to handle that but meh
+				if ($val -eq '""') { $val = '' }
+				WriteVerboseMessage 'matched line: nam = |{0}|, val = |{1}|' $nam,$val
+				if (-not $saveFirstValue -or -not $results.ContainsKey($nam)) {
+					$results[$nam] = $val
+				}
+			}
 		}
 	}
-	return ''
+	end { return $results }
 }
 
 $script:nonDisplayCharsMap = @{
