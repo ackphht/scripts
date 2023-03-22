@@ -123,12 +123,12 @@ function Main {
 	}
 
 	WriteVerboseMessage 'getting OS info'
-	@('Name', 'Manufacturer', 'Version', 'OSArchitecture', 'Kernel', 'SKU', 'OSType', 'Codename') |
+	@('Name', 'Distributor', 'Version', 'OSArchitecture', 'Kernel', 'SKU', 'OSType', 'Codename') |
 		ForEach-Object { _addProperty -obj $results -propName "OS_$_" -propValue '' }
 	if ($cimInstanceAvail) {
 		$os = Get-CimInstance -ClassName 'CIM_OperatingSystem'
 		if ($os) {
-			_setProperty -obj $results -propName 'OS_Manufacturer' -propValue $os.Manufacturer
+			_setProperty -obj $results -propName 'OS_Distributor' -propValue $os.Manufacturer
 			_setProperty -obj $results -propName 'OS_Name' -propValue $os.Caption	# .Name has other crap in it
 			_setProperty -obj $results -propName 'OS_Version' -propValue $os.Version
 			_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $os.OSArchitecture
@@ -137,17 +137,21 @@ function Main {
 			_setProperty -obj $results -propName 'OS_OSType' -propValue $os.OSType
 		}
 	} elseif ($IsMacOS) {
-		_setProperty -obj $results -propName 'OS_Manufacturer' -propValue 'Apple'
+		_setProperty -obj $results -propName 'OS_Distributor' -propValue 'Apple'
 		_setProperty -obj $results -propName 'OS_Name' -propValue $macOsData.SPSoftwareDataType.os_version
 		_setProperty -obj $results -propName 'OS_Version' -propValue (sysctl -hin kern.osproductversion)	# simple version without parsing above
-		_setProperty -obj $results -propName 'OS_Kernel' -propValue $macOsData.SPSoftwareDataType.kernel_version
+		$kern = sysctl -hin kern.osrelease	# just the version, e.g. '22.3.0'
+		if (-not $kern) {
+			$kern = $macOsData.SPSoftwareDataType.kernel_version	# e.g. 'Darwin 22.3.0'
+		}
+		_setProperty -obj $results -propName 'OS_Kernel' -propValue $kern
 		# haven't found anything good for this next one in system_profiler or sysctl; and macOS doesn't support 'uname -i', so:
 		_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $(if ([System.Environment]::Is64BitOperatingSystem) { '64-bit' } else { '32-bit' })
 	} else {
 		if ((Get-Command -Name 'lsb_release' -ErrorAction Ignore)) {
 			$lsb = lsb_release --all 2>/dev/null
 			_setProperty -obj $results -propName 'OS_Name' -propValue (_parseLinuxLines -lines $lsb -lookFor 'Description' -type 1)
-			_setProperty -obj $results -propName 'OS_Manufacturer' -propValue (_parseLinuxLines -lines $lsb -lookFor 'Distributor ID' -type 1)
+			_setProperty -obj $results -propName 'OS_Distributor' -propValue (_parseLinuxLines -lines $lsb -lookFor 'Distributor ID' -type 1)
 			_setProperty -obj $results -propName 'OS_Version' -propValue (_parseLinuxLines -lines $lsb -lookFor 'Release' -type 1)
 			$oscodename = (_parseLinuxLines -lines $lsb -lookFor 'Codename' -type 1)
 			if ($oscodename -and $oscodename -ne 'n/a') {
@@ -156,7 +160,7 @@ function Main {
 		} elseif ((Test-Path -Path '/etc/os-release' -ErrorAction Ignore)) {
 			$osrelease = Get-Content -Path '/etc/os-release'
 			_setProperty -obj $results -propName 'OS_Name' -propValue (_parseLinuxLines -lines $osrelease -lookFor 'PRETTY_NAME' -type 2)
-			_setProperty -obj $results -propName 'OS_Manufacturer' -propValue (_parseLinuxLines -lines $osrelease -lookFor <#'NAME'#> 'ID' -type 2)
+			_setProperty -obj $results -propName 'OS_Distributor' -propValue (_parseLinuxLines -lines $osrelease -lookFor <#'NAME'#> 'ID' -type 2)
 			$osversion = (_parseLinuxLines -lines $osrelease -lookFor 'VERSION' -type 2)
 			if (-not $osversion) {
 				$osversion = (_parseLinuxLines -lines $osrelease -lookFor 'VERSION_ID' -type 2)
