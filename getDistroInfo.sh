@@ -5,31 +5,36 @@ targetFolder="$HOME/distInfo"
 if [ ! -d $targetFolder ]; then
 	mkdir -p $targetFolder
 else
-	rm -f $targetFolder/*
+	rm -frd $targetFolder/*
 fi
 
 cd $targetFolder
 
-test -f /etc/os-release && cp /etc/os-release .
+cp /etc/*-release .
 test -f /etc/debian_version && cp /etc/debian_version .
 test -f /etc/mime.types && cp /etc/mime.types .
-test -f /etc/lsb-release && cp /etc/lsb-release .
-test -f /etc/fedora-release && cp /etc/fedora-release .
+#test -f /etc/lsb-release && cp /etc/lsb-release .
+#test -f /etc/fedora-release && cp /etc/fedora-release .
 test -f /etc/SUSE-brand && cp /etc/SUSE-brand .
-test -f /etc/manjaro-release && cp /etc/manjaro-release .
-test -f /etc/linuxmint/info && cp /etc/linuxmint/info .
+#test -f /etc/manjaro-release && cp /etc/manjaro-release .
+test -f /etc/linuxmint/info && cp /etc/linuxmint/info linuxmint_info
+test -d /etc/lsb-release.d && mkdir ./lsb-release.d && cp /etc/lsb-release.d/* ./lsb-release.d/
 
 # sysctl needs sudo to access everything it wants, but also on some OSes (e.g. opensuse) need sudo just to see it:
-sudo which sysctl > /dev/null 2>&1 && sudo sysctl -a | sort --ignore-case > sysctl.txt || echo "WARNING: sysctl not found"
-which lsb_release > /dev/null 2>&1 && lsb_release -a > lsb_release.txt 2>/dev/null || echo "WARNING: lsb_release not found"
-which screenfetch > /dev/null 2>&1 && screenfetch -N > screenfetch.txt 2>/dev/null || echo "WARNING: screenfetch not found"
-which neofetch > /dev/null 2>&1 && neofetch --stdout > neofetch.txt 2>/dev/null || echo "WARNING: neofetch not found"
+sudo which sysctl > /dev/null 2>&1 && sudo sysctl -a | sort --ignore-case > sysctl.log || echo "WARNING: sysctl not found"
+which lsb_release > /dev/null 2>&1 && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
+which screenfetch > /dev/null 2>&1 && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
+which neofetch > /dev/null 2>&1 && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
 
 test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > showSomeProps.py.log
 
 which pwsh > /dev/null 2>&1 && test -f $scriptRoot/getSystemInformation.ps1 && \
 	pwsh -command "& { $scriptRoot/getSystemInformation.ps1 | Out-File getSystemInformation.log -Width 4096 }" && \
-	pwsh -command "& { $scriptRoot/getSystemInformation.ps1 -asJson }"
+	pwsh -command "& { $scriptRoot/getSystemInformation.ps1 -asCsv }"
+
+# for macOS:
+which system_profiler > /dev/null 2>&1 && system_profiler -json SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.json && \
+	system_profiler SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.log
 
 #uname -a > uname.txt
 echo -n '' > uname.log
@@ -42,9 +47,9 @@ while read -d , kv; do
 	fi
 done <<< 'kernel-name:s,kernel-release:r,kernel-version:v,machine:m,processor:p,hardware-platform:i,operating-system:o,'
 
-env | sort --ignore-case > envVars_env.txt
+env | sort --ignore-case > envVars_env.log
 #set > envVars_set.txt	# TODO?: is there a way to run this from lower shell level ??
 echo
 echo "you'll need to get 'set' output outside the script to get proper value; run the following:"
-echo "    set > $targetFolder/envVars_set.txt"
+echo "    set > $targetFolder/envVars_set.log"
 echo
