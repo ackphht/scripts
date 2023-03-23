@@ -159,14 +159,14 @@ function Main {
 			}
 		} elseif ((Test-Path -Path '/etc/os-release' -ErrorAction Ignore)) {
 			$osrelease = Get-Content -Path '/etc/os-release' | _parseLinesToLookup
-			_setProperty -obj $results -propName 'OS_Name' -propValue $osrelease['PRETTY_NAME']
-			_setProperty -obj $results -propName 'OS_Distributor' -propValue $osrelease['ID'] # 'NAME'
-			$osversion = $osrelease['VERSION']
+			_setProperty -obj $results -propName 'OS_Name' -propValue $osrelease['PRETTY_NAME']			# PRETTY_NAME -> Description
+			_setProperty -obj $results -propName 'OS_Distributor' -propValue $osrelease['ID'] # 'NAME'	# ID -> Distributor ID
+			$osversion = $osrelease['VERSION_ID']														# TODO: should reverse these; VERSION_ID -> Release
 			if (-not $osversion) {
-				$osversion = $osrelease['VERSION_ID']
+				$osversion = $osrelease['VERSION']
 			}
 			_setProperty -obj $results -propName 'OS_Version' -propValue $osversion
-			$oscodename = $osrelease['VERSION_CODENAME']
+			$oscodename = $osrelease['VERSION_CODENAME']												# VERSION_CODENAME -> Codename
 			if ($oscodename -and $oscodename -ne 'n/a') {
 				_setProperty -obj $results -propName 'OS_Codename' -propValue $oscodename
 			}
