@@ -1,7 +1,7 @@
 #
-# add this to .bashrc (or whatever for zsh or whatever):
+# add this to .bashrc (or whatever for zsh or whatever) (and might need to go at the bottom of file [e.g. Ubuntu]):
 #	if [[ -r ~/scripts/ackShellStuff.sh ]]; then
-#		. ~/scripts/ackShellStuff.sh
+#		source ~/scripts/ackShellStuff.sh
 #	fi
 #
 
@@ -12,6 +12,10 @@ alias ll='ls -AlFhv --group-directories-first'
 alias l='ls -AFv --group-directories-first'
 
 alias cls='clear'
+
+# ???
+#alias reboot='sudo reboot --reboot'
+#alias shutdown='sudo halt --poweroff --force --no-wall'
 
 if [ -f /usr/bin/apt ]; then
 	alias aptr='sudo apt update'
