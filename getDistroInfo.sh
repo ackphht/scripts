@@ -10,15 +10,13 @@ fi
 
 cd $targetFolder
 
-cp -Lr /etc/*-release .
-test -f /etc/debian_version && cp /etc/debian_version .
+cp -Lr /etc/*-release .		# os-release, lsb-release, manjaro-release, redhat-release, etc
 test -f /etc/mime.types && cp /etc/mime.types .
-#test -f /etc/lsb-release && cp /etc/lsb-release .
-#test -f /etc/fedora-release && cp /etc/fedora-release .
-test -f /etc/SUSE-brand && cp /etc/SUSE-brand .
-#test -f /etc/manjaro-release && cp /etc/manjaro-release .
-test -f /etc/linuxmint/info && cp /etc/linuxmint/info linuxmint_info
 test -d /etc/lsb-release.d && mkdir ./lsb-release.d && cp /etc/lsb-release.d/* ./lsb-release.d/
+test -f /etc/debian_version && cp /etc/debian_version .
+test -f /etc/SUSE-brand && cp /etc/SUSE-brand .
+test -f /etc/linuxmint/info && cp /etc/linuxmint/info linuxmint_info
+test -f /etc/mx-version && cp /etc/mx-version .
 
 # sysctl needs sudo to access everything it wants, but also on some OSes (e.g. opensuse) need sudo just to see it:
 sudo which sysctl > /dev/null 2>&1 && sudo sysctl -a | sort --ignore-case > sysctl.log || echo "WARNING: sysctl not found"
