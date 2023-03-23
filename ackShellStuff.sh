@@ -1,9 +1,12 @@
 #
 # add this to .bashrc (or whatever for zsh or whatever):
-#	if [[ -r ~/scripts/bashAliases.sh ]]; then
-#		. ~/scripts/bashAliases.sh
+#	if [[ -r ~/scripts/ackShellStuff.sh ]]; then
+#		. ~/scripts/ackShellStuff.sh
 #	fi
 #
+
+# default prompt in case oh-my-posh (below) isn't installed
+PS1='\n\e[36m\s \e[95m\u @ \h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m '
 
 alias ll='ls -AlFhv --group-directories-first'
 alias l='ls -AFv --group-directories-first'
@@ -35,7 +38,8 @@ elif [ -f /usr/bin/pacman ]; then
 	alias aptc='sudo pacman --sync --clean'
 fi
 
-if [ -f /usr/sbin/btrfs ] || [ -f /usr/bin/btrfs ]; then
+#if [ -f /usr/sbin/btrfs ] || [ -f /usr/bin/btrfs ]; then
+if which btrfs > /dev/null 2>&1; then
 	alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
 fi
 
@@ -43,3 +47,8 @@ alias sf='screenfetch'
 alias nf='neofetch'
 alias cj='sudo journalctl --vacuum-time=1d'
 alias omp='oh-my-posh'
+
+if which oh-my-posh > /dev/null 2>&1; then
+	#eval "$(oh-my-posh init bash --config https://ackphht.github.io/ack.omp.linux.json)"
+	eval "$(oh-my-posh init bash --config ~/scripts/ack.omp.linux.json)"
+fi
