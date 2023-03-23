@@ -1,0 +1,157 @@
+{
+	// oh-my-posh doc: https://ohmyposh.dev/docs/
+	// nerd font icons: https://www.nerdfonts.com/cheat-sheet
+	"$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+	"blocks": [
+		{
+			"type": "prompt",
+			"newline": true,
+			"alignment": "left",
+			"segments": [
+				{
+					"type": "text",
+					"style": "plain",
+					"foreground": "darkGray",
+					"template": "┏ "
+				},
+				{
+					"type": "os",
+					"style": "plain",
+					"foreground": "cyan",
+					"template": "{{ if .WSL }}WSL at {{ end }}{{.Icon}} "
+				},
+				{
+					"type": "shell",
+					"style": "plain",
+					"foreground": "cyan",
+					"template": "{{ .Name }} v{{ .Version }}"
+				},
+				{
+					"type": "root",
+					"style": "plain",
+					"foreground": "red",
+					"template": " 󰞀"		// ﱾ (fc7e [obsolete]) → 󰞀 (f0780); also 聯 (f997 [obsolete]) → 󰒘 (f0498), 輦 (f998 [obsolete]) → 󰒙 (f0449), default:  (f0e7)
+				},
+				{
+					"type": "session",
+					"style": "plain",
+					"foreground": "lightMagenta",
+					"properties": {
+						"display_host": true
+					},
+					"template": " {{ if .SSHSession }}󰌘 {{ end }}{{ .UserName }}<i>@</i>{{ .HostName }}"		//  (f817 [obsolete]) → 󰌘 (f0318)
+				}/*,
+				{
+					"type": "ipify",
+					"style": "plain",
+					"foreground": "lightMagenta",
+					"properties": {
+						"cache_timeout": 30,
+						"http_timeout": 1000
+					},
+					"template": " [{{ .IP }}]"
+				}*/,
+				{
+					"type": "time",
+					"style": "plain",
+					"foreground": "yellow",
+					"properties": {
+						"time_format": "15:04:05"
+					},
+					"template": " 󰅐 {{ .CurrentDate | date .Format }}"			//  (f64f [obsolete]) → 󰅐 (f0150),  (f017),  (f43a)
+				},
+				{
+					"type": "owm",
+					"style": "plain",
+					"foreground": "blue",
+					"properties": {
+						"apikey": "dab47a849b16ac84f2a9907ac23bcaab",
+						"location": "Pflugerville,TX,US",
+						"units": "imperial",
+						"http_timeout": 1000,
+						"cache_timeout": 15
+					},
+					"template": " {{.Weather}} ({{.Temperature}}{{.UnitIcon}})"
+				},
+				{
+					"type": "battery",
+					"style": "plain",
+					"foreground": "#193549",
+					"foreground_templates": [
+						"{{ if eq \"Full\" .State.String }}#66BB6A{{ end }}",
+						"{{ if eq \"Charging\" .State.String }}#64B5F6{{ end }}",
+						"{{ if eq \"Discharging\" .State.String }}#E36464{{ end }}"
+					],
+					"properties": {
+						"charged_icon": "   ",		//  (f578 [obsolete]) → 󰁹 (f0079),   (f240)
+						"charging_icon": " ",		//  (f583 [obsolete]) → 󰂄 (f0084),  (f0e7)
+						"discharging_icon": "   "	//  (f57e [obsolete]) → 󰁿 (f007f),   (f242)
+					},
+					"template": " [{{ if not .Error }}{{.Percentage}}󰏰{{ end }}{{.Icon}}{{.Error}}]"		//  (f8ef [obsolete]) → 󰏰 (f03f0)
+				},
+				{
+					"type": "path",
+					"style": "plain",
+					"foreground": "green",
+					"properties": {
+						"style": "full",
+						/*"home_icon": "\uf7db",*/
+						"folder_separator_icon": "/",
+						"mapped_locations": {
+							"~/Desktop": "~/󰟀 ",	// ﲾ (fcbe [obsolete]) → 󰟀 (f07c0)
+							"~/Documents": "~/ ",	//  (f719 [nf-mdi-file_document_box] [obsolete]) → ?? (),  (f718 [obsolete]) → 󰈙 (f0219),  (f0f6),  (f15c),  (f40e)
+							"~/Downloads": "~/ ",	//  (f74c [obsolete]) → 󰉍 (f024d),  (f0ed),   (f661 [obsolete]) → 󰅢 (f0162),   (f019),  (f6d9 [obsolete]) → 󰇚 (f01da),   (f409)
+							"~/Music": "~/󰝚 ",		//  (f886 [obsolete]) → 󰎈 (f0388),  (f001), ﱘ (fc58 [obsolete]) → 󰝚 (f075a),  (f722 [obsolete]) → 󰈣 (f0223),  (f883 [obsolete]) → 󰎄 (f0384),  (f884 [obsolete]) → 󰎅 (f0385),  (f885 [obsolete]) → 󰎆 (f0386)
+							"~/OneDrive": "~/ ",	//  (e762),  (f8c9 [obsolete]) → 󰏊 (f03ca)
+							"~/Pictures": "~/ ",	//   (f74e [obsolete]) → 󰉏 (f024f),   (f03e),  (f1c5),  (f71e [obsolete]) → 󰈟 (f021f),  (f7e8 [obsolete]) → 󰋩 (f02e9),  (f7ea [obsolete]) → 󰋫 (f02eb)
+							"~/Videos": "~/ "//,	// 辶 (fa66 [obsolete]) → 󰕧 (f0567),   (f447),   (f03d),  (f1c8),  (f72a [obsolete]) → 󰈫 (f022b)
+						}
+					},
+					"template": "   {{ .Path }} "			//  (e5ff),  (f74a [obsolete]) → 󰉋 (f024b),  (f07b),  (f114),   (f115),  (e5fe),  (f07c), ﱮ (fc6e [obsolete]) → 󰝰 (f0770)
+				},
+				{
+					"type": "python",
+					"style": "plain",
+					"foreground": "yellow",
+					"properties": {
+						"display_mode": "context"
+					},
+					//  (e235);  (e73c);  (f81f [obsolete]) → 󰌠 (f0320);  (e606)
+					"template": " {{ if .Error }}{{ .Error }}{{ else }}{{ if .Venv }}{{ .Venv }} {{ end }}{{ .Full }}{{ end }} "
+				},
+				{
+					"type": "git",
+					"style": "plain",
+					"foreground": "lightBlue",
+					"properties": {
+						"fetch_stash_count": true,
+						"fetch_upstream_icon": true
+					},
+					//  (f044);  (f046);  (f692 [obsolete]) → 󰆓 (f0193);  (f1bb)
+					"template": "{{ .HEAD }} {{ .BranchStatus }}{{ if .Working.Changed }}  {{ .Working.String }}{{ end }}{{ if and (.Staging.Changed) (.Working.Changed) }} |{{ end }}{{ if .Staging.Changed }}  {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0}}  {{ .StashCount }}{{ end }}{{ if gt .WorktreeCount 0}}  {{ .WorktreeCount }}{{ end }} "
+				}
+			]
+		},
+		{
+			"type": "prompt",
+			"newline": true,
+			"alignment": "left",
+			"segments": [
+				{
+					"type": "text",
+					"style": "plain",
+					"foreground": "darkGray",
+					"template": "┖"			// ┖ (2516)
+				},
+				{
+					"type": "text",
+					"style": "plain",
+					"foreground": "green",
+					//"template": " WHAT?!? {{ if .Root }}<red>#</>{{ else }}${{ end }} "		// ❯ (\u276f); there's also: 〉 》 ▶ ▷ ❯ ❱ ➜ ➤
+					"template": " WHAT?!? {{ if .Root }}<red>#</>{{ else }} {{ end }} "		// ❯ (\u276f); there's also: 〉 》 ▶ ▷ ❯ ❱ ➜ ➤
+				}
+			]
+		}
+	],
+	"version": 2
+}
