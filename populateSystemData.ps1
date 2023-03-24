@@ -82,8 +82,9 @@ function _populateWindowsInfo {
 	$osDetails.OSInstallTime = $osinfo.InstallDate
 	$osDetails.OSStartTime = $osinfo.LastBootUpTime
 	$osDetails.Type = if ($osinfo.ProductType -eq 3) { 'Server' } else { 'WorkStation' }
-	$osDetails.Id = _getWindowsId -wmios $osinfo
-	$osDetails.Release = _getWindowsRelease -wmios $osinfo
+	$release = _getWindowsRelease -wmios $osinfo
+	$osDetails.Id = _getWindowsId -wmios $osinfo -release $release
+	$osDetails.Release = $release
 	$osDetails.Edition = _getWindowsEdition -wmios $osinfo
 	$osDetails.ReleaseVersion = _getWindowsVersion
 	$osDetails.KernelVersion = $osDetails.ReleaseVersion.ToString()
@@ -222,20 +223,16 @@ function _convertVersion {
 function _getWindowsId {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
-	param($wmios)
+	param([PSObject] $wmios, [string] $release)
 	$build = [int]$wmios.BuildNumber
 	$type = [int]$wmios.ProductType
 	$caption = [string]$wmios.Caption
+	$release = $release.ToLowerInvariant()
 	WriteVerboseMessage 'mapping windows OS name: build = "{0}", type = "{1}", caption = "{2}"' $build,$type,$caption
 	switch ($type) {
 		1 {
 			switch ($build) {
-				{ $_ -ge 22000 } { $result = 'win.11'; break; }
-				{ $_ -ge 10240 } { $result = 'win.10'; break; }
-				{ $_ -ge 9600 } { $result = 'win.8.1'; break; }
-				{ $_ -ge 9200 } { $result = 'win.8'; break; }
-				{ $_ -ge 7600 } { $result = 'win.7'; break; }
-				{ $_ -ge 6000 } { $result = 'win.vista'; break; }
+				{ $_ -ge 6000 } { $result = 'win.{0}' -f $release; break; }
 				default { $result = "win.$build"; break; }
 			}
 		}
