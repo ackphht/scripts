@@ -99,6 +99,11 @@ function _populateLinuxInfo {
 
 	$distId,$description,$release,$codename = _getLinuxReleaseProps
 	$releaseLooksLikeVersion = _looksLikeVersion -version $release
+	# special case(s):
+	if ($distId -eq 'debian' -and $release -match '^\d+$' -and (Test-Path -Path '/etc/debian_version' -PathType Leaf)) {
+		# Debian's os-release VERSION_ID is too simple, so let's try to get debian_version:
+		$release = Get-Content -Path '/etc/debian_version' -Raw
+	}
 
 	if ($distId) { $osDetails.Distributor = [System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ToTitleCase($distId) }
 	if ($releaseLooksLikeVersion -and -not $description.Contains($release)) { $osDetails.Description = '{0} {1}' -f $description,$release } else { $osDetails.Description = $description }
