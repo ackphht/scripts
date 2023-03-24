@@ -115,18 +115,15 @@ function _populateLinuxInfo {
 	param([Parameter(Mandatory=$true)] [OSDetails] $osDetails)
 
 	$distId,$description,$release,$codename = _getLinuxReleaseProps
+	$releaseLooksLikeVersion = _looksLikeVersion -version $release
 
 	if ($distId) { $osDetails.Distributor = [System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ToTitleCase($distId) }
-	if ($release -match '[\d\.]+' -and -not $description.Contains($release)) { $osDetails.Caption = '{0} {1}' -f $description,$release } else { $osDetails.Caption = $description }
+	if ($releaseLooksLikeVersion -and -not $description.Contains($release)) { $osDetails.Caption = '{0} {1}' -f $description,$release } else { $osDetails.Caption = $description }
 	$osDetails.Release = '{0} {1}' -f $distId,$release
 	$osDetails.Codename = $codename
-	if ($release -match '[\d\.]+') {
+	if ($releaseLooksLikeVersion) {
 		$osDetails.Id = 'linux.{0}.{1}' -f $distId.ToLower(),$release
-		if ($release -match '\d{8}') {	# opensuse tumbleweed
-			$osDetails.ReleaseVersion = [System.Version]::Parse(($release -replace '(\d\d\d\d)(\d\d)(\d\d)','$1.$2.$3'))	# meh
-		} else {
-			$osDetails.ReleaseVersion = [System.Version]::Parse($release)
-		}
+		$osDetails.ReleaseVersion = _convertVersion -version $release
 	} else {
 		$osDetails.Id = 'linux.{0}' -f $distId.ToLower()
 	}
@@ -147,7 +144,7 @@ function _populateMacOSInfo {
 	$osDetails.Distributor = 'Apple'
 	$osDetails.Caption = $sysProfData.SPSoftwareDataType.os_version
 	$osDetails.Release = _getMacReleaseVersion
-	$osDetails.ReleaseVersion = [System.Version]::Parse($osDetails.Release)
+	$osDetails.ReleaseVersion = _convertVersion -version $osDetails.Release
 	$kern = _getMacKernelVersion
 	if ($kern) { $osDetails.KernelVersion = $kern }
 	$osDetails.Id = _getMacId -osVersion $osDetails.ReleaseVersion
@@ -159,6 +156,50 @@ function _populateMacOSInfo {
 	#$osDetails.Type =
 	#$osDetails.Edition =
 }
+
+#region helpers
+function _getOSArchitecture {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string])]
+	param()
+	if ('System.Runtime.InteropServices.Architecture'-as [type]) {	# property 'System.Runtime.InteropServices.RuntimeInformation.OSArchitecture' and this enum were added at same time...
+		switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
+			# posh switch can't compare the enum value directly ???
+			'X64' { $result = 'x86-64'; break; }
+			'X86' { $result = 'x86-32'; break; }
+			default { $result = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString(); break; }
+		}
+	} elseif (Test-Path -Path env:PROCESSOR_ARCHITECTURE -PathType Leaf) {
+		$result = $env:PROCESSOR_ARCHITECTURE
+	} else {
+		<# ??? if linux, can try uname --hardware-platform; or just fall back to uname --machine and assume the OS type is same as cpu type ??? #>
+	}
+	return $result
+}
+
+function _looksLikeVersion {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([bool])]
+	param([string] $version)
+	return ($version -and $version -match '^[\d\.]+$')
+}
+
+function _convertVersion {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([System.Version])]
+	param([string] $version)
+	if ($version -match '^\d{8}$') {	# opensuse tumbleweed
+		$result = [System.Version]::Parse(($version -replace '(\d\d\d\d)(\d\d)(\d\d)','$1.$2.$3'))	# meh
+	} elseif ($version -match '^\d+$') {
+		$result = [System.Version]::new([int]$version, 0)
+	} elseif ($version -match '^[\d\.]+$') {
+		$result = [System.Version]::Parse($version)
+	} else {
+		$result = [System.Version]::new(0, 0)
+	}
+	return $result
+}
+#endregion
 
 #region windows parsing helpers
 function _getWindowsId {
@@ -415,25 +456,6 @@ function _getWindowsEdition {
 		175 { $result = 'EnterpriseForVirtualDesktop' }
 	}
 	WriteVerboseMessage 'trying to map OS edition: ossku = "{0}" ==> "{1}"' $ossku,$result
-	return $result
-}
-
-function _getOSArchitecture {
-	[CmdletBinding(SupportsShouldProcess=$false)]
-	[OutputType([string])]
-	param()
-	if ('System.Runtime.InteropServices.Architecture'-as [type]) {	# property 'System.Runtime.InteropServices.RuntimeInformation.OSArchitecture' and this enum were added at same time...
-		switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
-			# posh switch can't compare the enum value directly ???
-			'X64' { $result = 'x86-64'; break; }
-			'X86' { $result = 'x86-32'; break; }
-			default { $result = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString(); break; }
-		}
-	} elseif (Test-Path -Path env:PROCESSOR_ARCHITECTURE -PathType Leaf) {
-		$result = $env:PROCESSOR_ARCHITECTURE
-	} else {
-		<# ??? if linux, can try uname --hardware-platform; or just fall back to uname --machine and assume the OS type is same as cpu type ??? #>
-	}
 	return $result
 }
 
