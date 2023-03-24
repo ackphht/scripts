@@ -103,6 +103,7 @@ function _populateLinuxInfo {
 	if ($distId -eq 'debian' -and $release -match '^\d+$' -and (Test-Path -Path '/etc/debian_version' -PathType Leaf)) {
 		# Debian's os-release VERSION_ID is too simple, so let's try to get debian_version:
 		$release = Get-Content -Path '/etc/debian_version' -Raw
+		$release = $release.Trim()
 	}
 
 	if ($distId) { $osDetails.Distributor = [System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ToTitleCase($distId) }
