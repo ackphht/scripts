@@ -12,7 +12,7 @@ if (Test-Path -Path "$PSScriptRoot/helpers.ps1") { . "$PSScriptRoot/helpers.ps1"
 class OSDetails {
 	[string] $Platform			# 'Windows' or 'Linux' or 'MacOS'
 	[string] $Id				# e.g. 'win.10', 'win.8.1', 'mac.13', 'mac.10.15'
-	[string] $Caption			# e.g. 'Microsoft Windows 10 Pro'
+	[string] $Description		# e.g. 'Microsoft Windows 10 Pro'
 	[string] $Release			# e.g. 'Vista SP2', '7 SP1', '8.1', '10 1709', '11', '11 22H2'	# <- for bagOS, just the os version (13.2.1), for Linux, the distro version
 	[System.Version] $ReleaseVersion # e.g. 10.0.16299.723; Linux, MacOS have different versions for the OS itself and for the kernel
 	[string] <# [System.Version] #> $KernelVersion	 # e.g. 10.0.16299.723; Linux has stupid looking versions so this can't be [System.Version]
@@ -28,7 +28,7 @@ class OSDetails {
 	[DateTime] $LastBootDateTime
 
 	OSDetails() {
-		$this.Platform = $this.Id = $this.Caption = $this.Release = $this.Distributor = $this.Codename = $this.Type = $this.Edition = [System.String]::Empty
+		$this.Platform = $this.Id = $this.Description = $this.Release = $this.Distributor = $this.Codename = $this.Type = $this.Edition = [System.String]::Empty
 		$this.BuildNumber = '0'
 		$this.KernelVersion = '0.0' #[System.Version]::new(0, 0)
 		$this.UpdateRevision = [UInt32]0
@@ -64,23 +64,6 @@ function Get-OSDetails {
 	return $result
 }
 
-function _getPlatform {
-	[CmdletBinding(SupportsShouldProcess=$false)]
-	[OutputType([string])]
-	param()
-	# $PSEdition, $IsCoreCLR, $IsWindows, etc were added for PowerShellCore 6/PowerShell Desktop 5.1, so if they don't exist, then it has to be old powershell, which means Windows
-	if (-not [bool](Get-Variable -Name 'PSEdition' -ErrorAction Ignore) -or $PSEdition -eq 'Desktop' -or
-			-not [bool](Get-Variable -Name 'IsWindows' -ErrorAction Ignore) -or $IsWindows) {
-		return 'Windows'
-	} elseif ($IsLinux) {
-		return 'Linux'
-	} elseif ($IsMacOS) {
-		return 'MacOS'
-	} else {
-		Write-Error 'could not determine OS platform' -ErrorAction Stop
-	}
-}
-
 function _populateWindowsInfo {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([void])]
@@ -93,7 +76,7 @@ function _populateWindowsInfo {
 		$osinfo = Get-WmiObject -Class 'Win32_OperatingSystem'
 	}
 
-	$osDetails.Caption = $osinfo.Caption
+	$osDetails.Description = $osinfo.Caption
 	$osDetails.Distributor = $osinfo.Manufacturer
 	$osDetails.BuildNumber = $osinfo.BuildNumber.ToString()
 	$osDetails.InstallDateTime = $osinfo.InstallDate
@@ -118,7 +101,7 @@ function _populateLinuxInfo {
 	$releaseLooksLikeVersion = _looksLikeVersion -version $release
 
 	if ($distId) { $osDetails.Distributor = [System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ToTitleCase($distId) }
-	if ($releaseLooksLikeVersion -and -not $description.Contains($release)) { $osDetails.Caption = '{0} {1}' -f $description,$release } else { $osDetails.Caption = $description }
+	if ($releaseLooksLikeVersion -and -not $description.Contains($release)) { $osDetails.Description = '{0} {1}' -f $description,$release } else { $osDetails.Description = $description }
 	$osDetails.Release = '{0} {1}' -f $distId,$release
 	$osDetails.Codename = $codename
 	if ($releaseLooksLikeVersion) {
@@ -142,7 +125,7 @@ function _populateMacOSInfo {
 	$sysProfData = (system_profiler -json SPHardwareDataType SPSoftwareDataType) | ConvertFrom-Json
 
 	$osDetails.Distributor = 'Apple'
-	$osDetails.Caption = $sysProfData.SPSoftwareDataType.os_version
+	$osDetails.Description = $sysProfData.SPSoftwareDataType.os_version
 	$osDetails.Release = _getMacReleaseVersion
 	$osDetails.ReleaseVersion = _convertVersion -version $osDetails.Release
 	$kern = _getMacKernelVersion
@@ -158,6 +141,23 @@ function _populateMacOSInfo {
 }
 
 #region helpers
+function _getPlatform {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string])]
+	param()
+	# $PSEdition, $IsCoreCLR, $IsWindows, etc were added for PowerShellCore 6/PowerShell Desktop 5.1, so if they don't exist, then it has to be old powershell, which means Windows
+	if (-not [bool](Get-Variable -Name 'PSEdition' -ErrorAction Ignore) -or $PSEdition -eq 'Desktop' -or
+			-not [bool](Get-Variable -Name 'IsWindows' -ErrorAction Ignore) -or $IsWindows) {
+		return 'Windows'
+	} elseif ($IsLinux) {
+		return 'Linux'
+	} elseif ($IsMacOS) {
+		return 'MacOS'
+	} else {
+		Write-Error 'could not determine OS platform' -ErrorAction Stop
+	}
+}
+
 function _getOSArchitecture {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
