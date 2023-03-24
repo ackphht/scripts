@@ -120,3 +120,31 @@ function ConvertTo-ProperFormattedJson {
 		return $json
 	}
 }
+
+$script:splitLine = [regex]::new('^\s*(?<nam>.+?)\s*[:=]\s*("?)\s*(?<val>.+?)\s*\1\s*$', 'Compiled')
+function ParseLinesToLookup {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([hashtable])]
+	param(
+		[Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $inputs,
+		[switch] $saveFirstValue
+	)
+	begin { $results = @{} }
+	process {
+		WriteVerboseMessage 'trying to match line |{0}|' $_
+		if ($_) {
+			$match = $script:splitLine.Match($_)
+			if ($match.Success) {
+				$nam = $match.Groups['nam'].Value; $val = $match.Groups['val'].Value;
+				# if value is just an empty pair of quotes (e.g. Fedora's os-release), regex doesn't catch that; but this is probably
+				# better anyway because we still get the key instead of no match at all; could probably get regex to handle that but meh
+				if ($val -eq '""') { $val = '' }
+				WriteVerboseMessage 'matched line: nam = |{0}|, val = |{1}|' $nam,$val
+				if (-not $saveFirstValue -or -not $results.ContainsKey($nam)) {
+					$results[$nam] = $val
+				}
+			}
+		}
+	}
+	end { return $results }
+}
