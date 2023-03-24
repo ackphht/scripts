@@ -149,7 +149,7 @@ function Main {
 		_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $(if ([System.Environment]::Is64BitOperatingSystem) { '64-bit' } else { '32-bit' })
 	} else {
 		if ((Get-Command -Name 'lsb_release' -ErrorAction Ignore)) {
-			$lsb = lsb_release --all 2>/dev/null | _parseLinesToLookup
+			$lsb = lsb_release --all 2>/dev/null | ParseLinesToLookup
 			_setProperty -obj $results -propName 'OS_Name' -propValue $lsb['Description']
 			_setProperty -obj $results -propName 'OS_Distributor' -propValue $lsb['Distributor ID']
 			_setProperty -obj $results -propName 'OS_Version' -propValue $lsb['Release']
@@ -158,10 +158,10 @@ function Main {
 				_setProperty -obj $results -propName 'OS_Codename' -propValue $oscodename
 			}
 		} elseif ((Test-Path -Path '/etc/os-release' -ErrorAction Ignore)) {
-			$osrelease = Get-Content -Path '/etc/os-release' | _parseLinesToLookup
+			$osrelease = Get-Content -Path '/etc/os-release' | ParseLinesToLookup
 			_setProperty -obj $results -propName 'OS_Name' -propValue $osrelease['PRETTY_NAME']			# PRETTY_NAME -> Description
 			_setProperty -obj $results -propName 'OS_Distributor' -propValue $osrelease['ID'] # 'NAME'	# ID -> Distributor ID
-			$osversion = $osrelease['VERSION_ID']														# TODO: should reverse these; VERSION_ID -> Release
+			$osversion = $osrelease['VERSION_ID']														# VERSION_ID -> Release
 			if (-not $osversion) {
 				$osversion = $osrelease['VERSION']
 			}
@@ -210,7 +210,7 @@ function Main {
 		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $(if ([System.Environment]::Is64BitOperatingSystem) { '64' } else { '32' })
 		_setProperty -obj $results -propName 'Processor_DataWidth' -propValue $(if ([System.Environment]::Is64BitOperatingSystem) { '64' } else { '32' })
 	} elseif ((Get-Command -Name 'lscpu' -ErrorAction Ignore)) {
-		$lscpu = lscpu | _parseLinesToLookup
+		$lscpu = lscpu | ParseLinesToLookup
 		_setProperty -obj $results -propName 'Processor_Name' -propValue $lscpu['Model name']
 		_setProperty -obj $results -propName 'Processor_Architecture' -propValue $lscpu['Architecture']
 		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $lscpu['Address sizes']
@@ -223,7 +223,7 @@ function Main {
 		_setProperty -obj $results -propName 'Processor_L2CacheSize' -propValue $lscpu['L2 cache']
 		_setProperty -obj $results -propName 'Processor_L3CacheSize' -propValue $lscpu['L3 cache']
 	} elseif ((Test-Path -Path '/proc/cpuinfo' -ErrorAction Ignore)) {
-		$cpuinfo = Get-Content -Path '/proc/cpuinfo' | _parseLinesToLookup -saveFirstValue
+		$cpuinfo = Get-Content -Path '/proc/cpuinfo' | ParseLinesToLookup -saveFirstValue
 		_setProperty -obj $results -propName 'Processor_Name' -propValue $cpuinfo['model name']
 		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $cpuinfo['address sizes']
 		_setProperty -obj $results -propName 'Processor_NumberOfCores' -propValue $cpuinfo['cpu cores']
@@ -375,34 +375,6 @@ function _mapCimProcArch {
 		12 { return '12 [ARM64]' }
 		default { return "$arch [Other]" }
 	}
-}
-
-$script:splitLine = [regex]::new('^\s*(?<nam>.+?)\s*[:=]\s*("?)\s*(?<val>.+?)\s*\1\s*$', 'Compiled')
-function _parseLinesToLookup {
-	[CmdletBinding(SupportsShouldProcess=$false)]
-	[OutputType([hashtable])]
-	param(
-		[Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $inputs,
-		[switch] $saveFirstValue
-	)
-	begin { $results = @{} }
-	process {
-		WriteVerboseMessage 'trying to match line |{0}|' $_
-		if ($_) {
-			$match = $script:splitLine.Match($_)
-			if ($match.Success) {
-				$nam = $match.Groups['nam'].Value; $val = $match.Groups['val'].Value;
-				# if value is just an empty pair of quotes (e.g. Fedora's os-release), regex doesn't catch that; but this is probably
-				# better anyway because we still get the key instead of no match at all; could probably get regex to handle that but meh
-				if ($val -eq '""') { $val = '' }
-				WriteVerboseMessage 'matched line: nam = |{0}|, val = |{1}|' $nam,$val
-				if (-not $saveFirstValue -or -not $results.ContainsKey($nam)) {
-					$results[$nam] = $val
-				}
-			}
-		}
-	}
-	end { return $results }
 }
 
 $script:nonDisplayCharsMap = @{
