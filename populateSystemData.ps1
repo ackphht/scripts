@@ -102,7 +102,7 @@ function _populateLinuxInfo {
 
 	if ($distId) { $osDetails.Distributor = [System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ToTitleCase($distId) }
 	if ($releaseLooksLikeVersion -and -not $description.Contains($release)) { $osDetails.Description = '{0} {1}' -f $description,$release } else { $osDetails.Description = $description }
-	$osDetails.Release = '{0} {1}' -f $distId,$release
+	$osDetails.Release = $release
 	$osDetails.Codename = $codename
 	if ($releaseLooksLikeVersion) {
 		$osDetails.Id = 'linux.{0}.{1}' -f $distId.ToLower(),$release
@@ -262,25 +262,25 @@ function _getWindowsRelease {
 		1 {
 			switch ($build) {
 				{ $_ -ge 22000 } {
-					if ($build -ge 22621) { $result = '11 {0}' -f (_getWinReleaseFromReg) }
+					if ($build -ge 22621) { $result = '11.{0}' -f (_getWinReleaseFromReg) }
 					else { $result = '11' }
 					break
 				}
 				{ $_ -ge 10240 } {
-					if ($build -ge 10586) { $result = '10 {0}' -f (_getWinReleaseFromReg) }
+					if ($build -ge 10586) { $result = '10.{0}' -f (_getWinReleaseFromReg) }
 					elseif ($build -ge 10240) { $result = '10' }
 					break
 				}
 				{ $_ -ge 9600 } { $result = '8.1'; break; }
 				{ $_ -ge 9200 } { $result = '8'; break; }
 				{ $_ -ge 7600 } {
-					if ($build -gt 7600) { $result = '7 SP1' }
+					if ($build -gt 7600) { $result = '7.SP1' }
 					else { $result = '7' }
 					break
 				}
 				{ $_ -ge 6000 } {
-					if ($build -gt 6001) { $result = 'Vista SP2' }
-					if ($build -eq 6001) { $result = 'Vista SP1' }
+					if ($build -gt 6001) { $result = 'Vista.SP2' }
+					if ($build -eq 6001) { $result = 'Vista.SP1' }
 					else { $result = 'Vista' }
 					break
 				}
@@ -580,7 +580,7 @@ function _getMacReleaseVersion {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
 	param()
-	$result = (sysctl -hin kern.psproductversion)
+	$result = (sysctl -hin kern.osproductversion)
 	if (-not $result) { <# anywhere else to look ??? #> }
 	return $result
 }
