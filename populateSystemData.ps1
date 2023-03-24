@@ -24,15 +24,15 @@ class OSDetails {
 	[string] $Edition			# e.g. 'Professional', 'Home', etc
 	[string] $OSArchitecture	# e.g. 'x86_64', 'Arm64'
 	[bool] $Is64BitOS
-	[DateTime] $InstallDateTime
-	[DateTime] $LastBootDateTime
+	[DateTime] $OSInstallTime
+	[DateTime] $OSStartTime
 
 	OSDetails() {
 		$this.Platform = $this.Id = $this.Description = $this.Release = $this.Distributor = $this.Codename = $this.Type = $this.Edition = [System.String]::Empty
 		$this.BuildNumber = '0'
 		$this.KernelVersion = '0.0' #[System.Version]::new(0, 0)
 		$this.UpdateRevision = [UInt32]0
-		$this.InstallDateTime = $this.LastBootDateTime = [System.DateTime]::MinValue
+		$this.OSInstallTime = $this.OSStartTime = [System.DateTime]::MinValue
 
 		$this.OSArchitecture = _getOSArchitecture
 		$this.Is64BitOS = [System.Environment]::Is64BitOperatingSystem
@@ -79,8 +79,8 @@ function _populateWindowsInfo {
 	$osDetails.Description = $osinfo.Caption
 	$osDetails.Distributor = $osinfo.Manufacturer
 	$osDetails.BuildNumber = $osinfo.BuildNumber.ToString()
-	$osDetails.InstallDateTime = $osinfo.InstallDate
-	$osDetails.LastBootDateTime = $osinfo.LastBootUpTime
+	$osDetails.OSInstallTime = $osinfo.InstallDate
+	$osDetails.OSStartTime = $osinfo.LastBootUpTime
 	$osDetails.Type = if ($osinfo.ProductType -eq 3) { 'Server' } else { 'WorkStation' }
 	$osDetails.Id = _getWindowsId -wmios $osinfo
 	$osDetails.Release = _getWindowsRelease -wmios $osinfo
@@ -111,7 +111,7 @@ function _populateLinuxInfo {
 		$osDetails.Id = 'linux.{0}' -f $distId.ToLower()
 	}
 	$osDetails.KernelVersion = (uname --kernel-release)
-	$osDetails.InstallDateTime = _getLinuxInstallDatetime
+	$osDetails.OSInstallTime = _getLinuxInstallDatetime
 	# try to get last boot time:
 	$uptime = uptime -s 2>/dev/null		# opensuse doesn't support -s; and no idea how to parse the basic command's crap; they all do that different of course
 	if ($LASTEXITCODE -ne 0) {
@@ -122,7 +122,7 @@ function _populateLinuxInfo {
 		}
 	}
 	if ($uptime) {
-		$osDetails.LastBootDateTime = [System.DateTime]::ParseExact($uptime, 'yyyy-MM-dd HH:mm:ss', [System.Globalization.CultureInfo]::CurrentCulture)
+		$osDetails.OSStartTime = [System.DateTime]::ParseExact($uptime, 'yyyy-MM-dd HH:mm:ss', [System.Globalization.CultureInfo]::CurrentCulture)
 	}
 	#$osDetails.BuildNumber = ???
 	#$osDetails.UpdateRevision = ???
@@ -143,10 +143,10 @@ function _populateMacOSInfo {
 	if ($kern) { $osDetails.KernelVersion = $kern }
 	$osDetails.Id = _getMacId -osVersion $osDetails.ReleaseVersion
 	$osDetails.Codename = _getMacCodename -osVersion $osDetails.ReleaseVersion
-	$osDetails.LastBootDateTime = _getMacStartupTime
+	$osDetails.OSStartTime = _getMacStartupTime
 	$osDetails.BuildNumber = _getMacBuildNumber
 	$osDetails.UpdateRevision = _getMacRevision
-	#$osDetails.InstallDateTime = ???
+	#$osDetails.OSInstallTime = ???
 	#$osDetails.Type =
 	#$osDetails.Edition =
 }
