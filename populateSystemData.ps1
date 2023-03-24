@@ -6,22 +6,37 @@
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
+# this script also gets symlinked as setUpSystem.00.SystemData for copying to other systems, so the helpers.ps1 might, too (ugh):
+if (Test-Path -Path "$PSScriptRoot/helpers.ps1") { . "$PSScriptRoot/helpers.ps1" } elseif (Test-Path -Path . "$PSScriptRoot/setUpSystem.00.Helpers.ps1") { . "$PSScriptRoot/setUpSystem.00.Helpers.ps1" }
+
 class OSDetails {
-	[string] $Id				# e.g. 'win.10', 'win.8.1'
+	[string] $Platform			# 'Windows' or 'Linux' or 'MacOS'
+	[string] $Id				# e.g. 'win.10', 'win.8.1', 'mac.13', 'mac.10.15'
 	[string] $Caption			# e.g. 'Microsoft Windows 10 Pro'
-	[string] $Release			# e.g. 'SP1' for < Win10, or '1903', '21H2' for >= Win10
-	[System.Version] $Version	# e.g. 10.0.16299.0
-	[string] $MajorMinor		# e.g. '6.3', '10.0'
-	[int] $BuildNumber			# should be '[uint]' but old desktop posh doesn't recognize that
-	[int] $UpdateBuildRevision
+	[string] $Release			# e.g. 'Vista SP2', '7 SP1', '8.1', '10 1709', '11', '11 22H2'	# <- for bagOS, just the os version (13.2.1), for Linux, the distro version
+	[System.Version] $ReleaseVersion # e.g. 10.0.16299.723; Linux, MacOS have different versions for the OS itself and for the kernel
+	[string] <# [System.Version] #> $KernelVersion	 # e.g. 10.0.16299.723; Linux has stupid looking versions so this can't be [System.Version]
+	[string] $BuildNumber
+	[UInt32] $UpdateRevision	# non-core posh doesn't recognize [uint]; Windows' UBR (UpdateBuildRevision)
+	[string] $Distributor		# e.g. 'Microsoft Corporation', 'Apple', 'Ubuntu', 'Fedora', etc
 	[string] $Codename
 	[string] $Type				# e.g. 'WorkStation', 'Server'
 	[string] $Edition			# e.g. 'Professional', 'Home', etc
 	[string] $OSArchitecture	# e.g. 'x86_64', 'Arm64'
 	[bool] $Is64BitOS
-	[string] $Manufacturer		# e.g. 'Microsoft Corporation'
 	[DateTime] $InstallDateTime
 	[DateTime] $LastBootDateTime
+
+	OSDetails() {
+		$this.Platform = $this.Id = $this.Caption = $this.Release = $this.Distributor = $this.Codename = $this.Type = $this.Edition = [System.String]::Empty
+		$this.BuildNumber = '0'
+		$this.KernelVersion = '0.0' #[System.Version]::new(0, 0)
+		$this.UpdateRevision = [UInt32]0
+		$this.InstallDateTime = $this.LastBootDateTime = [System.DateTime]::MinValue
+
+		$this.OSArchitecture = _getOSArchitecture
+		$this.Is64BitOS = [System.Environment]::Is64BitOperatingSystem
+	}
 }
 
 $script:cachedOsDetails = $null		# it's not going to change, so...
@@ -31,11 +46,45 @@ function Get-OSDetails {
 	param()
 
 	if ($script:cachedOsDetails) {
-		Write-Verbose "$($MyInvocation.InvocationName): returning cached OSDetails"
+		WriteVerboseMessage 'returning cached OSDetails'
 		return $script:cachedOsDetails
 	}
 
-	Write-Verbose "$($MyInvocation.InvocationName): populating OS details"
+	WriteVerboseMessage 'populating OS details'
+
+	$result = [OSDetails]::new()
+	$result.Platform = _getPlatform
+	switch ($result.Platform) {
+		'Windows' { _populateWindowsInfo -osDetails $result; break; }
+		'Linux' { _populateLinuxInfo -osDetails $result; break; }
+		'MacOS' { _populateMacOSInfo -osDetails $result; break; }
+	}
+
+	$script:cachedOsDetails = $result
+	return $result
+}
+
+function _getPlatform {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string])]
+	param()
+	# $PSEdition, $IsCoreCLR, $IsWindows, etc were added for PowerShellCore 6/PowerShell Desktop 5.1, so if they don't exist, then it has to be old powershell, which means Windows
+	if (-not [bool](Get-Variable -Name 'PSEdition' -ErrorAction Ignore) -or $PSEdition -eq 'Desktop' -or
+			-not [bool](Get-Variable -Name 'IsWindows' -ErrorAction Ignore) -or $IsWindows) {
+		return 'Windows'
+	} elseif ($IsLinux) {
+		return 'Linux'
+	} elseif ($IsMacOS) {
+		return 'MacOS'
+	} else {
+		Write-Error 'could not determine OS platform' -ErrorAction Stop
+	}
+}
+
+function _populateWindowsInfo {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([void])]
+	param([Parameter(Mandatory=$true)] [OSDetails] $osDetails)
 
 	if (Get-Command -Name 'Get-CimInstance' -ErrorAction SilentlyContinue) {
 		$osinfo = Get-CimInstance -ClassName 'CIM_OperatingSystem'
@@ -44,27 +93,74 @@ function Get-OSDetails {
 		$osinfo = Get-WmiObject -Class 'Win32_OperatingSystem'
 	}
 
-	$result = [OSDetails]::new()
-	$result.Caption = $osinfo.Caption
-	$result.Manufacturer = $osinfo.Manufacturer
-	$result.BuildNumber = [int]$osinfo.BuildNumber
-	$result.OSArchitecture = _getWindowsArchitecture
-	$result.Is64BitOS = [System.Environment]::Is64BitOperatingSystem
-	$result.InstallDateTime = $osinfo.InstallDate
-	$result.LastBootDateTime = $osinfo.LastBootUpTime
-	$result.Type = if ($osinfo.ProductType -eq 3) { 'Server' } else { 'WorkStation' }
-	$result.Id = _getWindowsId -wmios $osinfo
-	$result.Release = _getWindowsRelease -wmios $osinfo
-	$result.Edition = _getWindowsEdition -wmios $osinfo
-	$result.UpdateBuildRevision = _getWindowsUBR
-	$result.Version = _getWindowsVersion -ubr $result.UpdateBuildRevision
-	$result.MajorMinor = $result.Version.ToString(2)
-	$result.Codename = _getWindowsCodename -wmios $osinfo
-
-	$script:cachedOsDetails = $result
-	return $result
+	$osDetails.Caption = $osinfo.Caption
+	$osDetails.Distributor = $osinfo.Manufacturer
+	$osDetails.BuildNumber = $osinfo.BuildNumber.ToString()
+	$osDetails.InstallDateTime = $osinfo.InstallDate
+	$osDetails.LastBootDateTime = $osinfo.LastBootUpTime
+	$osDetails.Type = if ($osinfo.ProductType -eq 3) { 'Server' } else { 'WorkStation' }
+	$osDetails.Id = _getWindowsId -wmios $osinfo
+	$osDetails.Release = _getWindowsRelease -wmios $osinfo
+	$osDetails.Edition = _getWindowsEdition -wmios $osinfo
+	$osDetails.ReleaseVersion = _getWindowsVersion
+	$osDetails.KernelVersion = $osDetails.ReleaseVersion.ToString()
+	$osDetails.UpdateRevision = $osDetails.ReleaseVersion.Revision
+	#$osDetails.MajorMinor = $osDetails.KernelVersion.ToString(2)
+	$osDetails.Codename = _getWindowsCodename -wmios $osinfo
 }
 
+function _populateLinuxInfo {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([void])]
+	param([Parameter(Mandatory=$true)] [OSDetails] $osDetails)
+
+	$distId,$description,$release,$codename = _getLinuxReleaseProps
+
+	if ($distId) { $osDetails.Distributor = [System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ToTitleCase($distId) }
+	if ($release -match '[\d\.]+' -and -not $description.Contains($release)) { $osDetails.Caption = '{0} {1}' -f $description,$release } else { $osDetails.Caption = $description }
+	$osDetails.Release = '{0} {1}' -f $distId,$release
+	$osDetails.Codename = $codename
+	if ($release -match '[\d\.]+') {
+		$osDetails.Id = 'linux.{0}.{1}' -f $distId.ToLower(),$release
+		if ($release -match '\d{8}') {	# opensuse tumbleweed
+			$osDetails.ReleaseVersion = [System.Version]::Parse(($release -replace '(\d\d\d\d)(\d\d)(\d\d)','$1.$2.$3'))	# meh
+		} else {
+			$osDetails.ReleaseVersion = [System.Version]::Parse($release)
+		}
+	} else {
+		$osDetails.Id = 'linux.{0}' -f $distId.ToLower()
+	}
+	$osDetails.KernelVersion = (uname --kernel-release)
+	#$osDetails.LastBootDateTime = ???
+	#$osDetails.BuildNumber = ???
+	#$osDetails.UpdateRevision = ???
+	#$osDetails.InstallDateTime = ???
+}
+
+function _populateMacOSInfo {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([void])]
+	param([Parameter(Mandatory=$true)] [OSDetails] $osDetails)
+
+	$sysProfData = (system_profiler -json SPHardwareDataType SPSoftwareDataType) | ConvertFrom-Json
+
+	$osDetails.Distributor = 'Apple'
+	$osDetails.Caption = $sysProfData.SPSoftwareDataType.os_version
+	$osDetails.Release = _getMacReleaseVersion
+	$osDetails.ReleaseVersion = [System.Version]::Parse($osDetails.Release)
+	$kern = _getMacKernelVersion
+	if ($kern) { $osDetails.KernelVersion = $kern }
+	$osDetails.Id = _getMacId -osVersion $osDetails.ReleaseVersion
+	$osDetails.Codename = _getMacCodename -osVersion $osDetails.ReleaseVersion
+	$osDetails.LastBootDateTime = _getMacStartupTime
+	$osDetails.BuildNumber = _getMacBuildNumber
+	$osDetails.UpdateRevision = _getMacRevision
+	#$osDetails.InstallDateTime = ???
+	#$osDetails.Type =
+	#$osDetails.Edition =
+}
+
+#region windows parsing helpers
 function _getWindowsId {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
@@ -72,7 +168,7 @@ function _getWindowsId {
 	$build = [int]$wmios.BuildNumber
 	$type = [int]$wmios.ProductType
 	$caption = [string]$wmios.Caption
-	Write-Verbose "$($MyInvocation.InvocationName): mapping OS name: build = '$build', type = '$type', caption = '$caption'"
+	WriteVerboseMessage 'mapping windows OS name: build = "{0}", type = "{1}", caption = "{2}"' $build,$type,$caption
 	switch ($type) {
 		1 {
 			switch ($build) {
@@ -109,7 +205,7 @@ function _getWindowsId {
 		}
 		default { $result = "unknown.type${type}.${build}"; break; }
 	}
-	Write-Verbose "$($MyInvocation.InvocationName): map OS name result == '$result'"
+	WriteVerboseMessage 'map OS name result == "{0}"' $result
 	return $result
 }
 
@@ -119,33 +215,32 @@ function _getWindowsRelease {
 	param($wmios)
 	$build = [int]$wmios.BuildNumber
 	$type = [int]$wmios.ProductType
-	Write-Verbose "$($MyInvocation.InvocationName): mapping OS release: build = '$build', type = '$type'"
+	WriteVerboseMessage 'mapping OS release: build = "{0}", type = "{1}"' $build,$type
 	$result = '<unknown>'
 	switch ($type) {
 		1 {
 			switch ($build) {
 				{ $_ -ge 22000 } {
-					if ($build -ge 22621) { $result = _getWinReleaseFromReg }
-					else { $result = 'RTM' }
+					if ($build -ge 22621) { $result = '11 {0}' -f (_getWinReleaseFromReg) }
+					else { $result = '11' }
 					break
 				}
 				{ $_ -ge 10240 } {
-					if ($build -ge 14393) { $result = _getWinReleaseFromReg }
-					elseif ($build -ge 10586) { $result = '1511' }	# think it's in the registry for this one, too, but...
-					elseif ($build -ge 10240) { $result = 'RTM' }
+					if ($build -ge 10586) { $result = '10 {0}' -f (_getWinReleaseFromReg) }
+					elseif ($build -ge 10240) { $result = '10' }
 					break
 				}
-				{ $_ -ge 9600 } { $result = 'RTM'; break; }
-				{ $_ -ge 9200 } { $result = 'RTM'; break; }
+				{ $_ -ge 9600 } { $result = '8.1'; break; }
+				{ $_ -ge 9200 } { $result = '8'; break; }
 				{ $_ -ge 7600 } {
-					if ($build -gt 7600) { $result = 'SP1' }
-					else { $result = 'RTM' }
+					if ($build -gt 7600) { $result = '7 SP1' }
+					else { $result = '7' }
 					break
 				}
 				{ $_ -ge 6000 } {
-					if ($build -gt 6001) { $result = 'SP2' }
-					if ($build -eq 6001) { $result = 'SP1' }
-					else { $result = 'RTM' }
+					if ($build -gt 6001) { $result = 'Vista SP2' }
+					if ($build -eq 6001) { $result = 'Vista SP1' }
+					else { $result = 'Vista' }
 					break
 				}
 			}
@@ -181,7 +276,7 @@ function _getWindowsRelease {
 			}
 		}
 	}
-	Write-Verbose "$($MyInvocation.InvocationName): map OS release result == '$result'"
+	WriteVerboseMessage 'map OS release result == "{0}"' $result
 	return $result
 }
 
@@ -319,11 +414,11 @@ function _getWindowsEdition {
 		# PRODUCT_ENTERPRISE_FOR_VIRTUAL_DESKTOPS (175): Windows Enterprise for Virtual Desktops (Azure Virtual Desktop)
 		175 { $result = 'EnterpriseForVirtualDesktop' }
 	}
-	Write-Verbose "trying to map OS edition: ossku = '$ossku' ==> '$result'"
+	WriteVerboseMessage 'trying to map OS edition: ossku = "{0}" ==> "{1}"' $ossku,$result
 	return $result
 }
 
-function _getWindowsArchitecture {
+function _getOSArchitecture {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
 	param()
@@ -334,8 +429,10 @@ function _getWindowsArchitecture {
 			'X86' { $result = 'x86-32'; break; }
 			default { $result = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString(); break; }
 		}
-	} else {
+	} elseif (Test-Path -Path env:PROCESSOR_ARCHITECTURE -PathType Leaf) {
 		$result = $env:PROCESSOR_ARCHITECTURE
+	} else {
+		<# ??? if linux, can try uname --hardware-platform; or just fall back to uname --machine and assume the OS type is same as cpu type ??? #>
 	}
 	return $result
 }
@@ -343,8 +440,9 @@ function _getWindowsArchitecture {
 function _getWindowsVersion {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([System.Version])]
-	param([int] $ubr)
+	param()
 	$result = [System.Environment]::OSVersion.Version
+	$ubr = _getWindowsUBR
 	if ($ubr -gt 0) {
 		$result = [System.Version]::new($result.Major, $result.Minor, $result.Build, $ubr)
 	}
@@ -390,7 +488,7 @@ function _getWindowsCodename {
 			$result = 'Longhorn'
 		} elseif ($bld -ge 2600) {	# WinXP
 			$result = 'Whistler'
-		#} elseif ($bld -ge XXXX) {	# 
+		#} elseif ($bld -ge XXXX) {	#
 		#	$result = 'XXXXXXXX'
 		}
 	} elseif ($osinfo.ProductType -eq '3') {	# server
@@ -401,11 +499,11 @@ function _getWindowsCodename {
 
 function _getWindowsUBR {
 	[CmdletBinding(SupportsShouldProcess=$false)]
-	[OutputType([int])]
-	$result = 0
+	[OutputType([UInt32])]
+	$result = [UInt32]0
 	$prop = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'UBR' -ErrorAction SilentlyContinue
 	if ($prop) {
-		$result = $prop.UBR
+		$result = [UInt32]$prop.UBR
 	}
 	return $result
 }
@@ -419,3 +517,144 @@ function _getWinReleaseFromReg {
 	}
 	return $result
 }
+#endregion
+
+#region linux parsing helpers
+function _getLinuxReleaseProps {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string[]])]
+	$distId = $description = $release = $codename = [string]::Empty
+	# try getting data from reading files before shelling out to lsb_release:
+	if (Test-Path -Path '/etc/lsb-release' -PathType Leaf) {
+		$lsbrelease = Get-Content -Path '/etc/lsb-release' | ParseLinesToLookup
+		if ($lsbrelease.ContainsKey('DISTRIB_ID')) { $distId = $lsbrelease['DISTRIB_ID'] }
+		if ($lsbrelease.ContainsKey('DISTRIB_DESCRIPTION')) { $description = $lsbrelease['DISTRIB_DESCRIPTION'] }
+		if ($lsbrelease.ContainsKey('DISTRIB_RELEASE')) { $release = $lsbrelease['DISTRIB_RELEASE'] }
+		if ($lsbrelease.ContainsKey('DISTRIB_CODENAME')) { $codename = $lsbrelease['DISTRIB_CODENAME'] }
+	}
+	if ((-not $distId -or -not $description -or -not $release -or -not $codename) -and (Test-Path -Path '/etc/os-release' -PathType Leaf)) {
+		$osrelease = Get-Content -Path '/etc/os-release' | ParseLinesToLookup
+		if (-not $distId -and $osrelease.ContainsKey('ID')) { $distId = $osrelease['ID'] }
+		if (-not $description -and $osrelease.ContainsKey('NAME')) { $description = $osrelease['NAME'] }
+		if (-not $release -and $osrelease.ContainsKey('VERSION_ID')) { $release = $osrelease['VERSION_ID'] }
+		if (-not $codename -and $osrelease.ContainsKey('VERSION_CODENAME')) { $codename = $osrelease['VERSION_CODENAME'] }
+	}
+	# some distros (e.g. fedora and opensuse tumbleweed) still don't have everything but it is returned by lsb_release (??), so let's try that:
+	if ((-not $distId -or -not $description -or -not $release -or -not $codename) -and (Get-Command -Name 'lsb_release' -ErrorAction Ignore)) {
+		$lsb = lsb_release --all 2>/dev/null | ParseLinesToLookup
+		if (-not $distId -and $lsb.ContainsKey('Distributor ID')) { $distId = $lsb['Distributor ID'] }
+		if (-not $description -and $lsb.ContainsKey('Description')) { $description = $lsb['Description'] }
+		if (-not $release -and $lsb.ContainsKey('Release')) { $release = $lsb['Release'] }
+		if (-not $codename -and $lsb.ContainsKey('Codename')) { $codename = $lsb['Codename'] }
+	}
+	if ($codename -eq 'n/a') { $codename = [string]::Empty }	# opensuse tumbleweed
+
+	return $distId,$description,$release,$codename
+}
+#endregion
+
+#region macos parsing helpers
+function _getMacReleaseVersion {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string])]
+	param()
+	$result = (sysctl -hin kern.psproductversion)
+	if (-not $result) { <# anywhere else to look ??? #> }
+	return $result
+}
+
+function _getMacKernelVersion {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	#[OutputType([System.Version])]
+	[OutputType([string])]
+	param()
+	$result = (sysctl -hin kern.osrelease)
+	if (-not $result) { <# anywhere else to look ??? #> }
+	return $result
+	#if ($result) { return [System.Version]::Parse($result) } else { return [System.Version]::(0, 0) }
+}
+
+function _getMacBuildNumber {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string])]
+	param()
+	$result = (sysctl -hin kern.osversion)
+	if (-not $result) { <# anywhere else to look ??? #> }
+	return $result
+}
+
+function _getMacRevision {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([UInt32])]
+	param()
+	$result = [UInt32]0
+	$tmp = (sysctl -hin kern.osrevision)
+	if (-not $tmp) { <# anywhere else to look ??? #> }
+	if ($tmp) { $result = [UInt32]$tmp }
+	return $result
+}
+
+function _getMacStartupTime {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([System.DateTime])]
+	param()
+	$result = [System.DateTime]::MinValue
+	$raw = (sysctl -hin kern.boottime)
+	if ($raw) {
+		$match = [regex]::Match($raw, '^{\s*sec\s*=\s*(?<secs>\d+).+$')
+		if ($match.Success) {
+			$result = [System.DateTimeOffset]::FromUnixTimeSeconds(([long]($match.Groups['secs'].Value))).LocalDateTime
+		}
+	}
+	if ($result -eq [System.DateTime]::MinValue) {
+		<# ??? #>
+	}
+	return $result
+}
+
+function _getMacId {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string])]
+	param([System.Version] $osVersion)
+	$result = ''
+	if ($osVersion.Major -gt 10) {
+		$result = 'mac.{0}' -f $osVersion.Major
+	} elseif ($osVersion.Major -eq 10) {
+		$result = 'mac.{0}.{1}' -f $osVersion.Major,$osVersion.Minor
+	}
+	return $result
+}
+
+function _getMacCodename {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string])]
+	param([System.Version] $osVersion)
+	$result = ''
+	switch ($osVersion.Major) {
+		13 { $result = 'Ventura'; break; }
+		12 { $result = 'Monterey'; break; }
+		11 { $result = 'Big Sur'; break; }
+		10 {
+			switch ($osVersion.Minor) {
+				15 { $result = 'Catalina'; break; }
+				14 { $result = 'Mojave'; break; }
+				13 { $result = 'High Sierra'; break; }
+				12 { $result = 'Sierra'; break; }
+				11 { $result = 'El Capitan'; break; }
+				10 { $result = 'Yosemite'; break; }
+				9 { $result = 'Mavericks'; break; }
+				8 { $result = 'Mountain Lion'; break; }
+				7 { $result = 'Lion'; break; }
+				6 { $result = 'Snow Leopard'; break; }
+				5 { $result = 'Leopard'; break; }
+				4 { $result = 'Tiger'; break; }
+				3 { $result = 'Panther'; break; }
+				2 { $result = 'Jaguar'; break; }
+				1 { $result = 'Puma'; break; }
+				0 { $result = 'Cheetah'; break; }
+			}
+		}
+	}
+	return $result
+}
+#endregion
