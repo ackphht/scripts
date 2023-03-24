@@ -14,6 +14,7 @@ $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Contin
 #Set-StrictMode -Version Latest
 
 . $PSScriptRoot/helpers.ps1
+. $PSScriptRoot/populateSystemData.ps1
 
 $script:NA = 'N/A'
 
@@ -123,61 +124,23 @@ function Main {
 	}
 
 	WriteVerboseMessage 'getting OS info'
-	@('Name', 'Distributor', 'Version', 'OSArchitecture', 'Kernel', 'SKU', 'OSType', 'Codename') |
+	@('Platform', 'Distributor', 'Name', 'Id', 'Release', 'Version', 'OSArchitecture', 'Kernel', 'SKU', 'OSType', 'Codename') |
 		ForEach-Object { _addProperty -obj $results -propName "OS_$_" -propValue '' }
+	$osDetails = Get-OSDetails
+	_setProperty -obj $results -propName 'OS_Platform' -propValue $osDetails.Platform
+	_setProperty -obj $results -propName 'OS_Distributor' -propValue $osDetails.Distributor
+	_setProperty -obj $results -propName 'OS_Name' -propValue $osDetails.Description
+	_setProperty -obj $results -propName 'OS_Id' -propValue $osDetails.Id
+	_setProperty -obj $results -propName 'OS_Release' -propValue $osDetails.Release
+	_setProperty -obj $results -propName 'OS_Version' -propValue $osDetails.ReleaseVersion.ToString()
+	_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $osDetails.OSArchitecture
+	_setProperty -obj $results -propName 'OS_Kernel' -propValue $osDetails.KernelVersion
+	_setProperty -obj $results -propName 'OS_Codename' -propValue $osDetails.Codename
 	if ($cimInstanceAvail) {
 		$os = Get-CimInstance -ClassName 'CIM_OperatingSystem'
 		if ($os) {
-			_setProperty -obj $results -propName 'OS_Distributor' -propValue $os.Manufacturer
-			_setProperty -obj $results -propName 'OS_Name' -propValue $os.Caption	# .Name has other crap in it
-			_setProperty -obj $results -propName 'OS_Version' -propValue $os.Version
-			_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $os.OSArchitecture
-			_setProperty -obj $results -propName 'OS_Kernel' -propValue $os.Version
 			_setProperty -obj $results -propName 'OS_SKU' -propValue $os.OperatingSystemSKU
 			_setProperty -obj $results -propName 'OS_OSType' -propValue $os.OSType
-		}
-	} elseif ($IsMacOS) {
-		_setProperty -obj $results -propName 'OS_Distributor' -propValue 'Apple'
-		_setProperty -obj $results -propName 'OS_Name' -propValue $macOsData.SPSoftwareDataType.os_version
-		_setProperty -obj $results -propName 'OS_Version' -propValue (sysctl -hin kern.osproductversion)	# simple version without parsing above
-		$kern = sysctl -hin kern.osrelease	# just the version, e.g. '22.3.0'
-		if (-not $kern) {
-			$kern = $macOsData.SPSoftwareDataType.kernel_version	# e.g. 'Darwin 22.3.0'
-		}
-		_setProperty -obj $results -propName 'OS_Kernel' -propValue $kern
-		# haven't found anything good for this next one in system_profiler or sysctl; and macOS doesn't support 'uname -i', so:
-		_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $(if ([System.Environment]::Is64BitOperatingSystem) { '64-bit' } else { '32-bit' })
-	} else {
-		if ((Get-Command -Name 'lsb_release' -ErrorAction Ignore)) {
-			$lsb = lsb_release --all 2>/dev/null | ParseLinesToLookup
-			_setProperty -obj $results -propName 'OS_Name' -propValue $lsb['Description']
-			_setProperty -obj $results -propName 'OS_Distributor' -propValue $lsb['Distributor ID']
-			_setProperty -obj $results -propName 'OS_Version' -propValue $lsb['Release']
-			$oscodename = $lsb['Codename']
-			if ($oscodename -and $oscodename -ne 'n/a') {
-				_setProperty -obj $results -propName 'OS_Codename' -propValue $oscodename
-			}
-		} elseif ((Test-Path -Path '/etc/os-release' -ErrorAction Ignore)) {
-			$osrelease = Get-Content -Path '/etc/os-release' | ParseLinesToLookup
-			_setProperty -obj $results -propName 'OS_Name' -propValue $osrelease['PRETTY_NAME']			# PRETTY_NAME -> Description
-			_setProperty -obj $results -propName 'OS_Distributor' -propValue $osrelease['ID'] # 'NAME'	# ID -> Distributor ID
-			$osversion = $osrelease['VERSION_ID']														# VERSION_ID -> Release
-			if (-not $osversion) {
-				$osversion = $osrelease['VERSION']
-			}
-			_setProperty -obj $results -propName 'OS_Version' -propValue $osversion
-			$oscodename = $osrelease['VERSION_CODENAME']												# VERSION_CODENAME -> Codename
-			if ($oscodename -and $oscodename -ne 'n/a') {
-				_setProperty -obj $results -propName 'OS_Codename' -propValue $oscodename
-			}
-		}
-		if ($unameAvail) {
-			$osarch = (uname --hardware-platform <# OS architecture, right ?? #>)
-			if (-not $osarch -or $osarch -eq 'unknown') {
-				$osarch = (uname --machine)	<# fall back; or should we just leave it blank ?? #>
-			}
-			_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $osarch
-			_setProperty -obj $results -propName 'OS_Kernel' -propValue (uname --kernel-release)
 		}
 	}
 
