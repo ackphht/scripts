@@ -111,10 +111,10 @@ function _populateLinuxInfo {
 		$osDetails.Id = 'linux.{0}' -f $distId.ToLower()
 	}
 	$osDetails.KernelVersion = (uname --kernel-release)
-	#$osDetails.LastBootDateTime = ???
+	$osDetails.LastBootDateTime = [System.DateTime]::ParseExact((uptime -s), 'yyyy-MM-dd HH:mm:ss', [System.Globalization.CultureInfo]::CurrentCulture)
+	$osDetails.InstallDateTime = _getLinuxInstallDatetime
 	#$osDetails.BuildNumber = ???
 	#$osDetails.UpdateRevision = ???
-	#$osDetails.InstallDateTime = ???
 }
 
 function _populateMacOSInfo {
@@ -572,6 +572,29 @@ function _getLinuxReleaseProps {
 	if ($codename -eq 'n/a') { $codename = [string]::Empty }	# opensuse tumbleweed
 
 	return $distId,$description,$release,$codename
+}
+
+function _getLinuxInstallDatetime {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string[]])]
+	param()
+	# try to figure out os install datetime; doesn't look lik linux has a command for it, but can check for when basic os files folders were created; we'll try these:
+	# and .NET/PowerShell's DirectoryInfo is not returning this for its CreationTime; looks like it's returning ctime rather than birth time (??)
+	# and 'birth' time might not be supported on all filesystems, so be ready for that...
+	$result = [System.DateTime]::MinValue
+	$createSecs = 0
+	if (Test-Path -Path '/root' -PathType Container) {
+		$tmpSecs = stat /root --format=%W 2>/dev/null
+		if ($LASTEXITCODE -eq 0) { $createSecs = $tmpSecs }
+	}
+	if ($createSecs -eq 0 -and (Test-Path -Path '/etc' -PathType Container)) {
+		$tmpSecs = stat /etc --format=%W 2>/dev/null
+		if ($LASTEXITCODE -eq 0) { $createSecs = $tmpSecs }
+	}
+	if ($createSecs -ne 0) {
+		$result = [System.DateTimeOffset]::FromUnixTimeSeconds($createSecs).LocalDateTime
+	}
+	return $result
 }
 #endregion
 
