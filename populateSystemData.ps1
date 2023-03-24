@@ -111,8 +111,19 @@ function _populateLinuxInfo {
 		$osDetails.Id = 'linux.{0}' -f $distId.ToLower()
 	}
 	$osDetails.KernelVersion = (uname --kernel-release)
-	$osDetails.LastBootDateTime = [System.DateTime]::ParseExact((uptime -s), 'yyyy-MM-dd HH:mm:ss', [System.Globalization.CultureInfo]::CurrentCulture)
 	$osDetails.InstallDateTime = _getLinuxInstallDatetime
+	# try to get last boot time:
+	$uptime = uptime -s 2>/dev/null		# opensuse doesn't support -s; and no idea how to parse the basic command's crap; they all do that different of course
+	if ($LASTEXITCODE -ne 0) {
+		$tmp = who -b 2>/dev/null
+		if ($LASTEXITCODE -eq 0) {
+			$m = [regex]::Match($tmp, '^\s*system boot\s+(?<ts>\d\d\d\d-\d\d-\d\d \d\d:\d\d).*$')
+			if ($m.Success) { $uptime = $m.Groups['ts'].Value + ':00' }
+		}
+	}
+	if ($uptime) {
+		$osDetails.LastBootDateTime = [System.DateTime]::ParseExact($uptime, 'yyyy-MM-dd HH:mm:ss', [System.Globalization.CultureInfo]::CurrentCulture)
+	}
 	#$osDetails.BuildNumber = ???
 	#$osDetails.UpdateRevision = ???
 }
