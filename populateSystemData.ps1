@@ -150,10 +150,10 @@ function _populateMacOSInfo {
 	if ($kern) { $osDetails.KernelVersion = $kern }
 	$osDetails.Id = _getMacId -osVersion $osDetails.ReleaseVersion
 	$osDetails.Codename = _getMacCodename -osVersion $osDetails.ReleaseVersion
-	$osDetails.OSStartTime = _getMacStartupTime
 	$osDetails.BuildNumber = _getMacBuildNumber
 	$osDetails.UpdateRevision = _getMacRevision
-	#$osDetails.OSInstallTime = ???
+	$osDetails.OSInstallTime = _getMacInstallTime
+	$osDetails.OSStartTime = _getMacStartupTime
 	#$osDetails.Type =
 	#$osDetails.Edition =
 }
@@ -713,6 +713,30 @@ function _getMacCodename {
 				0 { $result = 'Cheetah'; break; }
 			}
 		}
+	}
+	return $result
+}
+
+function _getMacInstallTime {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string[]])]
+	param()
+	# try to figure out os install datetime; no direct command for it, but can check for when basic os files folders were created; we'll try these:
+	# alternate: call system_profiler SPInstallHistoryDataType, look for earliest item "_name -like 'macOS *'""; but that timestamp is way earlier than what using here, so ??
+	$result = [System.DateTime]::MinValue
+	$createSecs = 0
+	$tmpSecs = stat -f%B / 2>/dev/null
+	if ($LASTEXITCODE -eq 0) { $createSecs = $tmpSecs }
+	if ($createSecs -eq 0 -and (Test-Path -Path '/System' -PathType Container)) {
+		$tmpSecs = stat -f%B /System 2>/dev/null
+		if ($LASTEXITCODE -eq 0) { $createSecs = $tmpSecs }
+	}
+	if ($createSecs -eq 0 -and (Test-Path -Path '/Library/Apple' -PathType Container)) {
+		$tmpSecs = stat -f%B /Library/Apple 2>/dev/null
+		if ($LASTEXITCODE -eq 0) { $createSecs = $tmpSecs }
+	}
+	if ($createSecs -ne 0) {
+		$result = [System.DateTimeOffset]::FromUnixTimeSeconds($createSecs).LocalDateTime
 	}
 	return $result
 }
