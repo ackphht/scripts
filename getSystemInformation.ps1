@@ -132,7 +132,7 @@ function Main {
 	_setProperty -obj $results -propName 'OS_Name' -propValue $osDetails.Description
 	_setProperty -obj $results -propName 'OS_Id' -propValue $osDetails.Id
 	_setProperty -obj $results -propName 'OS_Release' -propValue $osDetails.Release
-	_setProperty -obj $results -propName 'OS_Version' -propValue $osDetails.ReleaseVersion.ToString()
+	_setProperty -obj $results -propName 'OS_Version' -propValue $(if ($osDetails.ReleaseVersion) {$osDetails.ReleaseVersion.ToString()} else {''})
 	_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $osDetails.OSArchitecture
 	_setProperty -obj $results -propName 'OS_Kernel' -propValue $osDetails.KernelVersion
 	_setProperty -obj $results -propName 'OS_Codename' -propValue $osDetails.Codename
