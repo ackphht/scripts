@@ -17,10 +17,10 @@ param(
 	[switch] $onlyMisc
 )
 
-#Set-StrictMode -Version Latest
-#[System.Environment]::CurrentDirectory = (Get-Location).Path
-
 . $PSScriptRoot/helpers.ps1
+
+Set-StrictMode -Off #-Version Latest	# helpers.ps1 above is turning it on, which i didn't think was supposed to happen ??
+#[System.Environment]::CurrentDirectory = (Get-Location).Path
 
 $script:regClassesRootPath = 'HKLM:\Software\Classes'
 $script:regSysClassesRootPath = 'HKLM:\Software\Classes'
@@ -821,7 +821,9 @@ function KillBackgroundProcesses {
 	) |
 	ForEach-Object {
 		$app = $_
+		WriteVerboseMessage 'looking for background proces |{0}|' $app.Name
 		$p = Get-Process -Name $app.Name -ErrorAction Ignore |
+				ForEach-Object { WriteVerboseMessage 'found process, id {0}, checking Description |{1}|, Company |{2}|, Path |{3}|' $_.Id,$_.Description,$_.Company,$_.Path -continuation; $_ } |
 				Where-Object { (-not $app.Description) -or ($_.Description -match $app.Description) } |
 				Where-Object { (-not $app.Company) -or ($_.Company -match $app.Company) } |
 				Where-Object { (-not $app.Path) -or ($_.Path -match $app.Path) }
