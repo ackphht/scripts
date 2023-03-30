@@ -74,6 +74,13 @@ function WriteVerboseMessage {
 	}
 }
 
+function GetSortedPropertyNames {
+	param(
+		[PSObject] $object
+	)
+	return [string[]]($object | Get-Member -MemberType Property | ForEach-Object { $_.Name } | Sort-Object)
+}
+
 $script:properIndentsCache = @{ 1 = "`t"; 2 = "`t`t"; 3 = "`t`t`t"; 4 = "`t`t`t`t"; }
 $script:stupidIndentsCache = @{ 1 = '    '; 2 = '        '; 3 = '            '; 4 = '                '; }
 $script:twoSpaceIndentRegex = [regex]::new('^((?<fu>  )+)', @('MultiLine', 'Compiled'))
