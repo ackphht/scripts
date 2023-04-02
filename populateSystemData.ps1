@@ -24,15 +24,15 @@ class OSDetails {
 	[string] $Edition			# e.g. 'Professional', 'Home', etc
 	[string] $OSArchitecture	# e.g. 'x86_64', 'Arm64'
 	[bool] $Is64BitOS
-	[DateTime] $OSInstallTime
-	[DateTime] $OSStartTime
+	#[DateTime] $OSInstallTime
+	#[DateTime] $OSStartTime
 
 	OSDetails() {
 		$this.Platform = $this.Id = $this.Description = $this.Release = $this.Distributor = $this.Codename = $this.Type = $this.Edition = [System.String]::Empty
 		$this.BuildNumber = '0'
 		$this.KernelVersion = '0.0' #[System.Version]::new(0, 0)
 		$this.UpdateRevision = [UInt32]0
-		$this.OSInstallTime = $this.OSStartTime = [System.DateTime]::MinValue
+		#$this.OSInstallTime = $this.OSStartTime = [System.DateTime]::MinValue
 
 		$this.OSArchitecture = _getOSArchitecture
 		$this.Is64BitOS = [System.Environment]::Is64BitOperatingSystem
@@ -79,8 +79,8 @@ function _populateWindowsInfo {
 	$osDetails.Description = $osinfo.Caption
 	$osDetails.Distributor = $osinfo.Manufacturer
 	$osDetails.BuildNumber = $osinfo.BuildNumber.ToString()
-	$osDetails.OSInstallTime = $osinfo.InstallDate
-	$osDetails.OSStartTime = $osinfo.LastBootUpTime
+	#$osDetails.OSInstallTime = $osinfo.InstallDate
+	#$osDetails.OSStartTime = $osinfo.LastBootUpTime
 	$osDetails.Type = if ($osinfo.ProductType -eq 3) { 'Server' } else { 'WorkStation' }
 	$release = _getWindowsRelease -wmios $osinfo
 	$osDetails.Id = _getWindowsId -wmios $osinfo -release $release
@@ -118,6 +118,7 @@ function _populateLinuxInfo {
 		$osDetails.Id = 'linux.{0}' -f $distId.ToLower()
 	}
 	$osDetails.KernelVersion = (uname --kernel-release)
+	<#
 	$osDetails.OSInstallTime = _getLinuxInstallDatetime
 	# try to get last boot time:
 	$uptime = uptime -s 2>/dev/null		# opensuse doesn't support -s; and no idea how to parse the basic command's crap; they all do that different of course
@@ -131,6 +132,7 @@ function _populateLinuxInfo {
 	if ($uptime) {
 		$osDetails.OSStartTime = [System.DateTime]::ParseExact($uptime, 'yyyy-MM-dd HH:mm:ss', [System.Globalization.CultureInfo]::CurrentCulture)
 	}
+	#>
 	#$osDetails.BuildNumber = ???
 	#$osDetails.UpdateRevision = ???
 }
@@ -152,8 +154,8 @@ function _populateMacOSInfo {
 	$osDetails.Codename = _getMacCodename -osVersion $osDetails.ReleaseVersion
 	$osDetails.BuildNumber = _getMacBuildNumber
 	$osDetails.UpdateRevision = _getMacRevision
-	$osDetails.OSInstallTime = _getMacInstallTime
-	$osDetails.OSStartTime = _getMacStartupTime
+	#$osDetails.OSInstallTime = _getMacInstallTime
+	#$osDetails.OSStartTime = _getMacStartupTime
 	#$osDetails.Type =
 	#$osDetails.Edition =
 }
@@ -723,6 +725,7 @@ function _getMacInstallTime {
 	param()
 	# try to figure out os install datetime; no direct command for it, but can check for when basic os files folders were created; we'll try these:
 	# alternate: call system_profiler SPInstallHistoryDataType, look for earliest item "_name -like 'macOS *'""; but that timestamp is way earlier than what using here, so ??
+	# => this doesn't really work either; the times here get updated with new os updates, so meh
 	$result = [System.DateTime]::MinValue
 	$createSecs = 0
 	$tmpSecs = stat -f%B / 2>/dev/null
