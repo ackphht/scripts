@@ -1,22 +1,23 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-from msilib.schema import Property
+#from msilib.schema import Property
+#from tkinter import Pack
 import sys
 import os
 import re
 import argparse
 import pathlib
+from datetime import datetime, timezone
 import shutil
 import subprocess
 import tempfile
-from tkinter import Pack
 from typing import Any, List, Pattern, Tuple, Iterator, Dict
 #from tabulate import tabulate	# https://pypi.org/project/tabulate/
-from loghelper import LogHelper
 from operator import attrgetter, itemgetter
 import hashlib
 
+from loghelper import LogHelper
 LogHelper.Init()
 
 def main():
@@ -28,10 +29,12 @@ def main():
 	parser.add_argument("-i", "--createIcosOnly", action="store_true", help="skip recopying the PNG files, just create ICOs")
 	parser.add_argument("-p", "--copyPngsOnly", action="store_true", help="skip creating the ICO files, just copy PNGs")
 	parser.add_argument("-tmp", "--tempFolder", default=r"D:\Users\michael\temp", help="override temp folder location")
+	parser.add_argument("-b", "--backup", action="store_true", help="if set, existing PNGs and ICOs will be backed up instead of overwritten")
 	parser.add_argument("-w", "--whatIf", action="store_true", help="enable test mode")
 	parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	args = parser.parse_args()
 
+	Helpers.EnableBackup = args.backup
 	Helpers.EnableWhatIf = args.whatIf
 	Helpers.EnableVerbose = args.verbose
 	Helpers.OptimizePngs = not args.noOptimize
@@ -42,6 +45,7 @@ def main():
 	iconsToCopy.process(args.createIcosOnly, args.copyPngsOnly, args.theme, args.type, (args.name if args.name else []))
 
 class Helpers:
+	EnableBackup = False
 	EnableVerbose = False
 	EnableWhatIf = False
 	OptimizePngs = True
@@ -100,7 +104,16 @@ class Helpers:
 			LogHelper.WhatIf(description)
 
 	@staticmethod
-	def MoveFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, description : str):
+	def MoveFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, whatifDescription : str):
+		Helpers.LogVerbose(f"moving file '{sourceFile}' to '{targetFile}'")
+		if Helpers.EnableBackup and targetFile.exists():
+			#ts = datetime.fromtimestamp(targetFile.stat().st_mtime, tz=timezone.utc).strftime('%Y%m%d_%H%M')
+			ts = datetime.fromtimestamp(targetFile.stat().st_mtime).strftime('%Y%m%d_%H%M')	# use local time
+			backupFile = targetFile.parent / f'@{targetFile.stem}.{ts}{targetFile.suffix}'
+			if not backupFile.exists():
+				msg = f"creating backup file '{backupFile}'"
+				LogHelper.Message3(msg)
+				Helpers.MoveFile(targetFile, backupFile, msg)
 		if not Helpers.EnableWhatIf:
 			#shutil.move(sourceFile, targetFile)	# will throw on Windows if target exists
 			#sourceFile.rename(targetFile)			# will throw on Windows if target exists
@@ -109,7 +122,7 @@ class Helpers:
 				targetFile.unlink()
 			shutil.move(sourceFile, targetFile)
 		else:
-			LogHelper.WhatIf(description)
+			LogHelper.WhatIf(whatifDescription)
 
 	@staticmethod
 	def GetSha1(file : pathlib.Path) -> bytes:
@@ -680,6 +693,7 @@ class PngFilesHelper:
 	@staticmethod
 	def _copySourceToTarget(sourceFilepath : pathlib.Path, targetFilepath : pathlib.Path, targetExt : str) -> bool:
 		if not targetFilepath.exists():
+			# if target file does not exist yet, just create it in place:
 			Helpers.LogVerbose("target does not exist: copying source to target")
 			LogHelper.Message(f"copying '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
 			Helpers.CopyFile(sourceFilepath, targetFilepath, f"copying '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
@@ -690,6 +704,7 @@ class PngFilesHelper:
 			Helpers.LogVerbose(f"optimizing disabled, checking hashes of source '{Helpers.GetRelativePath(sourceFilepath)}' and target '{tempFile}'")
 			Helpers.UpdateFileIfNeeded(sourceFilepath, targetFilepath, None, sourceFilepath)
 		else:
+			# target file does exist, create in temp location and only update target if there was a change:
 			with Helpers.GetTempFile(prefix="ack", fileExtension=targetExt) as tempFile:
 				Helpers.LogVerbose(f"copying source '{Helpers.GetRelativePath(sourceFilepath)}' to temp file '{Helpers.GetRelativePath(tempFile)}'")
 				Helpers.CopyFile(sourceFilepath, tempFile, f"copying '{Helpers.GetRelativePath(sourceFilepath)}' to temp file '{Helpers.GetRelativePath(tempFile)}'", ignoreWhatIf=True)
@@ -702,6 +717,7 @@ class PngFilesHelper:
 	@staticmethod
 	def _convertOrResizeFile(sourceFilepath : pathlib.Path, targetFilepath : pathlib.Path, targetSize : int, targetExt : str) -> bool:
 		if not targetFilepath.exists():
+			# if target file does not exist yet, just create it in place:
 			Helpers.LogVerbose("target does not exist: converting source to target")
 			LogHelper.Message(f"converting '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
 			if not PngFilesHelper._convertFile(sourceFilepath, targetFilepath, targetSize):
@@ -710,6 +726,7 @@ class PngFilesHelper:
 				if not PngFilesHelper._optimizePng(targetFilepath):
 					return False
 		else:
+			# target file does exist, create in temp location and only update target if there was a change:
 			with Helpers.GetTempFile(prefix="ack", fileExtension=targetExt) as tempFile:
 				Helpers.LogVerbose(f"converting source '{Helpers.GetRelativePath(sourceFilepath)}' to temp file '{Helpers.GetRelativePath(tempFile)}' (targetSize = {targetSize})")
 				if not PngFilesHelper._convertFile(sourceFilepath, tempFile, targetSize, ignoreWhatIf=True):
@@ -753,7 +770,7 @@ class IcoFilesHelper:
 				return False
 		else:
 			with Helpers.GetTempFile(prefix="ack", fileExtension=".ico") as tempFile:
-				# create icon in temp location
+				# create icon in temp location and then move to final location if file actually updated:
 				Helpers.LogVerbose(f"icon with primary name exists, creating temp ICO file '{Helpers.GetRelativePath(tempFile)}'")
 				if not IcoFilesHelper._createIcoFile(sourceImgs, tempFile, ignoreWhatIf=True):
 					return False
