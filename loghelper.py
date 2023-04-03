@@ -10,7 +10,7 @@ class LogHelper:
 
 	@staticmethod
 	def Log(message : str):
-		print(f"{colorama.Style.BRIGHT}{colorama.Fore.BLACK}{message}{colorama.Style.RESET_ALL}")
+		print(f"{colorama.Style.DIM}{colorama.Fore.WHITE}{message}{colorama.Style.RESET_ALL}")
 
 	@staticmethod
 	def Verbose(message : str):
@@ -18,15 +18,15 @@ class LogHelper:
 
 	@staticmethod
 	def Warning(message : str):
-		print(f"{colorama.Style.BRIGHT}{colorama.Fore.YELLOW}{message}{colorama.Style.RESET_ALL}")
+		print(f"{colorama.Style.BRIGHT}{colorama.Fore.LIGHTYELLOW_EX}{message}{colorama.Style.RESET_ALL}")
 
 	@staticmethod
 	def Warning2(message : str):
-		print(f"{colorama.Style.BRIGHT}{colorama.Fore.RED}{message}{colorama.Style.RESET_ALL}")
+		print(f"{colorama.Style.BRIGHT}{colorama.Fore.LIGHTRED_EX}{message}{colorama.Style.RESET_ALL}")
 
 	@staticmethod
 	def Error(message : str):
-		print(f"{colorama.Style.NORMAL}{colorama.Fore.RED}{message}{colorama.Style.RESET_ALL}")
+		print(f"{colorama.Style.BRIGHT}{colorama.Fore.RED}{message}{colorama.Style.RESET_ALL}")
 
 	@staticmethod
 	def Message(message : str):
@@ -34,12 +34,12 @@ class LogHelper:
 
 	@staticmethod
 	def Message2(message : str):
-		print(f"{colorama.Style.BRIGHT}{colorama.Fore.MAGENTA}{message}{colorama.Style.RESET_ALL}")
+		print(f"{colorama.Style.NORMAL}{colorama.Fore.MAGENTA}{message}{colorama.Style.RESET_ALL}")
 
 	@staticmethod
 	def Message3(message : str):
-		print(f"{colorama.Style.DIM}{colorama.Fore.YELLOW}{message}{colorama.Style.RESET_ALL}")
+		print(f"{colorama.Style.NORMAL}{colorama.Fore.YELLOW}{message}{colorama.Style.RESET_ALL}")
 
 	@staticmethod
 	def WhatIf(message : str):
-		print(f"{colorama.Style.BRIGHT}{colorama.Fore.BLACK}WhatIf: {message}{colorama.Style.RESET_ALL}")
+		print(f"{colorama.Style.DIM}{colorama.Fore.LIGHTWHITE_EX}WhatIf: {message}{colorama.Style.RESET_ALL}")
