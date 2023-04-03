@@ -36,12 +36,9 @@ def main():
 	Helpers.EnableVerbose = args.verbose
 	Helpers.OptimizePngs = not args.noOptimize
 
-	inputBasePath = pathlib.Path(r"D:\Users\michael\temp\linux\icons")
-	pngsOutputPath = pathlib.Path(r"C:\Users\michael\temp\linux\icons")
-	iconsOutputPath = pathlib.Path(r"C:\Users\michael\icons\linux")
 	tempPath = pathlib.Path(args.tempFolder)
 
-	iconsToCopy = IconsToCopy(inputBasePath, pngsOutputPath, iconsOutputPath, tempPath)
+	iconsToCopy = IconsToCopy(Constants.IconsSourceBasePath, Constants.PngsOutputPath, Constants.IconsOutputPath, tempPath)
 	iconsToCopy.process(args.createIcosOnly, args.copyPngsOnly, args.theme, args.type, (args.name if args.name else []))
 
 class Helpers:
@@ -189,7 +186,12 @@ class Constants:
 	FldrScheme_SizeType = 0
 	FldrScheme_TypeSize = 1
 
-	PathToInkscape = pathlib.Path(os.path.expandvars(r"%LocalAppData%\Programs\Inkscape\current\bin\inkscape.exe"))
+	IconsSourceBasePath = pathlib.Path(r"D:\Users\michael\temp\linux\icons")
+	#PngsOutputPath = pathlib.Path(r"C:\Users\michael\temp\linux\icons")
+	PngsOutputPath = pathlib.Path(r"D:\Users\michael\temp\linux\icons\_staging")
+	IconsOutputPath = pathlib.Path(r"C:\Users\michael\icons\linux")
+
+	PathToInkscape = pathlib.Path(os.path.expandvars(r"%LocalAppData%\Programs\Inkscape\bin\inkscape.exe"))
 	PathToImageMagick = pathlib.Path(os.path.expandvars(r"%LocalAppData%\Programs\ImageMagick\magick.exe"))
 	PathToOptipng = pathlib.Path(os.path.expandvars(r"%UserProfile%\OneDrive\Utils\optipng.exe"))
 
@@ -1841,6 +1843,19 @@ class IconsToCopy:
 		if not copyPngsOnly:
 			Helpers.VerifyFolderExists(self.iconsBasePath)
 		Helpers.VerifyFolderExists(self.tempPath)
+
+		if not Constants.PathToInkscape.exists():
+			msg = f"Inkscape exe '{Constants.PathToInkscape}' does not exist"
+			LogHelper.Error(msg)
+			raise FileNotFoundError(filename = Constants.PathToInkscape, strerror = msg)
+		if not Constants.PathToImageMagick.exists():
+			msg = f"Imagemagick exe '{Constants.PathToImageMagick}' does not exist"
+			LogHelper.Error(msg)
+			raise FileNotFoundError(filename = Constants.PathToImageMagick, strerror = msg)
+		if not Constants.PathToOptipng.exists():
+			msg = f"optipng exe '{Constants.PathToOptipng}' does not exist"
+			LogHelper.Error(msg)
+			raise FileNotFoundError(filename = Constants.PathToOptipng, strerror = msg)
 		#endregion
 
 		for iconSize in self.targetPngSizes:
