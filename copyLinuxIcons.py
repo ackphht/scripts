@@ -1184,7 +1184,7 @@ class IconsToCopy:
 			# found repo for 'mate', but it seems to have less in it ??
 			IconThemeDefinition("mate", "mint_21.0", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], None, None, None, None, ["256x256"], None, None)),
-			IconThemeDefinition("Humanity", "ubuntu_22-04", None, Constants.FldrScheme_TypeSize,
+			IconThemeDefinition("Humanity", "ubuntu_22.04", None, Constants.FldrScheme_TypeSize,
 				SourceImageSizeFolderMap(["16"], ["24"], ["32"], ["48"], ["64"], None, ["128"], ["192"], ["256"], None, None)),
 		]
 		self._iconTypeLists : List[IconTypeList] = [
@@ -1196,6 +1196,7 @@ class IconsToCopy:
 				Icon("application-json", ["text-json"], ["json"]),
 				Icon("application-octet-stream"),
 				Icon("application-pdf", extensions=["pdf"]),
+				Icon("application-postscript", extensions=["ps"]),
 				Icon("application-rss+xml", ["application-x-rss+xml", "application-rss_xml"], ["rss"]),
 				Icon("application-rtf", extensions=["rtf"]),
 				Icon("application-sql", ["text-x-sql", "application-x-sqlite3", "application-x-sqlite2", "application-vnd.oasis.opendocument.database"], ["sql"]),
