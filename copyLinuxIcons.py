@@ -22,27 +22,48 @@ LogHelper.Init()
 
 def main():
 	parser = argparse.ArgumentParser()
-	parser.add_argument("-th", "--theme", help="copy only the specified theme (e.g. 'breeze' or 'Yaru')")
-	parser.add_argument("-t", "--type", help="copy only the specified type (e.g. 'mimetypes' or 'actions')")
-	parser.add_argument("-n", "--name", action="append", help="copy only the specified icon names (e.g. 'text-plain'); can be specified multiple times")
-	parser.add_argument("-no", "--noOptimize", action="store_true", help="skip optimizing output PNG files")
-	parser.add_argument("-i", "--createIcosOnly", action="store_true", help="skip recopying the PNG files, just create ICOs")
-	parser.add_argument("-p", "--copyPngsOnly", action="store_true", help="skip creating the ICO files, just copy PNGs")
-	parser.add_argument("-tmp", "--tempFolder", default=r"D:\Users\michael\temp", help="override temp folder location")
-	parser.add_argument("-b", "--backup", action="store_true", help="if set, existing PNGs and ICOs will be backed up instead of overwritten")
-	parser.add_argument("-w", "--whatIf", action="store_true", help="enable test mode")
-	parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
-	args = parser.parse_args()
+	subparsers = parser.add_subparsers(dest="commandName", title="subcommands")		# 'commandName' will be set to values passed to add_parser
 
-	Helpers.EnableBackup = args.backup
+	mainCmd = subparsers.add_parser("createIcons", aliases=['c'], help="copy PNGs and/or create ICOs")
+	mainCmd.add_argument("-th", "--theme", help="copy only the specified theme (e.g. 'breeze' or 'Yaru')")
+	mainCmd.add_argument("-t", "--type", help="copy only the specified type (e.g. 'mimetypes' or 'actions')")
+	mainCmd.add_argument("-n", "--name", action="append", help="copy only the specified icon names (e.g. 'text-plain'); can be specified multiple times")
+	mainCmd.add_argument("-no", "--noOptimize", action="store_true", help="skip optimizing output PNG files")
+	mainCmd.add_argument("-i", "--createIcosOnly", action="store_true", help="skip recopying the PNG files, just create ICOs")
+	mainCmd.add_argument("-p", "--copyPngsOnly", action="store_true", help="skip creating the ICO files, just copy PNGs")
+	mainCmd.add_argument("-b", "--backup", action="store_true", help="back up existing PNGs and ICOs instead of overwriting them by appending the file's timestamp")
+	mainCmd.add_argument("-tmp", "--tempFolder", default=r"D:\Users\michael\temp", help="override temp folder location")
+	mainCmd.add_argument("-w", "--whatIf", action="store_true", help="enable test mode")
+	mainCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	mainCmd.set_defaults(func=processCreateIconsCommand)
+
+	renameBackupsCmd = subparsers.add_parser("renameBackups", aliases=['r'], help="no new files, just rename any backup files created before with an '@' at the front so they're all together")
+	renameBackupsCmd.add_argument("-f", "--fromAt", action="store_true", help="reverse: remove the '@' from any backup files so the file's will be next to the file that replaced them for comparison")
+	renameBackupsCmd.add_argument("-i", "--renameIcosOnly", action="store_true", help="skip renaming the PNG files, just rename ICOs")
+	renameBackupsCmd.add_argument("-p", "--renamePngsOnly", action="store_true", help="skip renaming the ICO files, just rename PNGs")
+	renameBackupsCmd.add_argument("-w", "--whatIf", action="store_true", help="enable test mode")
+	renameBackupsCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	renameBackupsCmd.set_defaults(func=processRenameBackupsCommand)
+
+	args = parser.parse_args()
+	args.func(args)
+
+def processCreateIconsCommand(args : argparse.Namespace):
+	Helpers.LogVerbose('processing createIcons command')
 	Helpers.EnableWhatIf = args.whatIf
 	Helpers.EnableVerbose = args.verbose
+	Helpers.EnableBackup = args.backup
 	Helpers.OptimizePngs = not args.noOptimize
-
 	tempPath = pathlib.Path(args.tempFolder)
-
 	iconsToCopy = IconsToCopy(Constants.IconsSourceBasePath, Constants.PngsOutputPath, Constants.IconsOutputPath, tempPath)
 	iconsToCopy.process(args.createIcosOnly, args.copyPngsOnly, args.theme, args.type, (args.name if args.name else []))
+
+def processRenameBackupsCommand(args : argparse.Namespace):
+	Helpers.LogVerbose('processing renameBackups command')
+	Helpers.EnableWhatIf = args.whatIf
+	Helpers.EnableVerbose = args.verbose
+	Helpers.EnableBackup = False	# does any of this get reused if we run script multiple times ??
+	BackupsHelper.RenameBackupFiles(args.fromAt, args.renameIcosOnly, args.renamePngsOnly)
 
 class Helpers:
 	EnableBackup = False
@@ -75,7 +96,7 @@ class Helpers:
 	@staticmethod
 	def LogVerbose(msg : str):
 		if Helpers.EnableVerbose:
-			LogHelper.Verbose(msg)
+			LogHelper.Verbose(f'VERBOSE: {msg}')
 
 	@staticmethod
 	def VerifyFolderExists(folder : pathlib.Path):
@@ -105,12 +126,10 @@ class Helpers:
 
 	@staticmethod
 	def MoveFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, whatifDescription : str):
-		Helpers.LogVerbose(f"moving file '{sourceFile}' to '{targetFile}'")
+		Helpers.LogVerbose(f"moving file '{Helpers.GetRelativePath(sourceFile)}' to '{Helpers.GetRelativePath(targetFile)}'")
 		if Helpers.EnableBackup and targetFile.exists():
-			#ts = datetime.fromtimestamp(targetFile.stat().st_mtime, tz=timezone.utc).strftime('%Y%m%d_%H%M')
-			ts = datetime.fromtimestamp(targetFile.stat().st_mtime).strftime('%Y%m%d_%H%M')	# use local time
-			backupFile = targetFile.parent / f'@{targetFile.stem}.{ts}{targetFile.suffix}'
-			if not backupFile.exists():
+			backupFile = BackupsHelper.GetBackupName(targetFile)
+			if backupFile != None and not backupFile.exists():
 				msg = f"creating backup file '{backupFile}'"
 				LogHelper.Message3(msg)
 				Helpers.MoveFile(targetFile, backupFile, msg)
@@ -141,12 +160,12 @@ class Helpers:
 
 	@staticmethod
 	def GetRelativePath(path : pathlib.Path):
-		if Helpers.InputBasePath is not None and path.is_relative_to(Helpers.InputBasePath):
-			return path.relative_to(Helpers.InputBasePath)
-		elif Helpers.PngsBasePath is not None and path.is_relative_to(Helpers.PngsBasePath):
-			return path.relative_to(Helpers.PngsBasePath)
-		elif Helpers.IconsBasePath is not None and path.is_relative_to(Helpers.IconsBasePath):
-			return path.relative_to(Helpers.IconsBasePath)
+		if path.is_relative_to(Constants.IconsSourceBasePath):
+			return path.relative_to(Constants.IconsSourceBasePath)
+		elif path.is_relative_to(Constants.PngsOutputPath):
+			return path.relative_to(Constants.PngsOutputPath)
+		elif path.is_relative_to(Constants.IconsOutputPath):
+			return path.relative_to(Constants.IconsOutputPath)
 		elif Helpers.TempPath is not None and path.is_relative_to(Helpers.TempPath):
 			return path.relative_to(Helpers.TempPath)
 		return path
@@ -202,7 +221,7 @@ class Constants:
 	IconsSourceBasePath = pathlib.Path(r"D:\Users\michael\temp\linux\icons")
 	#PngsOutputPath = pathlib.Path(r"C:\Users\michael\temp\linux\icons")
 	PngsOutputPath = pathlib.Path(r"D:\Users\michael\temp\linux\icons\_staging")
-	IconsOutputPath = pathlib.Path(r"C:\Users\michael\icons\linux")
+	IconsOutputPath = pathlib.Path(os.path.expandvars(r"%UserProfile%\icons\linux"))
 
 	PathToInkscape = pathlib.Path(os.path.expandvars(r"%LocalAppData%\Programs\Inkscape\bin\inkscape.exe"))
 	PathToImageMagick = pathlib.Path(os.path.expandvars(r"%LocalAppData%\Programs\ImageMagick\magick.exe"))
@@ -1805,9 +1824,6 @@ class IconsToCopy:
 			#IconTypeList("status", None, []),
 		]
 
-		Helpers.InputBasePath = self._inputBasePath
-		Helpers.PngsBasePath = self._pngsBasePath
-		Helpers.IconsBasePath = self._iconsBasePath
 		Helpers.TempPath = self._tempPath
 
 	#region properties
@@ -1892,6 +1908,42 @@ class IconsToCopy:
 		finally:
 			tempfile.tempdir = origTempdir
 
+class BackupsHelper:
+	@staticmethod
+	def GetBackupName(file : pathlib.Path) -> pathlib.Path:
+		if file != None and file.exists():
+			#ts = datetime.fromtimestamp(targetFile.stat().st_mtime, tz=timezone.utc).strftime('%Y%m%d_%H%M')
+			ts = datetime.fromtimestamp(file.stat().st_mtime).strftime('%Y%m%d_%H%M')	# use local time
+			return file.parent / f'{file.stem}.{ts}{file.suffix}'
+		return None
+
+	@staticmethod
+	def RenameBackupFiles(reverseNaming : bool, renameIcosOnly : bool, renamePngOnly : bool):
+		if reverseNaming:
+			# find filenames starting with '@' and with timestamp on end:
+			pattern = re.compile('^@.+\.\d{8}_\d{4}$')
+		else:
+			# find filenames NOT starting with '@' and with timestamp on end:
+			pattern = re.compile('^[^@].+\.\d{8}_\d{4}$')
+		if not renameIcosOnly:
+			BackupsHelper._renameFiles(Constants.PngsOutputPath, '.png', pattern, reverseNaming)
+		if not renamePngOnly:
+			BackupsHelper._renameFiles(Constants.IconsOutputPath, '.ico', pattern, reverseNaming)
+
+	@staticmethod
+	def _renameFiles(baseFolder : pathlib.Path, extension : str, pattern : re.Pattern, reverseNaming: bool):
+		filesToRename : List[pathlib.Path] = []	# don't rename while we're iterating the files; not sure what that'll do
+		for file in baseFolder.glob(f'**/*{extension}'):
+			if pattern.search(file.stem):
+				filesToRename.append(file)
+				#if len(filesToRename) > 10: break
+		for file in filesToRename:
+			oldBasename = file.stem
+			newBasename = oldBasename[1:] if reverseNaming else '@' + oldBasename
+			targetFilepath = file.parent / f"{newBasename}{file.suffix}"
+			msg = f"renaming backup from '{Helpers.GetRelativePath(file)}' to '{Helpers.GetRelativePath(targetFilepath)}'"
+			LogHelper.Message(msg)
+			Helpers.MoveFile(file, targetFilepath, msg)
 
 if __name__ == "__main__":
 	sys.exit(main())
