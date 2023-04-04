@@ -14,7 +14,7 @@ class LogHelper:
 
 	@staticmethod
 	def Verbose(message : str):
-		print(f"{colorama.Style.DIM}{colorama.Fore.YELLOW}{message}{colorama.Style.RESET_ALL}")
+		print(f"{colorama.Style.NORMAL}{colorama.Fore.YELLOW}{message}{colorama.Style.RESET_ALL}")
 
 	@staticmethod
 	def Warning(message : str):
@@ -42,4 +42,4 @@ class LogHelper:
 
 	@staticmethod
 	def WhatIf(message : str):
-		print(f"{colorama.Style.DIM}{colorama.Fore.LIGHTWHITE_EX}WhatIf: {message}{colorama.Style.RESET_ALL}")
+		print(f"{colorama.Style.NORMAL}{colorama.Fore.WHITE}WhatIf: {message}{colorama.Style.RESET_ALL}")
