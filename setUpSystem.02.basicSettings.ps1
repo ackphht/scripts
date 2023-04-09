@@ -230,7 +230,7 @@ function ConfigureWindowsAndExplorer {
 	# disable all AutoPlay handlers
 	SetRegistryEntry -Path "$hkcuCurrentVersionExplorer\AutoplayHandlers" -name 'DisableAutoplay' -value 1 -type 'DWord'
 
-	if ($osDetails.Id -in @('win.10', 'win.11')) {	# TODO?: maybe could check based on build number, so it would for servers, too, and handle future version of Windows
+	if ($osDetails.ReleaseVersion.Major -in @(10, 11)) {	# TODO?: maybe could check based on build number, so it would for servers, too, and handle future version of Windows
 		# set default color mode to Dark:
 		SetRegistryEntry -path "$hkcuCurrentVersion\Themes\Personalize" -name 'SystemUsesLightTheme' -value 0 -type 'DWord'
 		SetRegistryEntry -path "$hkcuCurrentVersion\Themes\Personalize" -name 'AppsUseLightTheme' -value 0 -type 'DWord'
@@ -238,7 +238,7 @@ function ConfigureWindowsAndExplorer {
 		SetRegistryEntry -path $hkcuCtrlDesktop -name 'AutoColorization' -value 1 -type 'DWord'						# automatically select accent color from background
 		SetRegistryEntry -path "$hkcuSoftwareMicrosoft\Windows\DWM" -name 'ColorPrevalence' -value 1 -type 'DWord'	# show accent colors on title bars and window borders
 		# set dark wallpaper if it's currently Windows 11 light wallpaper:
-		if ($osDetails.Id -eq 'win.11') {
+		if ($osDetails.ReleaseVersion.Major -eq 11) {
 			$wp = GetRegPropertyValue -registryPath $hkcuCtrlDesktop -propertyName 'WallPaper'
 			if ($wp -like '*\img0.jpg')	{
 				$newWpPath = $wp -replace '\\img0\.jpg','\img19.jpg'
@@ -262,10 +262,10 @@ function ConfigureWindowsAndExplorer {
 		SetRegistryEntry -path "$hklmCurrCtrlSet\Control\FileSystem" -name 'LongPathsEnabled' -value 1 -type 'DWord'
 		# disable Connected Standby:
 		#SetRegistryEntry -path "$hklmCurrCtrlSet\Control\Power" -name 'CsEnabled' -value 0 -type 'DWord'
-		if ($osDetails.Id -eq 'win.10') {
+		if ($osDetails.ReleaseVersion.Major -eq 10) {
 			# hide the People taskbar button
 			SetRegistryEntry -path "$hkcuCurrentVersionExplorer\Advanced\People" -name 'PeopleBand' -value 0 -type 'DWord'
-		} elseif ($osDetails.Id -eq 'win.11') {
+		} elseif ($osDetails.ReleaseVersion.Major -eq 11) {
 			# turn on 'Compact view':
 			SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'UseCompactMode' -value 1 -type 'DWord'
 			# taskbar alignment: 1 = Center, 0 = Left
@@ -342,6 +342,7 @@ function ConfigureEdge {
 		# TODO: can we set Edge's settings somehow? most of the defaults are awful
 		#
 		$hklmPoliciesMicrosoft = "HKLM:\Software\Policies\Microsoft"
+		$hkcuPoliciesMicrosoft = "HKCU:\Software\Policies\Microsoft"
 		# disable Edge adding icon to desktop
 		SetRegistryEntry -path "$hklmPoliciesMicrosoft\EdgeUpdate" -Name 'CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}' -Value 0 -type 'DWord'		# stable
 		SetRegistryEntry -path "$hklmPoliciesMicrosoft\EdgeUpdate" -Name 'CreateDesktopShortcut{2CD8A007-E189-409D-A2C8-9AF4EF3C72AA}' -Value 0 -type 'DWord'		# beta
@@ -349,6 +350,7 @@ function ConfigureEdge {
 		SetRegistryEntry -path "$hklmPoliciesMicrosoft\EdgeUpdate" -Name 'CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}' -Value 0 -type 'DWord'		# canary
 		# (try to) disable Edge First Run Page (not sure if this really works but we'll try it):
 		SetRegistryEntry -path "$hklmPoliciesMicrosoft\MicrosoftEdge\Main" -Name 'PreventFirstRunPage' -Value 1 -type 'DWord'
+		SetRegistryEntry -path "$hkcuPoliciesMicrosoft\MicrosoftEdge\Main" -Name 'PreventFirstRunPage' -Value 1 -type 'DWord'
 
 		# there's also a group policy to disable that stupid first-run page, so try setting that too:
 		$lgpoExe = LocateLgpoExe
@@ -359,6 +361,7 @@ function ConfigureEdge {
 
 			# "Prevent the First Run webpage from opening on Microsoft Edge"
 			AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path 'Software\Policies\Microsoft\MicrosoftEdge\Main' -valueType 'DWORD' -valueName 'PreventFirstRunPage' -value '1'
+			AddPolicySetting -policyFilepath $policiesFile -scope 'User' -path 'Software\Policies\Microsoft\MicrosoftEdge\Main' -valueType 'DWORD' -valueName 'PreventFirstRunPage' -value '1'
 
 			# run it:
 			$exitcode = RunLgpo -lgpoPath $lgpoExe -policiesFile $policiesFile
