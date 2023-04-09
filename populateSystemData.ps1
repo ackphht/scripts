@@ -84,11 +84,15 @@ function _populateWindowsInfo {
 	$osDetails.Type = if ($osinfo.ProductType -eq 3) { 'Server' } else { 'WorkStation' }
 	$release = _getWindowsRelease -wmios $osinfo
 	$osDetails.Id = _getWindowsId -wmios $osinfo -release $release
+	# TODO: right now, we're setting $osDetails.Release like '11.22H2', '11', '10.2009', '8.1', '7.SP1', etc;
+	# is that really how we want it? other OSes are just the release version, maybe for Win, should be simpler
+	# or maybe other OSes should include more?
 	$osDetails.Release = $release
 	$osDetails.Edition = _getWindowsEdition -wmios $osinfo
-	$osDetails.ReleaseVersion = _getWindowsVersion
-	$osDetails.KernelVersion = $osDetails.ReleaseVersion.ToString()
-	$osDetails.UpdateRevision = $osDetails.ReleaseVersion.Revision
+	$kernelVersion = _getWindowsKernelVersion
+	$osDetails.KernelVersion = $kernelVersion.ToString()
+	$osDetails.UpdateRevision = $kernelVersion.Revision
+	$osDetails.ReleaseVersion = _getWindowsVersion -kernelVersion $kernelVersion
 	#$osDetails.MajorMinor = $osDetails.KernelVersion.ToString(2)
 	$osDetails.Codename = _getWindowsCodename -wmios $osinfo
 }
@@ -290,12 +294,12 @@ function _getWindowsRelease {
 				{ $_ -ge 9600 } { $result = '8.1'; break; }
 				{ $_ -ge 9200 } { $result = '8'; break; }
 				{ $_ -ge 7600 } {
-					if ($build -gt 7600) { $result = '7.SP1' }
+					if ($build -gt 7601) { $result = '7.SP1' }
 					else { $result = '7' }
 					break
 				}
 				{ $_ -ge 6000 } {
-					if ($build -gt 6001) { $result = 'Vista.SP2' }
+					if ($build -gt 6002) { $result = 'Vista.SP2' }
 					if ($build -eq 6001) { $result = 'Vista.SP1' }
 					else { $result = 'Vista' }
 					break
@@ -321,12 +325,12 @@ function _getWindowsRelease {
 				{ $_ -ge 9600 } { $result = 'RTM'; break; }
 				{ $_ -ge 9200 } { $result = 'RTM'; break; }
 				{ $_ -ge 7600 } {
-					if ($build -gt 7600) { $result = 'SP1' }
+					if ($build -gt 7601) { $result = 'SP1' }
 					else { $result = 'RTM' }
 					break
 				}
-				{ $_ -ge 6000 } {
-					if ($build -gt 6001) { $result = 'SP1' }
+				{ $_ -ge 6001 } {
+					if ($build -gt 6002) { $result = 'SP1' }
 					else { $result = 'RTM' }
 					break
 				}
@@ -476,6 +480,41 @@ function _getWindowsEdition {
 }
 
 function _getWindowsVersion {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([System.Version])]
+	param([System.Version] $kernelVersion)
+	$result = $kernelVersion
+	switch ($kernelVersion.Build) {
+		{ $_ -ge 22000 } {
+			$result = [System.Version]::new(11, 0, $kernelVersion.Build, $kernelVersion.Revision)
+			break
+		}
+		{ $_ -ge 10240 } {
+			if ($build -ge 10586) { $rev = $kernelVersion.Revision }
+			else { $rev = 0 }
+			$result = [System.Version]::new(10, 0, $kernelVersion.Build, $rev)
+			break
+		}
+		{ $_ -ge 9600 } { $result = [System.Version]::new(8, 1, $kernelVersion.Build, 0); break; }
+		{ $_ -ge 9200 } { $result = [System.Version]::new(8, 0, $kernelVersion.Build, 0); break; }
+		{ $_ -ge 7600 } {
+			if ($build -gt 7601) { $min = 1 }
+			else { $result = $min = 0 }
+			$result = [System.Version]::new(7, $min, $kernelVersion.Build, 0)
+			break
+		}
+		{ $_ -ge 6000 } {
+			if ($build -gt 6002) { $min = 2 }
+			if ($build -eq 6001) { $min = 1 }
+			else { $result = $min = 0 }
+			$result = [System.Version]::new(6, $min, $kernelVersion.Build, 0)
+			break
+		}
+	}
+	return $result
+}
+
+function _getWindowsKernelVersion {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([System.Version])]
 	param()
