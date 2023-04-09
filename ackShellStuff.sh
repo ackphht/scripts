@@ -41,7 +41,7 @@ elif type -p pacman >/dev/null; then
 	alias aptr='sudo pacman --sync --refresh'
 	alias aptl='pacman --query --upgrades'
 	alias aptu='sudo pacman --sync --sysupgrade --noconfirm'
-	alias aptc='sudo pacman --sync --clean'
+	alias aptc='sudo pacman --sync --clean --noconfirm'
 fi
 
 type -p btrfs >/dev/null && alias defrag='sudo btrfs filesystem defrag -czstd -rv /' || true
