@@ -490,7 +490,7 @@ function CleanUpRegistryAutoruns {
 		@{ Name = 'RtkAudUService'; Value = '' }				# Realtek HD Audio Universal Service
 		@{ Name = 'WavesSvc'; Value = '' }						# Waves MaxxAudio Service Application
 		@{ Name = 'IDrive Background process'; Value = '' }
-		@{ Name = 'IDrive Tray'; Value = '' }
+		#@{ Name = 'IDrive Tray'; Value = '' }
 		@{ Name = 'Docker Desktop'; Value = '' }
 		@{ Name = ''; Value = '*\DVDFab\*\LiveUpdate.exe*'; FriendlyName = 'DVDFab LiveUpdate' }	# uses a random name, grrrrr
 	);
@@ -593,6 +593,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Audacity.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonPrograms('Excel.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonStartMenu('Docker Desktop.lnk', 'Development')
+		[StartMenuCleanupItem]::FromCommonPrograms('Cloud Nine Keyboard Application.lnk', 'Maintenance')
 		[StartMenuCleanupItem]::FromCommonPrograms('Firefox.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonPrograms('foobar2000.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonPrograms('GIMP*.lnk', 'Applications', 'GIMP.lnk')
@@ -727,6 +728,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserStartMenu('Notepad3.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey Window Spy.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey.lnk', 'Applications')
+		[StartMenuCleanupItem]::FromUserPrograms('Cloud Nine Keyboard Application.lnk', 'Maintenance')
 		[StartMenuCleanupItem]::FromUserPrograms('Fiddler 4.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('Fiddler Classic.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('Fiddler ScriptEditor.lnk', 'Applications')
@@ -772,6 +774,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('Microsoft Azure Storage Explorer\Microsoft Azure Storage Explorer.lnk', 'Development', $true)
 		[StartMenuCleanupItem]::FromUserPrograms('pgAdmin 4\pgAdmin*.lnk', 'Development', 'pgAdmin 4.lnk', $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Postman\Postman.lnk', 'Development', $true)
+		[StartMenuCleanupItem]::FromUserPrograms('PowerToys (Preview)\PowerToys (Preview).lnk', 'Applications', 'PowerToys.lnk', $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Python 3.*', 'Development')
 		[StartMenuCleanupItem]::FromUserPrograms('GitHub, Inc\Postman.lnk', 'Development', $true)		# ??????????
 		[StartMenuCleanupItem]::FromUserPrograms('QTTabBar\Explorer SafeMode.lnk', 'Applications', 'QTTabBar Explorer SafeMode.lnk', $true)
@@ -816,7 +819,7 @@ function KillBackgroundProcesses {
 		@{ Name = 'RtkAudUService64'; Company = 'Realtek Semiconductor'; }
 		@{ Name = 'WavesSvc64'; Company = 'Waves Audio Ltd.'; }
 		@{ Name = 'jusched'; Description = 'Java Update Scheduler'; }
-		@{ Name = 'id_tray'; Description = 'IDrive Tray'; }
+		#@{ Name = 'id_tray'; Description = 'IDrive Tray'; }
 		@{ Name = 'id_bglaunch'; Description = 'IDrive Background'; }
 	) |
 	ForEach-Object {
