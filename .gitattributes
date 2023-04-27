@@ -1,11 +1,13 @@
 ###############################################################################
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
-* text=auto
+*				text=auto
 
 ###############################################################################
 # Set these files to *nix line endings
 ###############################################################################
-*.json     text eol=lf
-*.py     text eol=lf
-*.sh     text eol=lf
+.editorconfig	text eol=lf
+*.json			text eol=lf
+*.py			text eol=lf
+*.sh			text eol=lf
+*.xml			text eol=lf
