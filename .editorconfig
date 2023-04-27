@@ -2,7 +2,7 @@
 # https://learn.microsoft.com/en-us/visualstudio/ide/create-portable-custom-editor-options
 
 # Remove the line below if you want to inherit .editorconfig settings from higher directories
-root = true
+#root = true
 
 [*]
 charset = utf-8
