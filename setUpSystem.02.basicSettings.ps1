@@ -224,6 +224,8 @@ function ConfigureWindowsAndExplorer {
 	SetRegistryEntry -path "$hklmSoftware\Microsoft\WindowsUpdate\UX\Settings" -name 'IsExpedited' -value 0 -type 'DWord'
 	# disable expand to open folder on navigation pane
 	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'NavPaneExpandToCurrentFolder' -value 0 -type 'DWord'
+	# always underline access key menu shortcuts:
+	SetRegistryEntry -path "$hkcuCtrlPnl\Accessibility\Keyboard Preference" -name 'On' -value '1' -type 'String'
 	# turn on NumLock by default
 	SetRegistryEntry -path "$hkcuCtrlPnl\Keyboard" -name 'InitialKeyboardIndicators' -value '2' -type 'String'
 	SetRegistryEntry -path 'Registry::HKEY_USERS\.DEFAULT\Control Panel\Keyboard' -name 'InitialKeyboardIndicators' -value '2147483650' -type 'String'	# the '.DEFAULT' one has the upper bit set, too ??
