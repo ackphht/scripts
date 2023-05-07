@@ -623,6 +623,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('SyncBackSE.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonPrograms('SyncBackPro.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonPrograms('SyncBackPro (Not Elevated).lnk', 'Applications')
+		[StartMenuCleanupItem]::FromCommonPrograms('SyncBackPro.NE.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonPrograms('TeamViewer*.lnk', 'Work')
 		[StartMenuCleanupItem]::FromCommonStartMenu('TeraCopy.lnk')							# think this was a bug, but if it shows up, delete it
 		[StartMenuCleanupItem]::FromCommonPrograms('TeraCopy.lnk', 'Applications')
@@ -651,6 +652,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Git\Git CMD (Deprecated).lnk', 'Development')
 		[StartMenuCleanupItem]::FromCommonPrograms('Git\Git GUI.lnk', 'Development', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('GitAhead\GitAhead.lnk', 'Development', $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('GnuCash\GnuCash.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('HandBrake\HandBrake.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('IDrive\IDrive.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('ImageMagick\ImageMagick Display.lnk', 'Applications', $true)
@@ -751,6 +753,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('SumatraPDF.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('SyncBackSE.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('SyncBackPro.lnk', 'Applications')
+		[StartMenuCleanupItem]::FromUserPrograms('SyncBackPro.NE.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('Vivaldi.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('Amazon\Amazon Kindle\Kindle.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Atlassian\Sourcetree.lnk', 'Development', $true)
@@ -1010,6 +1013,7 @@ function CleanUpEnvVars {
 	WriteHeaderMessage 'cleaning up unwanted environment variables'
 	@(
 		'POSH_THEMES_PATH'
+		'POSH_INSTALLER'
 	) | ForEach-Object { RemoveUnwantedEnvVar -envVarName $_ }
 
 	WriteHeaderMessage 'cleaning up unwanted Path variable entries'
