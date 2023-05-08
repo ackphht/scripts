@@ -61,19 +61,6 @@
 					"template": " 󰅐 {{ .CurrentDate | date .Format }}"			//  (f64f [obsolete]) → 󰅐 (f0150),  (f017),  (f43a)
 				},
 				{
-					"type": "owm",
-					"style": "plain",
-					"foreground": "blue",
-					"properties": {
-						"apikey": "dab47a849b16ac84f2a9907ac23bcaab",
-						"location": "Pflugerville,TX,US",
-						"units": "imperial",
-						"http_timeout": 1000,
-						"cache_timeout": 15
-					},
-					"template": " {{.Weather}} ({{.Temperature}}{{.UnitIcon}})"
-				},
-				{
 					"type": "battery",
 					"style": "plain",
 					"foreground": "#193549",
