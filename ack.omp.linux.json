@@ -134,8 +134,7 @@
 					"type": "text",
 					"style": "plain",
 					"foreground": "green",
-					//"template": " WHAT?!? {{ if .Root }}<red>#</>{{ else }}${{ end }} "		// ❯ (\u276f); there's also: 〉 》 ▶ ▷ ❯ ❱ ➜ ➤
-					"template": " WHAT?!? {{ if .Root }}<red>#</>{{ else }} {{ end }} "		// ❯ (\u276f); there's also: 〉 》 ▶ ▷ ❯ ❱ ➜ ➤
+					"template": " WHAT?!? {{ if .Root }}<red>#</>{{ else }}❯❯{{ end }} "		// ❯ (\u276f); there's also: 〉 》 ▶ ▷ ❯ ❱ ➜ ➤
 				}
 			]
 		}
