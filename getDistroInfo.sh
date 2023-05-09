@@ -24,7 +24,7 @@ which lsb_release >/dev/null 2>&1 && lsb_release -a > lsb_release.log 2>/dev/nul
 which screenfetch >/dev/null 2>&1 && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
 which neofetch >/dev/null 2>&1 && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
 
-test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > showSomeProps.py.log
+test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > pythonProperties.log
 
 which pwsh >/dev/null 2>&1 && test -f $scriptRoot/getSystemInformation.ps1 && \
 	pwsh -command "& { $scriptRoot/getSystemInformation.ps1 | Out-File getSystemInformation.log -Width 4096 }" && \
