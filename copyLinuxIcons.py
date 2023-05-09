@@ -107,7 +107,7 @@ class Helpers:
 				LogHelper.WhatIf(f"creating folder '{folder}'")
 
 	@staticmethod
-	def RunProcessHelper(args : List, description : str, ignoreWhatIf : bool = False) -> int:
+	def RunProcess(args : List, description : str, ignoreWhatIf : bool = False) -> int:
 		exitcode = 0
 		if not Helpers.EnableWhatIf or ignoreWhatIf:
 			process = subprocess.run(args)
@@ -223,6 +223,7 @@ class Constants:
 	PngsOutputPath = pathlib.Path(r"D:\Users\michael\temp\linux\icons\_staging")
 	IconsOutputPath = pathlib.Path(os.path.expandvars(r"%UserProfile%\icons\linux"))
 
+	# TODO: change these to find them on path:
 	PathToInkscape = pathlib.Path(os.path.expandvars(r"%LocalAppData%\Programs\Inkscape\bin\inkscape.exe"))
 	PathToImageMagick = pathlib.Path(os.path.expandvars(r"%LocalAppData%\Programs\ImageMagick\magick.exe"))
 	PathToOptipng = pathlib.Path(os.path.expandvars(r"%UserProfile%\OneDrive\Utils\optipng.exe"))
@@ -248,7 +249,7 @@ class Executables:
 		args = [Constants.PathToInkscape, "--without-gui", sourceFile, "--export-filename", targetFile]
 		if targetSize is not None and targetSize > 0:
 			args.extend(["--export-width", str(targetSize), "--export-height", str(targetSize)])
-		return Helpers.RunProcessHelper(args, f"converting '{Helpers.GetRelativePath(sourceFile)}' to '{targetFile}'", ignoreWhatIf)
+		return Helpers.RunProcess(args, f"converting '{Helpers.GetRelativePath(sourceFile)}' to '{targetFile}'", ignoreWhatIf)
 
 	@staticmethod
 	def CreateIcoFile(sourceImgs : Iterator[pathlib.Path], icoOutputFile : pathlib.Path, ignoreWhatIf : bool = False):
@@ -256,7 +257,7 @@ class Executables:
 		for img in sourceImgs:
 			args.append(img)
 		args.append(icoOutputFile)
-		return Helpers.RunProcessHelper(args, f"creating ICO file '{Helpers.GetRelativePath(icoOutputFile)}'", ignoreWhatIf)
+		return Helpers.RunProcess(args, f"creating ICO file '{Helpers.GetRelativePath(icoOutputFile)}'", ignoreWhatIf)
 
 	@staticmethod
 	def OptimizePng(pngFilepath : pathlib.Path, ignoreWhatIf : bool = False):
@@ -264,7 +265,7 @@ class Executables:
 		#if not Helpers.EnableVerbose:
 		args.append("-quiet")
 		args.append(pngFilepath)
-		return Helpers.RunProcessHelper(args, f"optimizing PNG file '{Helpers.GetRelativePath(pngFilepath)}'", ignoreWhatIf=ignoreWhatIf)
+		return Helpers.RunProcess(args, f"optimizing PNG file '{Helpers.GetRelativePath(pngFilepath)}'", ignoreWhatIf=ignoreWhatIf)
 
 class SourceImageSizeFolderMap:
 	def __init__(self, names16 : List[str], names24 : List[str], names32 : List[str], names48 : List[str], names64 : List[str], names96 : List[str],
