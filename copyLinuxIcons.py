@@ -214,6 +214,13 @@ class Helpers:
 		else:
 			Helpers.LogVerbose(f"primary file exists, but hashes match ('{targetHash.hex()}'): NOT updating anything")
 
+	@staticmethod
+	def FindOnPath(exe : str) -> pathlib.Path:
+		exepath = shutil.which(exe)
+		if exepath:
+			return pathlib.Path(exepath)
+		return None
+
 class Constants:
 	FldrScheme_SizeType = 0
 	FldrScheme_TypeSize = 1
@@ -223,10 +230,9 @@ class Constants:
 	PngsOutputPath = pathlib.Path('D:/').joinpath(*(pathlib.Path(os.path.expandvars(r"%UserProfile%\temp\linux\icons\_staging")).parts[1:]))
 	IconsOutputPath = pathlib.Path(os.path.expandvars(r"%UserProfile%\icons\linux"))
 
-	# TODO: change these to find them on path:
-	PathToInkscape = pathlib.Path(os.path.expandvars(r"%LocalAppData%\Programs\Inkscape\bin\inkscape.exe"))
-	PathToImageMagick = pathlib.Path(os.path.expandvars(r"%LocalAppData%\Programs\ImageMagick\magick.exe"))
-	PathToOptipng = pathlib.Path(os.path.expandvars(r"%UserProfile%\OneDrive\Utils\optipng.exe"))
+	PathToInkscape = Helpers.FindOnPath('inkscape.exe')
+	PathToImageMagick = Helpers.FindOnPath('magick.exe')
+	PathToOptipng = Helpers.FindOnPath('optipng.exe')
 
 	AllSupportedExtensions = ['.png', '.svg']
 	UpscaleSupportedExtensions = ['.svg']
@@ -1879,16 +1885,16 @@ class IconsToCopy:
 			Helpers.VerifyFolderExists(self.iconsBasePath)
 		Helpers.VerifyFolderExists(self.tempPath)
 
-		if not Constants.PathToInkscape.exists():
-			msg = f"Inkscape exe '{Constants.PathToInkscape}' does not exist"
+		if not Constants.PathToInkscape or not Constants.PathToInkscape.exists():
+			msg = f"Inkscape exe '{Constants.PathToInkscape}' not found, or does not exist at path"
 			LogHelper.Error(msg)
 			raise FileNotFoundError(filename = Constants.PathToInkscape, strerror = msg)
-		if not Constants.PathToImageMagick.exists():
-			msg = f"Imagemagick exe '{Constants.PathToImageMagick}' does not exist"
+		if not Constants.PathToImageMagick or not Constants.PathToImageMagick.exists():
+			msg = f"Imagemagick exe '{Constants.PathToImageMagick}' not found, or does not exist at path"
 			LogHelper.Error(msg)
 			raise FileNotFoundError(filename = Constants.PathToImageMagick, strerror = msg)
-		if not Constants.PathToOptipng.exists():
-			msg = f"optipng exe '{Constants.PathToOptipng}' does not exist"
+		if not Constants.PathToOptipng or not Constants.PathToOptipng.exists():
+			msg = f"optipng exe '{Constants.PathToOptipng}' not found, or does not exist at path"
 			LogHelper.Error(msg)
 			raise FileNotFoundError(filename = Constants.PathToOptipng, strerror = msg)
 		#endregion
