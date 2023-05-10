@@ -218,9 +218,9 @@ class Constants:
 	FldrScheme_SizeType = 0
 	FldrScheme_TypeSize = 1
 
-	IconsSourceBasePath = pathlib.Path(r"D:\Users\michael\temp\linux\icons")
-	#PngsOutputPath = pathlib.Path(r"C:\Users\michael\temp\linux\icons")
-	PngsOutputPath = pathlib.Path(r"D:\Users\michael\temp\linux\icons\_staging")
+	# D: is my external large drive, so using that for the beaucoups of source files, and for temp files, instead of the small SSD:
+	IconsSourceBasePath = pathlib.Path('D:/').joinpath(*(pathlib.Path(os.path.expandvars(r"%UserProfile%\temp\linux\icons")).parts[1:]))
+	PngsOutputPath = pathlib.Path('D:/').joinpath(*(pathlib.Path(os.path.expandvars(r"%UserProfile%\temp\linux\icons\_staging")).parts[1:]))
 	IconsOutputPath = pathlib.Path(os.path.expandvars(r"%UserProfile%\icons\linux"))
 
 	# TODO: change these to find them on path:
