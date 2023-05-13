@@ -84,7 +84,7 @@ def checkPrereqs(fontDir : pathlib.Path) -> bool:
 
 	# make sure font directory userFontsFldr exists
 	if not fontDir.exists():
-		fontDir.mkdir(parent=True)
+		fontDir.mkdir(parents=True)
 
 	return True
 
