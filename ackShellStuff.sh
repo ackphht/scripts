@@ -68,6 +68,18 @@ elif type -p pacman >/dev/null; then
 	alias aptl='pacman --query'
 	# just to store this somewhere: to list all explicitly installed packages that aren't required by something else:
 	#	pacman --query --explicit --unrequired (or pacman -Qet if wanna be lazy)
+elif type -p apk >/dev/null; then
+	alias aptr='sudo apk update'
+	alias aptul='apk list --upgradable'
+	alias aptu='sudo apk upgrade --available'
+	alias aptc='sudo apk cache --purge'	# ???
+	alias apts='apk search'
+	alias aptn='apk info'		# can add '--all' to dump out all info, but this gets most likely relevant
+	alias apti='sudo apk add'
+	alias aptx='sudo apk del'
+	alias aptxx='sudo apk del'
+	alias aptl='apk list --installed'
+	#alias apta='apk list --available'
 fi
 
 type -p btrfs >/dev/null && alias defrag='sudo btrfs filesystem defrag -czstd -rv /' || true
