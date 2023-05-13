@@ -29,6 +29,7 @@ function Main {
 	$results = @()
 	@(
 		'CascadiaCode'
+		'ComicShannsMono'
 		'Cousine'
 		'FantasqueSansMono'
 		'FiraCode'
@@ -146,13 +147,14 @@ function ProcessNerdFont {
 		return $result
 	}
 
-	# clean up unwanted fonts out of $tempUnzipFolder:
-	Write-Verbose "$($MyInvocation.InvocationName): cleaning out unwanted font files in |$tempUnzipFolder|"
-	if ($PSCmdlet.ShouldProcess($tempUnzipFolder, 'remove unwanted font files')) {		# if -WhatIf, then folder won't exist and Get-ChildItem complains
-		Get-ChildItem -Path $tempUnzipFolder -Recurse -File -Include @('*.ttf', '*.otf') |
-			Where-Object { $_.Name -notlike '*Windows Compatible*' -or $_.Name -like '* Mono Windows Compatible*' } |
-			Remove-Item -Force
-	}
+	# => as of v3.0, they've simplified the fonts and changed the naming; not sure if we still really need to clean them up, or how, so for now, don't do it
+	## clean up unwanted fonts out of $tempUnzipFolder:
+	#Write-Verbose "$($MyInvocation.InvocationName): cleaning out unwanted font files in |$tempUnzipFolder|"
+	#if ($PSCmdlet.ShouldProcess($tempUnzipFolder, 'remove unwanted font files')) {		# if -WhatIf, then folder won't exist and Get-ChildItem complains
+	#	Get-ChildItem -Path $tempUnzipFolder -Recurse -File -Include @('*.ttf', '*.otf') |
+	#		Where-Object { $_.Name -notlike '*Windows Compatible*' -or $_.Name -like '* Mono Windows Compatible*' } |
+	#		Remove-Item -Force
+	#}
 
 	# move $tempUnzipFolder to $fontOutVerFolder
 	Write-Verbose "$($MyInvocation.InvocationName): moving folder |$tempUnzipFolder| to |$fontOutVerFolder|"
