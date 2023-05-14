@@ -147,14 +147,20 @@ function ProcessNerdFont {
 		return $result
 	}
 
-	# => as of v3.0, they've simplified the fonts and changed the naming; not sure if we still really need to clean them up, or how, so for now, don't do it
-	## clean up unwanted fonts out of $tempUnzipFolder:
-	#Write-Verbose "$($MyInvocation.InvocationName): cleaning out unwanted font files in |$tempUnzipFolder|"
-	#if ($PSCmdlet.ShouldProcess($tempUnzipFolder, 'remove unwanted font files')) {		# if -WhatIf, then folder won't exist and Get-ChildItem complains
-	#	Get-ChildItem -Path $tempUnzipFolder -Recurse -File -Include @('*.ttf', '*.otf') |
-	#		Where-Object { $_.Name -notlike '*Windows Compatible*' -or $_.Name -like '* Mono Windows Compatible*' } |
-	#		Remove-Item -Force
-	#}
+	# clean up unwanted fonts out of $tempUnzipFolder:
+	Write-Verbose "$($MyInvocation.InvocationName): cleaning out unwanted font files in |$tempUnzipFolder|"
+	if ($PSCmdlet.ShouldProcess($tempUnzipFolder, 'remove unwanted font files')) {		# if -WhatIf, then folder won't exist and Get-ChildItem complains
+		Get-ChildItem -Path $tempUnzipFolder -Recurse -File -Include @('*.ttf', '*.otf') |
+			# < v3.0 names:
+			#Where-Object { $_.Name -notlike '*Windows Compatible*' -or $_.Name -like '* Mono Windows Compatible*' } |
+			# >= v3.0 names:
+			Where-Object { $_.Name -like '*NerdFontMono*' -or $_.Name -like '*NerdFontPropo*' -or
+				# Meslo comes with different line heights; just keep the small (MesloLGS*) and non-DZ (dotted zero) ones:
+				($fontName -eq 'Meslo' -and ($_.Name -like 'MesloLGL*' -or $_.Name -like 'MesloLGM*' -or $_.Name -like 'MesloLGSDZ*')) -or
+				# JetBrainsMono has a no-ligatures version, remove those, too:
+				($fontName -eq 'JetBrainsMono' -and ($_.Name -like 'JetBrainsMonoNL*')) } |
+			Remove-Item -Force
+	}
 
 	# move $tempUnzipFolder to $fontOutVerFolder
 	Write-Verbose "$($MyInvocation.InvocationName): moving folder |$tempUnzipFolder| to |$fontOutVerFolder|"
