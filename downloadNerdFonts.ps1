@@ -25,30 +25,32 @@ function Main {
 	# TODO?: anything else we need ??
 	Write-Host "getting NerdFonts for version '$ver'" -ForegroundColor DarkCyan
 
+	$staticProperties = [StaticProperties]::new($ver, $tempWorkingFolder, $fontsFolderBase, $sevenZipPath)
 	# process list of fonts:
 	$results = @()
 	@(
-		'CascadiaCode'
-		'ComicShannsMono'
-		'Cousine'
-		'FantasqueSansMono'
-		'FiraCode'
-		'Hack'
-		'Hasklig'
-		'Hermit'
-		'Inconsolata'
-		'JetBrainsMono'
-		'Lilex'
-		'Meslo'
-		'Monofur'
-		'Noto'
-		'Overpass'
-		'RobotoMono'
-		'SourceCodePro'
-		'SpaceMono'
-		'UbuntuMono'
+		[NerdFontProperties]::new('CascadiaCode')
+		[NerdFontProperties]::new('ComicShannsMono')
+		[NerdFontProperties]::new('Cousine')
+		[NerdFontProperties]::new('FantasqueSansMono')
+		[NerdFontProperties]::new('FiraCode')
+		[NerdFontProperties]::new('Hack')
+		[NerdFontProperties]::new('Hasklig')
+		[NerdFontProperties]::new('Hermit')
+		[NerdFontProperties]::new('Inconsolata')
+		[NerdFontProperties]::new('JetBrainsMono', { param([System.IO.FileInfo] $fi) $fi.Name -like 'JetBrainsMonoNL*' })	# also don't keep NoLigatures(??) fonts
+		[NerdFontProperties]::new('Lilex')
+		[NerdFontProperties]::new('Meslo', { param([System.IO.FileInfo] $fi) $fi.Name -like 'MesloLGL*' -or $fi.Name -like 'MesloLGM*' -or $fi.Name -like 'MesloLGSDZ*' })	# also don't keep DottedZero fonts
+		[NerdFontProperties]::new('Monofur')
+		[NerdFontProperties]::new('Noto')
+		[NerdFontProperties]::new('Overpass')
+		[NerdFontProperties]::new('RobotoMono', 'Roboto')
+		[NerdFontProperties]::new('ShareTechMono')
+		[NerdFontProperties]::new('SourceCodePro')
+		[NerdFontProperties]::new('SpaceMono')
+		[NerdFontProperties]::new('UbuntuMono', 'UbuntuFonts')
 	) | ForEach-Object {
-		$results += ProcessNerdFont -fontName $_ -versionNumber $ver -workFolderBase $tempWorkingFolder -fontsFolderBase $fontsFolderBase -sevenZipPath $sevenZipPath
+		$results += ProcessNerdFont -fontProps $_ -staticProps $staticProperties
 	}
 
 	Write-Host ''
@@ -71,6 +73,50 @@ function Main {
 	}
 }
 
+class StaticProperties {
+	StaticProperties([string] $nfVersion, [string] $workFolderBase, [string] $fontsFolderBase, [string] $sevenZipPath) {
+		$this.VersionNumber = $nfVersion
+		$this.WorkFolderBase = $workFolderBase
+		$this.FontsFolderBase = $fontsFolderBase
+		$this.SevenZipPath = $sevenZipPath
+	}
+
+	[string] $VersionNumber
+	[string] $WorkFolderBase
+	[string] $FontsFolderBase
+	[string] $SevenZipPath
+}
+
+class NerdFontProperties {
+	NerdFontProperties([string] $nfName) {
+		$this.FontName = $nfName
+		$this.FolderName = $nfName
+		$this.FontFilter = $null
+	}
+
+	NerdFontProperties([string] $nfName, [string] $folderName) {
+		$this.FontName = $nfName
+		$this.FolderName = $folderName
+		$this.FontFilter = $null
+	}
+
+	NerdFontProperties([string] $nfName, [scriptblock] $filter) {
+		$this.FontName = $nfName
+		$this.FolderName = $nfName
+		$this.FontFilter = $filter
+	}
+
+	NerdFontProperties([string] $nfName, [string] $folderName, [scriptblock] $filter) {
+		$this.FontName = $nfName
+		$this.FolderName = $folderName
+		$this.FontFilter = $filter
+	}
+
+	[string] $FontName
+	[string] $FolderName
+	[scriptblock] $FontFilter	# input one param: a FileInfo; return true if we don't want to keep the font
+}
+
 class ProcessNerdFontResult {
 	ProcessNerdFontResult([string] $name, [string] $folder) {
 		$this.Name = $name
@@ -90,50 +136,49 @@ function ProcessNerdFont {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	[OutputType([ProcessNerdFontResult])]
 	param(
-		[Parameter(Mandatory=$true)] [string] $fontName,
-		[Parameter(Mandatory=$true)] [string] $versionNumber,
-		[Parameter(Mandatory=$true)] [string] $workFolderBase,
-		[Parameter(Mandatory=$true)] [string] $fontsFolderBase,
-		[Parameter(Mandatory=$true)] [string] $sevenZipPath
+		[Parameter(Mandatory=$true)] [NerdFontProperties] $fontProps,
+		[Parameter(Mandatory=$true)] [StaticProperties] $staticProps
 	)
 
 	Write-Verbose $script:logDivider
-	Write-Verbose "$($MyInvocation.InvocationName): processing nerd font |$fontName|"
-	if (-not $versionNumber.StartsWith('v', [System.StringComparison]::OrdinalIgnoreCase)) { $versionNumber = 'v' + $versionNumber }
-	$fontDestBaseFolder = Join-Path $fontsFolderBase ('{0}NF' -f $fontName)
+	Write-Verbose "$($MyInvocation.InvocationName): processing nerd font |$($fontProps.FontName)|"
+#	if (-not $versionNumber.StartsWith('v', [System.StringComparison]::OrdinalIgnoreCase)) { $versionNumber = 'v' + $versionNumber }
+	$versionNumber = $staticProps.VersionNumber.StartsWith('v', [System.StringComparison]::OrdinalIgnoreCase) ? $staticProps.VersionNumber : ('v' + $staticProps.VersionNumber)
+	$fontDestBaseFolder = Join-Path $staticProps.FontsFolderBase $fontProps.FolderName
 	if (-not (Test-Path -Path $fontDestBaseFolder -PathType Container)) { [void](mkdir -Path $fontDestBaseFolder -Force) }
 
-	$fontOut7zPath = Join-Path $fontDestBaseFolder ('{0}NF {1}.7z' -f $fontName, $versionNumber)
-	$fontOutVerFolder = Join-Path $fontDestBaseFolder ('{0}NF {1}' -f $fontName, $versionNumber)
+	$fontOut7zPath = Join-Path $fontDestBaseFolder ('{0}-NerdFonts {1}.7z' -f $fontProps.FontName, $versionNumber)
+	$fontOutVerFolder = Join-Path $fontDestBaseFolder ('{0}-NerdFonts {1}' -f $fontProps.FontName, $versionNumber)
+	Write-Verbose "$($MyInvocation.InvocationName): 7z file: |$fontOut7zPath|, output folder: |$fontOutVerFolder|"
 
-	$result = [ProcessNerdFontResult]::new($fontName, $fontOutVerFolder)
+	$result = [ProcessNerdFontResult]::new($fontProps.FontName, $fontOutVerFolder)
 
-	if ((Test-Path -Path $fontOut7zPath -PathType Leaf) <#-and (Test-Path -Path $fontOutVerFolder -PathType Container)#>) {
-		$msg = "font file '$(Split-Path -Path $fontOut7zPath -Leaf)' and folder for '$versionNumber' already exist; skipping font"
+	if ((Test-Path -Path $fontOut7zPath -PathType Leaf)) {
+		$msg = "font file '$(Split-Path -Path $fontOut7zPath -Leaf)' already exists; skipping font"
 		Write-Verbose "$($MyInvocation.InvocationName): $msg"
 		$result.Message = $msg
 		$result.Skipped = $true
 		return $result
 	}
 
-	$tempZipFile = Join-Path $workFolderBase ('{0}_{1}.zip' -f $fontName, $versionNumber)
-	$tempUnzipFolder = Join-Path $workFolderBase ('{0}_{1}' -f $fontName, $versionNumber)
+	$tempZipFile = Join-Path $staticProps.WorkFolderBase ('{0}_{1}.zip' -f $fontProps.FontName, $versionNumber)
+	$tempUnzipFolder = Join-Path $staticProps.WorkFolderBase ('{0}_{1}' -f $fontProps.FontName, $versionNumber)
 	if ((Test-Path -Path $tempZipFile -PathType Leaf)) { Remove-Item -Path $tempZipFile -Force }
 	if ((Test-Path -Path $tempUnzipFolder -PathType Container)) { Remove-Item -Path $tempUnzipFolder -Recurse -Force }
 	if ((Test-Path -Path $fontOut7zPath -PathType Leaf)) { Remove-Item -Path $fontOut7zPath -Force }
 	if ((Test-Path -Path $fontOutVerFolder -PathType Container)) { Remove-Item -Path $fontOutVerFolder -Recurse -Force }
 
 	# download zip file:
-	$url = $script:githubFileAddressFormat -f $fontName
+	$url = $script:githubFileAddressFormat -f $fontProps.FontName
 	Write-Verbose "$($MyInvocation.InvocationName): downloading nerd font at url = |$url|"
 	if ($PSCmdlet.ShouldProcess($url, "Invoke-WebRequest")) {
 		Invoke-WebRequest -Method GET -Uri $url -OutFile $tempZipFile
 	}
 
 	# unzip it:
-	$unzipExitCode = UnzipFile -zipFile $tempZipFile -folderToExtractTo $tempUnzipFolder -sevenZipPath $sevenZipPath
+	$unzipExitCode = UnzipFile -zipFile $tempZipFile -folderToExtractTo $tempUnzipFolder -sevenZipPath $staticProps.SevenZipPath
 	if ($unzipExitCode -ne 0) {
-		$msg = "unzipping file '$tempZipFile' failed; skipping font '$fontName'"
+		$msg = "unzipping file '$tempZipFile' failed; skipping font '$($fontProps.FontName)'"
 		Write-Verbose "$($MyInvocation.InvocationName): $msg"
 		$result.Warning = $msg
 		$result.Skipped = $true
@@ -141,9 +186,9 @@ function ProcessNerdFont {
 	}
 
 	# create new 7zip file from $tempUnzipFolder, output to $fontOut7zPath:
-	$zipExitCode = ZipFolderToFile -folderToZip $tempUnzipFolder -outputFile $fontOut7zPath -sevenZipPath $sevenZipPath
+	$zipExitCode = ZipFolderToFile -folderToZip $tempUnzipFolder -outputFile $fontOut7zPath -sevenZipPath $staticProps.SevenZipPath
 	if ($zipExitCode -ne 0) {
-		$msg = "creating file '$fontOut7zPath' failed; skipping font '$fontName'"
+		$msg = "creating file '$fontOut7zPath' failed; skipping font '$($fontProps.FontName)'"
 		Write-Verbose "$($MyInvocation.InvocationName): $msg"
 		$result.Warning = $msg
 		$result.Skipped = $true
@@ -157,11 +202,7 @@ function ProcessNerdFont {
 			# < v3.0 names:
 			#Where-Object { $_.Name -notlike '*Windows Compatible*' -or $_.Name -like '* Mono Windows Compatible*' } |
 			# >= v3.0 names:
-			Where-Object { $_.Name -like '*NerdFontMono*' -or $_.Name -like '*NerdFontPropo*' -or
-				# Meslo comes with different line heights; just keep the small (MesloLGS*) and non-DZ (dotted zero) ones:
-				($fontName -eq 'Meslo' -and ($_.Name -like 'MesloLGL*' -or $_.Name -like 'MesloLGM*' -or $_.Name -like 'MesloLGSDZ*')) -or
-				# JetBrainsMono has a no-ligatures version, remove those, too:
-				($fontName -eq 'JetBrainsMono' -and ($_.Name -like 'JetBrainsMonoNL*')) } |
+			Where-Object { $_.Name -like '*NerdFontMono*' -or $_.Name -like '*NerdFontPropo*' -or ($fontProps.FontFilter -and (& $fontProps.FontFilter $_)) } |
 			Remove-Item -Force
 	}
 
