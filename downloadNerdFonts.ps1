@@ -38,11 +38,14 @@ function Main {
 		'Hermit'
 		'Inconsolata'
 		'JetBrainsMono'
+		'Lilex'
 		'Meslo'
 		'Monofur'
 		'Noto'
+		'Overpass'
 		'RobotoMono'
 		'SourceCodePro'
+		'SpaceMono'
 		'UbuntuMono'
 	) | ForEach-Object {
 		$results += ProcessNerdFont -fontName $_ -versionNumber $ver -workFolderBase $tempWorkingFolder -fontsFolderBase $fontsFolderBase -sevenZipPath $sevenZipPath
@@ -105,7 +108,7 @@ function ProcessNerdFont {
 
 	$result = [ProcessNerdFontResult]::new($fontName, $fontOutVerFolder)
 
-	if ((Test-Path -Path $fontOut7zPath -PathType Leaf) -and (Test-Path -Path $fontOutVerFolder -PathType Container)) {
+	if ((Test-Path -Path $fontOut7zPath -PathType Leaf) <#-and (Test-Path -Path $fontOutVerFolder -PathType Container)#>) {
 		$msg = "font file '$(Split-Path -Path $fontOut7zPath -Leaf)' and folder for '$versionNumber' already exist; skipping font"
 		Write-Verbose "$($MyInvocation.InvocationName): $msg"
 		$result.Message = $msg
