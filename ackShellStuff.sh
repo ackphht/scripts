@@ -52,8 +52,8 @@ elif type -p zypper >/dev/null; then
 	alias apts='zypper search'
 	alias aptn='zypper info'
 	alias apti='sudo zypper install'
-	alias aptx='sudo zypper remove --clean-deps'	# these both do the same thing
-	alias aptxx='sudo zypper remove --clean-deps'	# but to keep the same aliases available...
+	alias aptx='sudo zypper remove --clean-deps'
+	alias aptxx='sudo zypper remove --clean-deps'
 	alias aptl='zypper packages --installed-only'
 elif type -p pacman >/dev/null; then
 	alias aptr='sudo pacman --sync --refresh'
@@ -82,7 +82,10 @@ elif type -p apk >/dev/null; then
 	#alias apta='apk list --available'
 fi
 
-type -p btrfs >/dev/null && alias defrag='sudo btrfs filesystem defrag -czstd -rv /' || true
+# can't use which or type for sbin stuff on openSuse:
+if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
+	alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
+fi
 
 if type -p oh-my-posh >/dev/null; then
 	eval "$(oh-my-posh init bash --config ~/scripts/ack.omp.linux.json)"
