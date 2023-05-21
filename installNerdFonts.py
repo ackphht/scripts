@@ -9,6 +9,7 @@ import subprocess
 from typing import Any, List#, Pattern, Tuple, Iterator, Dict
 
 def main() -> int:
+	userFontsFldr = userFontsFldrV2 = ""
 	if sys.platform == "linux":
 		userFontsFldrV2 = pathlib.Path(os.path.expandvars("$HOME/.local/share/fonts"))
 		userFontsFldr = pathlib.Path(os.path.expandvars("$HOME/.local/share/fonts/NerdFonts"))
@@ -28,27 +29,20 @@ def main() -> int:
 	firaCodeBaseNameV2 = "Fira Code"
 	mesloFontName = "Meslo"
 	mesloFilenameBase = "MesloLGSNerdFont"
+	cascadiaFontName = "CascadiaCode"
+	cascadiaFilenameBase = "CaskaydiaCoveNerdFont"
+	comicShannsFontName = "ComicShannsMono"
+	comicShannsFilenameBase = "ComicShannsMonoNerdFont"
 
 	if not checkPrereqs(userFontsFldr): return 1
 
 	# remove old fonts (like for <= v2 which had different names):
-	fontFolders = [userFontsFldrV2, userFontsFldr]
-	cleanUpOldFont(f"{fantasqueBaseNameV2} Regular Nerd Font Complete.ttf", fontFolders)
-	cleanUpOldFont(f"{fantasqueBaseNameV2} Bold Nerd Font Complete.ttf", fontFolders)
-	cleanUpOldFont(f"{fantasqueBaseNameV2} Italic Nerd Font Complete.ttf", fontFolders)
-	cleanUpOldFont(f"{fantasqueBaseNameV2} Bold Italic Nerd Font Complete.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeBaseNameV2} Regular Nerd Font Complete.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeBaseNameV2} Bold Nerd Font Complete.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeBaseNameV2} Light Nerd Font Complete.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeBaseNameV2} Medium Nerd Font Complete.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeBaseNameV2} SemiBold Nerd Font Complete.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeBaseNameV2} Retina Nerd Font Complete.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeFilenameBase}-Regular.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeFilenameBase}-Bold.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeFilenameBase}-Light.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeFilenameBase}-Medium.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeFilenameBase}-SemiBold.ttf", fontFolders)
-	cleanUpOldFont(f"{firaCodeFilenameBase}-Retina.ttf", fontFolders)
+	cleanUpOldFont(f"{fantasqueBaseNameV2}*.ttf", userFontsFldrV2)
+	cleanUpOldFont(f"{firaCodeBaseNameV2}*.ttf", userFontsFldrV2)
+	cleanUpOldFont(f"{firaCodeFilenameBase}*.ttf", userFontsFldrV2)
+	# since we started putting nerd fonts in their own folder, can just delete everything in there:
+	cleanUpOldFont("*.ttf", userFontsFldr)
+	cleanUpOldFont("*.otf", userFontsFldr)
 
 	#
 	# download fonts:
@@ -64,11 +58,19 @@ def main() -> int:
 	#installNerdFont(firaCodeFontName, "Medium", f"{firaCodeFilenameBase}-Medium.ttf", userFontsFldr)
 	#installNerdFont(firaCodeFontName, "SemiBold", f"{firaCodeFilenameBase}-SemiBold.ttf", userFontsFldr)
 	#installNerdFont(firaCodeFontName, "Retina", f"{firaCodeFilenameBase}-Retina.ttf", userFontsFldr)
-	# Meslo:
-	installNerdFont(mesloFontName, "S/Regular", f"{mesloFilenameBase}-Regular.ttf", userFontsFldr)
-	installNerdFont(mesloFontName, "S/Bold", f"{mesloFilenameBase}-Bold.ttf", userFontsFldr)
-	installNerdFont(mesloFontName, "S/Italic", f"{mesloFilenameBase}-Italic.ttf", userFontsFldr)
-	installNerdFont(mesloFontName, "S/Bold-Italic", f"{mesloFilenameBase}-BoldItalic.ttf", userFontsFldr)
+	## Meslo:
+	#installNerdFont(mesloFontName, "S/Regular", f"{mesloFilenameBase}-Regular.ttf", userFontsFldr)
+	#installNerdFont(mesloFontName, "S/Bold", f"{mesloFilenameBase}-Bold.ttf", userFontsFldr)
+	#installNerdFont(mesloFontName, "S/Italic", f"{mesloFilenameBase}-Italic.ttf", userFontsFldr)
+	#installNerdFont(mesloFontName, "S/Bold-Italic", f"{mesloFilenameBase}-BoldItalic.ttf", userFontsFldr)
+	# CascadiaCode (there's other styles but these are enough for this):
+	installNerdFont(cascadiaFontName, "Regular", f"{cascadiaFilenameBase}-Regular.ttf", userFontsFldr)
+	installNerdFont(cascadiaFontName, "Bold", f"{cascadiaFilenameBase}-Bold.ttf", userFontsFldr)
+	installNerdFont(cascadiaFontName, "Regular", f"{cascadiaFilenameBase}-Italic.ttf", userFontsFldr)
+	installNerdFont(cascadiaFontName, "Bold", f"{cascadiaFilenameBase}-BoldItalic.ttf", userFontsFldr)
+	# ComicShannsMono:
+	installNerdFont(comicShannsFontName, "", f"{comicShannsFilenameBase}-Regular.otf", userFontsFldr)
+	installNerdFont(comicShannsFontName, "", f"{comicShannsFilenameBase}-Bold.otf", userFontsFldr)
 
 	# update font cache:
 	if sys.platform == "linux":
@@ -88,12 +90,10 @@ def checkPrereqs(fontDir : pathlib.Path) -> bool:
 
 	return True
 
-def cleanUpOldFont(fontFilename : str, fontFldrs : List[pathlib.Path]):
-	for f in fontFldrs:
-		filepath = f / fontFilename
-		if filepath.exists():
-			writeMessage3(f'removing old font file "{filepath}"')
-			filepath.unlink()
+def cleanUpOldFont(fontNameGlob : str, fontFldr : pathlib.Path):
+	for f in fontFldr.glob(fontNameGlob):
+		writeMessage3(f'removing old font file "{f}"')
+		f.unlink()
 
 def installNerdFont(fontname : str, style : str, filename : str, fontFldr : pathlib.Path):
 	outputName = fontFldr / filename
