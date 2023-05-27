@@ -13,6 +13,7 @@ alias cls='clear'
 
 type -p screenfetch >/dev/null && alias sf='screenfetch' || true
 type -p neofetch >/dev/null && alias nf='neofetch' || true
+test -f ~/scripts/ackfetch.sh >/dev/null && alias af='bash ~/scripts/ackfetch.sh' || true
 alias cj='sudo journalctl --vacuum-time=1d'
 
 # ???
