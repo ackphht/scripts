@@ -17,12 +17,25 @@ test -f /etc/debian_version && cp /etc/debian_version .
 test -f /etc/SUSE-brand && cp /etc/SUSE-brand .
 test -f /etc/linuxmint/info && cp /etc/linuxmint/info linuxmint_info
 test -f /etc/mx-version && cp /etc/mx-version .
+test -f /etc/issue && cp /etc/issue .
 
 # sysctl needs sudo to access everything it wants, but also on some OSes (e.g. opensuse) need sudo just to see it:
 sudo which sysctl >/dev/null 2>&1 && sudo sysctl -a | sort --ignore-case > sysctl.log || echo "WARNING: sysctl not found"
 which lsb_release >/dev/null 2>&1 && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
 which screenfetch >/dev/null 2>&1 && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
 which neofetch >/dev/null 2>&1 && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
+if which hostnamectl >/dev/null 2>&1 ; then
+	# two formats, slightly different info, only supported if systemd used, and json format not always supported:
+	if hostnamectl > hostnamectl.log 2>&1; then
+		if ! hostnamectl --json=pretty > hostnamectl.json 2>&1 ; then
+			rm --force hostnamectl.json
+		fi
+	else
+		rm --force hostnamectl.log
+	fi
+else
+	echo "WARNING: hostnamectl not found"
+fi
 
 test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > pythonProperties.log
 
