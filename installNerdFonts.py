@@ -1,11 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import sys
-import os
-import pathlib
-import shutil
-import subprocess
+import sys, os, pathlib, shutil, subprocess, urllib.request, json
 from typing import Any, List#, Pattern, Tuple, Iterator, Dict
 
 def main() -> int:
@@ -21,6 +17,15 @@ def main() -> int:
 
 	#LogHelper.Verbose(f"VERBOSE: using userFontsFolder = |{userFontsFldr}|")
 
+	if not checkPrereqs(userFontsFldr): return 1
+
+	# need to get latest version of NerdFonts on GitHub, and compare that to version file in the NerdFonts folders:
+	currVerStr = getNerdFontsVerStr()
+	for f in userFontsFldr.glob("@version_*"):
+		if f.name >= currVerStr:
+			writeMessage("latest version of NerdFonts already installed")
+			return 0
+
 	fantasqueFontName = "FantasqueSansMono"
 	fantasqueFilenameBase = "FantasqueSansMNerdFont"
 	fantasqueBaseNameV2 = "Fantasque Sans Mono"
@@ -34,15 +39,14 @@ def main() -> int:
 	comicShannsFontName = "ComicShannsMono"
 	comicShannsFilenameBase = "ComicShannsMonoNerdFont"
 
-	if not checkPrereqs(userFontsFldr): return 1
-
 	# remove old fonts (like for <= v2 which had different names):
-	cleanUpOldFont(f"{fantasqueBaseNameV2}*.ttf", userFontsFldrV2)
-	cleanUpOldFont(f"{firaCodeBaseNameV2}*.ttf", userFontsFldrV2)
-	cleanUpOldFont(f"{firaCodeFilenameBase}*.ttf", userFontsFldrV2)
+	cleanUpOldFile(f"{fantasqueBaseNameV2}*.ttf", userFontsFldrV2)
+	cleanUpOldFile(f"{firaCodeBaseNameV2}*.ttf", userFontsFldrV2)
+	cleanUpOldFile(f"{firaCodeFilenameBase}*.ttf", userFontsFldrV2)
 	# since we started putting nerd fonts in their own folder, can just delete everything in there:
-	cleanUpOldFont("*.ttf", userFontsFldr)
-	cleanUpOldFont("*.otf", userFontsFldr)
+	cleanUpOldFile("*.ttf", userFontsFldr)
+	cleanUpOldFile("*.otf", userFontsFldr)
+	cleanUpOldFile("@version_*", userFontsFldr)
 
 	#
 	# download fonts:
@@ -58,19 +62,22 @@ def main() -> int:
 	#installNerdFont(firaCodeFontName, "Medium", f"{firaCodeFilenameBase}-Medium.ttf", userFontsFldr)
 	#installNerdFont(firaCodeFontName, "SemiBold", f"{firaCodeFilenameBase}-SemiBold.ttf", userFontsFldr)
 	#installNerdFont(firaCodeFontName, "Retina", f"{firaCodeFilenameBase}-Retina.ttf", userFontsFldr)
-	## Meslo:
-	#installNerdFont(mesloFontName, "S/Regular", f"{mesloFilenameBase}-Regular.ttf", userFontsFldr)
-	#installNerdFont(mesloFontName, "S/Bold", f"{mesloFilenameBase}-Bold.ttf", userFontsFldr)
-	#installNerdFont(mesloFontName, "S/Italic", f"{mesloFilenameBase}-Italic.ttf", userFontsFldr)
-	#installNerdFont(mesloFontName, "S/Bold-Italic", f"{mesloFilenameBase}-BoldItalic.ttf", userFontsFldr)
+	# Meslo:
+	installNerdFont(mesloFontName, "S/Regular", f"{mesloFilenameBase}-Regular.ttf", userFontsFldr)
+	installNerdFont(mesloFontName, "S/Bold", f"{mesloFilenameBase}-Bold.ttf", userFontsFldr)
+	installNerdFont(mesloFontName, "S/Italic", f"{mesloFilenameBase}-Italic.ttf", userFontsFldr)
+	installNerdFont(mesloFontName, "S/Bold-Italic", f"{mesloFilenameBase}-BoldItalic.ttf", userFontsFldr)
 	# CascadiaCode (there's other styles but these are enough for this):
 	installNerdFont(cascadiaFontName, "Regular", f"{cascadiaFilenameBase}-Regular.ttf", userFontsFldr)
 	installNerdFont(cascadiaFontName, "Bold", f"{cascadiaFilenameBase}-Bold.ttf", userFontsFldr)
 	installNerdFont(cascadiaFontName, "Regular", f"{cascadiaFilenameBase}-Italic.ttf", userFontsFldr)
 	installNerdFont(cascadiaFontName, "Bold", f"{cascadiaFilenameBase}-BoldItalic.ttf", userFontsFldr)
-	# ComicShannsMono:
-	installNerdFont(comicShannsFontName, "", f"{comicShannsFilenameBase}-Regular.otf", userFontsFldr)
-	installNerdFont(comicShannsFontName, "", f"{comicShannsFilenameBase}-Bold.otf", userFontsFldr)
+	## ComicShannsMono:
+	#installNerdFont(comicShannsFontName, "", f"{comicShannsFilenameBase}-Regular.otf", userFontsFldr)
+	#installNerdFont(comicShannsFontName, "", f"{comicShannsFilenameBase}-Bold.otf", userFontsFldr)
+
+	# create version file:
+	(userFontsFldr / currVerStr).touch()
 
 	# update font cache:
 	if sys.platform == "linux":
@@ -90,9 +97,17 @@ def checkPrereqs(fontDir : pathlib.Path) -> bool:
 
 	return True
 
-def cleanUpOldFont(fontNameGlob : str, fontFldr : pathlib.Path):
+def getNerdFontsVerStr() -> str:
+	with urllib.request.urlopen("https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest") as resp:
+		# should throw if there's an error, so if we get here, assume it worked:
+		jsonData = json.loads(resp.read())
+		# tag name/version not reliably comparable, so use id first, since that should
+		# be always incrementing (right?), then include tag name/version for my readability:
+		return f"@version_{jsonData['id']:>012}_{jsonData['tag_name']}"
+
+def cleanUpOldFile(fontNameGlob : str, fontFldr : pathlib.Path):
 	for f in fontFldr.glob(fontNameGlob):
-		writeMessage3(f'removing old font file "{f}"')
+		writeMessage3(f'removing old file "{f}"')
 		f.unlink()
 
 def installNerdFont(fontname : str, style : str, filename : str, fontFldr : pathlib.Path):
