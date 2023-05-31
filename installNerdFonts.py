@@ -81,10 +81,14 @@ def main() -> int:
 
 	# update font cache:
 	if sys.platform == "linux":
-		args = ["fc-cache", "--force", "--verbose"]
-		process = subprocess.run(args)
-		if process.returncode:
-			LogHelper.Error(f'fc-cache failed to refresh font cache; return code was {process.returncode}')
+		runApp(["fc-cache", "--force", "--verbose"])
+	elif sys.platform == "darwin":
+		# ???
+		retCode = runApp(["atsutil", "databases", "-removeUser"])
+		if retCode == 0:
+			retCode = runApp(["atsutil", "server", "-shutdown"])
+		if retCode == 0:
+			retCode = runApp(["atsutil", "server", "-ping"])
 
 def checkPrereqs(fontDir : pathlib.Path) -> bool:
 	if not shutil.which("wget"):
@@ -123,6 +127,12 @@ def installNerdFont(fontname : str, style : str, filename : str, fontFldr : path
 	process = subprocess.run(args)
 	if process.returncode:
 		writeError(f'wget failed to get file "{filename}"; return code was {process.returncode}')
+
+def runApp(appAndArgs : List[str]) -> int:
+	process = subprocess.run(appAndArgs)
+	if process.returncode != 0:
+		writeError(f'app {appAndArgs[0]} returned non-zero exit code: {process.returncode}')
+	return process.returncode
 
 def writeError(msg : str):
 	print(f"\033[1;31m{msg}\033[0;39m")
