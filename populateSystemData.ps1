@@ -717,11 +717,11 @@ function _getMacId {
 	[OutputType([string])]
 	param([System.Version] $osVersion)
 	$result = ''
-	if ($osVersion.Major -gt 10) {
-		$result = 'mac.{0}' -f $osVersion.Major
-	} elseif ($osVersion.Major -eq 10) {
+	#if ($osVersion.Major -gt 10) {
+	#	$result = 'mac.{0}' -f $osVersion.Major
+	#} elseif ($osVersion.Major -eq 10) {
 		$result = 'mac.{0}.{1}' -f $osVersion.Major,$osVersion.Minor
-	}
+	#}
 	return $result
 }
 
