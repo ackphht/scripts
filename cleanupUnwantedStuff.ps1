@@ -1041,6 +1041,7 @@ function CleanUpPathVars {
 		'*\GitHubDesktop\*'
 		'C:\Program Files (x86)\GnuPG\bin'
 		'*\go\bin'
+		'*\Python\Launcher\'
 		# these i'm trying to use env vars for, but they keep getting put back in without:
 		"$env:AppData\npm"
 		"$env:LocalAppData\Microsoft\WindowsApps"
