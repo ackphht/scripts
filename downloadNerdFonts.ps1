@@ -29,6 +29,9 @@ function Main {
 	# process list of fonts:
 	$results = @()
 	@(
+		# https://www.nerdfonts.com/font-downloads
+		# https://github.com/ryanoasis/nerd-fonts/releases/latest
+		# https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/
 		[NerdFontProperties]::new('CascadiaCode')
 		[NerdFontProperties]::new('ComicShannsMono')
 		[NerdFontProperties]::new('Cousine')
@@ -42,13 +45,14 @@ function Main {
 		[NerdFontProperties]::new('Lilex')
 		[NerdFontProperties]::new('Meslo', { param([System.IO.FileInfo] $fi) $fi.Name -like 'MesloLGL*' -or $fi.Name -like 'MesloLGM*' -or $fi.Name -like 'MesloLGSDZ*' })	# also don't keep DottedZero fonts
 		[NerdFontProperties]::new('Monofur')
-		[NerdFontProperties]::new('Noto')
+		#[NerdFontProperties]::new('Noto')
 		[NerdFontProperties]::new('Overpass')
 		[NerdFontProperties]::new('RobotoMono', 'Roboto')
 		[NerdFontProperties]::new('ShareTechMono')
 		[NerdFontProperties]::new('SourceCodePro')
 		[NerdFontProperties]::new('SpaceMono')
 		[NerdFontProperties]::new('UbuntuMono', 'UbuntuFonts')
+		[NerdFontProperties]::new('VictorMono')
 	) | ForEach-Object {
 		$results += ProcessNerdFont -fontProps $_ -staticProps $staticProperties
 	}
@@ -131,7 +135,8 @@ class ProcessNerdFontResult {
 }
 
 $script:logDivider = [string]::new('=', 80)
-$script:githubFileAddressFormat = 'https://github.com/ryanoasis/nerd-fonts/releases/latest/download/{0}.zip'
+$script:archiveExtension = '.zip'	# with v3.0.2, there's also .tar.xz files (much smaller), but 7zip's only extracting the tar file; have to figure out how to get it to extract the rest
+$script:githubFileAddressFormat = 'https://github.com/ryanoasis/nerd-fonts/releases/latest/download/{0}{1}'
 function ProcessNerdFont {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	[OutputType([ProcessNerdFontResult])]
@@ -153,6 +158,7 @@ function ProcessNerdFont {
 
 	$result = [ProcessNerdFontResult]::new($fontProps.FontName, $fontOutVerFolder)
 
+	# see if we actually need to do anything:
 	if ((Test-Path -Path $fontOut7zPath -PathType Leaf)) {
 		$msg = "font file '$(Split-Path -Path $fontOut7zPath -Leaf)' already exists; skipping font"
 		Write-Verbose "$($MyInvocation.InvocationName): $msg"
@@ -161,7 +167,8 @@ function ProcessNerdFont {
 		return $result
 	}
 
-	$tempZipFile = Join-Path $staticProps.WorkFolderBase ('{0}_{1}.zip' -f $fontProps.FontName, $versionNumber)
+	# clean up any leftovers:
+	$tempZipFile = Join-Path $staticProps.WorkFolderBase ('{0}_{1}{2}' -f $fontProps.FontName, $versionNumber, $script:archiveExtension)
 	$tempUnzipFolder = Join-Path $staticProps.WorkFolderBase ('{0}_{1}' -f $fontProps.FontName, $versionNumber)
 	if ((Test-Path -Path $tempZipFile -PathType Leaf)) { Remove-Item -Path $tempZipFile -Force }
 	if ((Test-Path -Path $tempUnzipFolder -PathType Container)) { Remove-Item -Path $tempUnzipFolder -Recurse -Force }
@@ -169,18 +176,17 @@ function ProcessNerdFont {
 	if ((Test-Path -Path $fontOutVerFolder -PathType Container)) { Remove-Item -Path $fontOutVerFolder -Recurse -Force }
 
 	# download zip file:
-	$url = $script:githubFileAddressFormat -f $fontProps.FontName
+	$url = $script:githubFileAddressFormat -f $fontProps.FontName, $script:archiveExtension
 	Write-Verbose "$($MyInvocation.InvocationName): downloading nerd font at url = |$url|"
 	if ($PSCmdlet.ShouldProcess($url, "Invoke-WebRequest")) {
 		Invoke-WebRequest -Method GET -Uri $url -OutFile $tempZipFile
 	}
 
 	# unzip it:
-	$unzipExitCode = UnzipFile -zipFile $tempZipFile -folderToExtractTo $tempUnzipFolder -sevenZipPath $staticProps.SevenZipPath
-	if ($unzipExitCode -ne 0) {
-		$msg = "unzipping file '$tempZipFile' failed; skipping font '$($fontProps.FontName)'"
-		Write-Verbose "$($MyInvocation.InvocationName): $msg"
-		$result.Warning = $msg
+	$errorMsg = UnzipFile -archiveFile $tempZipFile -folderToExtractTo $tempUnzipFolder -sevenZipPath $staticProps.SevenZipPath
+	if ($errorMsg) {
+		# message will have been written to console in function so don't need that here...
+		$result.Warning = $errorMsg
 		$result.Skipped = $true
 		return $result
 	}
@@ -195,14 +201,14 @@ function ProcessNerdFont {
 		return $result
 	}
 
-	# clean up unwanted fonts out of $tempUnzipFolder:
+	# clean up unwanted fonts out of $tempUnzipFolder before we move it to final folder:
 	Write-Verbose "$($MyInvocation.InvocationName): cleaning out unwanted font files in |$tempUnzipFolder|"
 	if ($PSCmdlet.ShouldProcess($tempUnzipFolder, 'remove unwanted font files')) {		# if -WhatIf, then folder won't exist and Get-ChildItem complains
 		Get-ChildItem -Path $tempUnzipFolder -Recurse -File -Include @('*.ttf', '*.otf') |
 			# < v3.0 names:
 			#Where-Object { $_.Name -notlike '*Windows Compatible*' -or $_.Name -like '* Mono Windows Compatible*' } |
 			# >= v3.0 names:
-			Where-Object { $_.Name -like '*NerdFontMono*' -or $_.Name -like '*NerdFontPropo*' -or ($fontProps.FontFilter -and (& $fontProps.FontFilter $_)) } |
+			Where-Object { <# $_.Name -like '*NerdFontMono-*' -or #> $_.Name -like '*NerdFontPropo-*' -or ($fontProps.FontFilter -and (& $fontProps.FontFilter $_)) } |
 			Remove-Item -Force
 	}
 
@@ -225,7 +231,7 @@ function ZipFolderToFile {
 	)
 	Write-Verbose "$($MyInvocation.InvocationName): creating 7zip archive |$outputFile| for folder |$folderToZip|"
 	$arguments = 'a -r -ssc -snh -snl -mx9 -ms8G -mqs+ -m0=LZMA:d=2G "{0}" *' -f $outputFile
-	$exitCode = RunApplication -fileToRun $sevenZipPath -arguments $arguments -workingDirectory $folderToZip
+	$exitCode = RunApplication -fileToRun $sevenZipPath -arguments $arguments -workingDirectory $folderToZip -useShellExecute $true # useShellExecute so it opens in separate window, because 7zip does weird things with console
 	Write-Verbose "$($MyInvocation.InvocationName): exit code from 7zip was |$exitCode|"
 	switch ($exitCode) {
 		0 { break }
@@ -241,17 +247,45 @@ function ZipFolderToFile {
 
 function UnzipFile {
 	[CmdletBinding(SupportsShouldProcess=$true)]
-	[OutputType([int])]
+	[OutputType([string])]
 	param(
-		[Parameter(Mandatory=$true)] [string] $zipFile,
+		[Parameter(Mandatory=$true)] [string] $archiveFile,
 		[Parameter(Mandatory=$true)] [string] $folderToExtractTo,
 		[Parameter(Mandatory=$true)] [string] $sevenZipPath
 	)
-	$workingDir = [System.IO.Path]::GetDirectoryName($zipFile)
+	Write-Verbose "$($MyInvocation.InvocationName): unzipping file |$archiveFile|, extracting to |$folderToExtractTo|"
+	$resultMsg = ''
+	if ([System.IO.Path]::GetExtension($archiveFile) -eq '.zip') {
+		try {
+			# PSCX also has an Expand-Archive, so until we stop using PSCX, make sure we use posh one:
+			Microsoft.PowerShell.Archive\Expand-Archive -Path $tempZipFile -DestinationPath $tempUnzipFolder -ErrorAction Stop
+		} catch {
+			$resultMsg = "unzipping file '$tempZipFile' failed; skipping font '$($fontProps.FontName)';`nexception: $($Error.Exception.Message)"
+			Write-Warning $resultMsg
+		}
+	} else {
+		$unzipExitCode = UnzipFileWith7zip -archiveFile $archiveFile -folderToExtractTo $folderToExtractTo -sevenZipPath $sevenZipPath
+		if ($unzipExitCode -ne 0) {
+			$resultMsg = "unzipping file '$tempZipFile' failed; skipping font '$($fontProps.FontName)'"
+			Write-Verbose "$($MyInvocation.InvocationName): $resultMsg"
+		}
+	}
+	return $resultMsg
+}
 
-	Write-Verbose "$($MyInvocation.InvocationName): running 7zip for file |$zipFile|, extracting to |$folderToExtractTo|"
-	$arguments = 'x -o"{0}" -y "{1}"' -f $folderToExtractTo,$zipFile
-	$exitCode = RunApplication -fileToRun $sevenZipPath -arguments $arguments -workingDirectory $workingDir
+function UnzipFileWith7zip {
+	[CmdletBinding(SupportsShouldProcess=$true)]
+	[OutputType([int])]
+	param(
+		[Parameter(Mandatory=$true)] [string] $archiveFile,
+		[Parameter(Mandatory=$true)] [string] $folderToExtractTo,
+		[Parameter(Mandatory=$true)] [string] $sevenZipPath
+	)
+	$workingDir = [System.IO.Path]::GetDirectoryName($archiveFile)
+
+	Write-Verbose "$($MyInvocation.InvocationName): running 7zip for file |$archiveFile|, extracting to |$folderToExtractTo|"
+	$arguments = 'x -o"{0}" -y "{1}"' -f $folderToExtractTo,$archiveFile
+	$exitCode = RunApplication -fileToRun $sevenZipPath -arguments $arguments -workingDirectory $workingDir -useShellExecute $true # useShellExecute so it opens in separate window, because 7zip does weird things with console
 	Write-Verbose "$($MyInvocation.InvocationName): exit code from 7zip was |$exitCode|"
 	switch ($exitCode) {
 		0 { break }
@@ -284,7 +318,7 @@ function RunApplication {
 	$startInfo.UseShellExecute = [bool]$useShellExecute
 	if ($arguments) { $startInfo.Arguments = [Environment]::ExpandEnvironmentVariables($arguments) }
 	if ($workingDirectory) { $startInfo.WorkingDirectory = $workingDirectory }
-	$startInfo.Verb = if ($asAdmin) { 'runas' } else { 'open' }
+	$startInfo.Verb = <# if ($asAdmin) { 'runas' } else { #> 'open' <# } #>
 
 	#if ($PSCmdlet.ShouldProcess($(Split-Path $fileToRun -Leaf), "Process.Start")) {
 	if ($PSCmdlet.ShouldProcess($arguments, (Split-Path $fileToRun -Leaf))) {
