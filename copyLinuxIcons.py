@@ -18,7 +18,6 @@ from operator import attrgetter, itemgetter
 import hashlib
 
 from loghelper import LogHelper
-LogHelper.Init()
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -46,12 +45,14 @@ def main():
 	renameBackupsCmd.set_defaults(func=processRenameBackupsCommand)
 
 	args = parser.parse_args()
+
+	LogHelper.Init(args.verbose)
+
 	args.func(args)
 
 def processCreateIconsCommand(args : argparse.Namespace):
 	Helpers.LogVerbose('processing createIcons command')
 	Helpers.EnableWhatIf = args.whatIf
-	Helpers.EnableVerbose = args.verbose
 	Helpers.EnableBackup = args.backup
 	Helpers.OptimizePngs = not args.noOptimize
 	tempPath = pathlib.Path(args.tempFolder)
@@ -61,13 +62,11 @@ def processCreateIconsCommand(args : argparse.Namespace):
 def processRenameBackupsCommand(args : argparse.Namespace):
 	Helpers.LogVerbose('processing renameBackups command')
 	Helpers.EnableWhatIf = args.whatIf
-	Helpers.EnableVerbose = args.verbose
 	Helpers.EnableBackup = False	# does any of this get reused if we run script multiple times ??
 	BackupsHelper.RenameBackupFiles(args.fromAt, args.renameIcosOnly, args.renamePngsOnly)
 
 class Helpers:
 	EnableBackup = False
-	EnableVerbose = False
 	EnableWhatIf = False
 	OptimizePngs = True
 	InputBasePath = None
@@ -94,9 +93,8 @@ class Helpers:
 			return False	# propagate any exceptions
 
 	@staticmethod
-	def LogVerbose(msg : str):
-		if Helpers.EnableVerbose:
-			LogHelper.Verbose(f'VERBOSE: {msg}')
+	def LogVerbose(msg : str):	# could get rid of this but there's a lot using it...
+		LogHelper.Verbose(msg)
 
 	@staticmethod
 	def VerifyFolderExists(folder : pathlib.Path):
