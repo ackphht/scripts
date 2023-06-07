@@ -1,10 +1,15 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import sys, os, pathlib, shutil, subprocess, urllib.request, json
+import sys, os, pathlib, shutil, subprocess, urllib.request, json, argparse
 from typing import Any, List#, Pattern, Tuple, Iterator, Dict
+from loghelper import LogHelper
 
 def main() -> int:
+	parser = initArgParser()
+	args = parser.parse_args()
+	LogHelper.Init(args.verbose)
+
 	userFontsFldr = userFontsFldrV2 = ""
 	if sys.platform == "linux":
 		userFontsFldrV2 = pathlib.Path(os.path.expandvars("$HOME/.local/share/fonts"))
@@ -12,10 +17,10 @@ def main() -> int:
 	elif sys.platform == "darwin":
 		userFontsFldrV2 = pathlib.Path(os.path.expandvars("$HOME/Library/Fonts"))
 		userFontsFldr = pathlib.Path(os.path.expandvars("$HOME/Library/Fonts/NerdFonts"))
-	else:
-		raise f"invalid/unrecognized OS: '{sys.platform}'"
+	elif '_pydevd_bundle' not in sys.modules:	# so if we're on windows and working in VSCode (or other editor?), rest of file won't be grayed out; there's also 'debugpy' that's MS specific ??
+		raise RuntimeError(f"invalid/unrecognized OS: '{sys.platform}'")
 
-	#LogHelper.Verbose(f"VERBOSE: using userFontsFolder = |{userFontsFldr}|")
+	LogHelper.Verbose(f"using userFontsFolder = |{userFontsFldr}|")
 
 	if not checkPrereqs(userFontsFldr): return 1
 
@@ -23,7 +28,7 @@ def main() -> int:
 	currVerStr = getNerdFontsVerStr()
 	for f in userFontsFldr.glob("@version_*"):
 		if f.name >= currVerStr:
-			writeMessage("latest version of NerdFonts already installed")
+			LogHelper.Message("latest version of NerdFonts already installed")
 			return 0
 
 	fantasqueFontName = "FantasqueSansMono"
@@ -90,6 +95,11 @@ def main() -> int:
 		if retCode == 0:
 			retCode = runApp(["atsutil", "server", "-ping"])
 
+def initArgParser() -> argparse.ArgumentParser:
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	return parser
+
 def checkPrereqs(fontDir : pathlib.Path) -> bool:
 	if not shutil.which("wget"):
 		writeError("could not find command 'wget'")
@@ -111,7 +121,7 @@ def getNerdFontsVerStr() -> str:
 
 def cleanUpOldFile(fontNameGlob : str, fontFldr : pathlib.Path):
 	for f in fontFldr.glob(fontNameGlob):
-		writeMessage3(f'removing old file "{f}"')
+		LogHelper.Message3(f'removing old file "{f}"')
 		f.unlink()
 
 def installNerdFont(fontname : str, style : str, filename : str, fontFldr : pathlib.Path):
@@ -120,28 +130,19 @@ def installNerdFont(fontname : str, style : str, filename : str, fontFldr : path
 	url = f"https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/{fontname}/{style}/{filename}"
 
 	print("")
-	writeMessage("################################################")
-	writeMessage(filename)
-	writeMessage("################################################")
+	LogHelper.Message2("################################################")
+	LogHelper.Message2(filename)
+	LogHelper.Message2("################################################")
 	args = ["wget", "--output-document", outputName, url]
 	process = subprocess.run(args)
 	if process.returncode:
-		writeError(f'wget failed to get file "{filename}"; return code was {process.returncode}')
+		LogHelper.Error(f'wget failed to get file "{filename}"; return code was {process.returncode}')
 
 def runApp(appAndArgs : List[str]) -> int:
 	process = subprocess.run(appAndArgs)
 	if process.returncode != 0:
-		writeError(f'app {appAndArgs[0]} returned non-zero exit code: {process.returncode}')
+		LogHelper.Error(f'app {appAndArgs[0]} returned non-zero exit code: {process.returncode}')
 	return process.returncode
-
-def writeError(msg : str):
-	print(f"\033[1;31m{msg}\033[0;39m")
-
-def writeMessage(msg : str):
-	print(f"\033[22;36m{msg}\033[0;39m")
-
-def writeMessage3(msg : str):
-	print(f"\033[22;33m{msg}\033[0;39m")
 
 if __name__ == "__main__":
 	sys.exit(main())
