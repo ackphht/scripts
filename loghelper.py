@@ -1,45 +1,105 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import colorama					# https://pypi.org/project/colorama/
-
 class LogHelper:
+	# these are ripped off from colorama module (https://pypi.org/project/colorama/) so i don't have to have an external dependency for something so simple
+	class AnsiFore():
+		Black = "\033[30m"
+		Red = "\033[31m"
+		Green = "\033[32m"
+		Yellow = "\033[33m"
+		Blue = "\033[34m"
+		Magenta = "\033[35m"
+		Cyan = "\033[36m"
+		White = "\033[37m"
+		Reset = "\033[39m"
+		# These are fairly well supported, but not part of the standard.
+		LightBlackEx = "\033[90m"
+		LightRedEx = "\033[91m"
+		LightGreenEx = "\033[92m"
+		LightYellowEx = "\033[93m"
+		LightBlueEx = "\033[94m"
+		LightMagentaEx = "\033[95m"
+		LightCyanEx = "\033[96m"
+		LightWhiteEx = "\033[97m"
+
+	class AnsiBack():
+		Black = "\033[40m"
+		Red = "\033[41m"
+		Green = "\033[42m"
+		Yellow = "\033[43m"
+		Blue = "\033[44m"
+		Magenta = "\033[45m"
+		Cyan = "\033[46m"
+		White = "\033[47m"
+		Reset = "\033[49m"
+		# These are fairly well supported, but not part of the standard.
+		LightBlackEx = "\033[100m"
+		LightRedEx = "\033[101m"
+		LightGreenEx = "\033[102m"
+		LightYellowEx = "\033[103m"
+		LightBlueEx = "\033[104m"
+		LightMagentaEx = "\033[105m"
+		LightCyanEx = "\033[106m"
+		LightWhiteEx = "\033[107m"
+
+	class AnsiStyle():
+		Bright = "\033[1m"
+		Dim = "\033[2m"
+		Normal = "\033[22m"
+		ResetAll = "\033[0m"
+
+	Fore   = AnsiFore()
+	Back   = AnsiBack()
+	Style  = AnsiStyle()
+	_verboseEnabled = False
+
 	@staticmethod
-	def Init():		# seems like there would be a way to do this automatically or something when the module is imported ??
-		colorama.init(strip=False, convert=None)
+	def Init(verbose : bool = False):
+		LogHelper._verboseEnabled = verbose
 
 	@staticmethod
 	def Log(message : str):
-		print(f"{colorama.Style.DIM}{colorama.Fore.WHITE}{message}{colorama.Style.RESET_ALL}")
+		"""prints a message to the console in light gray"""
+		print(f"{LogHelper.Style.Dim}{LogHelper.Fore.White}{message}{LogHelper.Style.ResetAll}")
 
 	@staticmethod
 	def Verbose(message : str):
-		print(f"{colorama.Style.NORMAL}{colorama.Fore.YELLOW}{message}{colorama.Style.RESET_ALL}")
+		"""if verbose logging is enbled, prints a VERBOSE message to the console in yellow"""
+		if LogHelper._verboseEnabled:
+			print(f"{LogHelper.Style.Normal}{LogHelper.Fore.Yellow}VERBOSE: {message}{LogHelper.Style.ResetAll}")
 
 	@staticmethod
 	def Warning(message : str):
-		print(f"{colorama.Style.BRIGHT}{colorama.Fore.LIGHTYELLOW_EX}{message}{colorama.Style.RESET_ALL}")
+		"""prints a WARNING message to the console in bright yellow"""
+		print(f"{LogHelper.Style.Bright}{LogHelper.Fore.LightYellowEx}WARNING: {message}{LogHelper.Style.ResetAll}")
 
 	@staticmethod
 	def Warning2(message : str):
-		print(f"{colorama.Style.BRIGHT}{colorama.Fore.LIGHTRED_EX}{message}{colorama.Style.RESET_ALL}")
+		"""prints a WARNING message to the console in bright red; for more serious warnings (like, an error but not an error-error :|)"""
+		print(f"{LogHelper.Style.Bright}{LogHelper.Fore.LightRedEx}WARNING: {message}{LogHelper.Style.ResetAll}")
 
 	@staticmethod
 	def Error(message : str):
-		print(f"{colorama.Style.BRIGHT}{colorama.Fore.RED}{message}{colorama.Style.RESET_ALL}")
+		"""prints an ERROR message to the console in red"""
+		print(f"{LogHelper.Style.Bright}{LogHelper.Fore.Red}ERROR: {message}{LogHelper.Style.ResetAll}")
 
 	@staticmethod
 	def Message(message : str):
-		print(f"{colorama.Style.NORMAL}{colorama.Fore.CYAN}{message}{colorama.Style.RESET_ALL}")
+		"""prints a regular message to the console in cyan"""
+		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.Cyan}{message}{LogHelper.Style.ResetAll}")
 
 	@staticmethod
 	def Message2(message : str):
-		print(f"{colorama.Style.NORMAL}{colorama.Fore.MAGENTA}{message}{colorama.Style.RESET_ALL}")
+		"""prints a regular message to the console in magenta, like maybe for headers"""
+		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.Magenta}{message}{LogHelper.Style.ResetAll}")
 
 	@staticmethod
 	def Message3(message : str):
-		print(f"{colorama.Style.NORMAL}{colorama.Fore.YELLOW}{message}{colorama.Style.RESET_ALL}")
+		"""prints a regular message to the console in yellow"""
+		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.Yellow}{message}{LogHelper.Style.ResetAll}")
 
 	@staticmethod
 	def WhatIf(message : str):
-		print(f"{colorama.Style.NORMAL}{colorama.Fore.WHITE}WhatIf: {message}{colorama.Style.RESET_ALL}")
+		"""prints a test mode type message to the console, prefixed with 'WhatIf: ', in  white"""
+		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.White}WhatIf: {message}{LogHelper.Style.ResetAll}")
