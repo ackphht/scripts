@@ -46,7 +46,7 @@ function Main {
 		[NerdFontProperties]::new('Meslo', { param([System.IO.FileInfo] $fi) $fi.Name -like 'MesloLGL*' -or $fi.Name -like 'MesloLGM*' -or $fi.Name -like 'MesloLGSDZ*' })	# also don't keep DottedZero fonts
 		[NerdFontProperties]::new('Monofur')
 		#[NerdFontProperties]::new('Noto')
-		[NerdFontProperties]::new('Overpass')
+		[NerdFontProperties]::new('Overpass', { param([System.IO.FileInfo] $fi) $fi.Name -like 'OverpassNerdFont-*'})	# also don't keep non-monospaced fonts
 		[NerdFontProperties]::new('RobotoMono', 'Roboto')
 		[NerdFontProperties]::new('ShareTechMono')
 		[NerdFontProperties]::new('SourceCodePro')
