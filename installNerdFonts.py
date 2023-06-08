@@ -273,6 +273,8 @@ def installFontFromTarXz(fontDfn : NerdFontDefn, fontFldr : pathlib.Path) -> Non
 		if fontDfn.shouldExtract(f):
 			LogHelper.Message(f"installing font |{f}|")
 			tf.extract(f, path=fontFldr)
+		else:
+			LogHelper.Verbose(f"skipping font file |{f}|")
 
 def installFontFromZip(fontDfn : NerdFontDefn, fontFldr : pathlib.Path) -> None:
 	LogHelper.Verbose(f"installing .zip: url = |{fontDfn.downloadUrl}|")
@@ -282,6 +284,8 @@ def installFontFromZip(fontDfn : NerdFontDefn, fontFldr : pathlib.Path) -> None:
 		if fontDfn.shouldExtract(f):
 			LogHelper.Message(f"installing font |{f}|")
 			zf.extract(f, path=fontFldr)
+		else:
+			LogHelper.Verbose(f"skipping font file |{f}|")
 
 def runApp(appAndArgs : list[str]) -> int:
 	process = subprocess.run(appAndArgs)
