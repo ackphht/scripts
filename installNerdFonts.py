@@ -227,9 +227,9 @@ def getNerdFontsVerStr(releaseInfo : GithubRelease) -> str:
 
 def initFontsToInstall(ghRelease : GithubRelease) -> NerdFontCollection:
 	fontsToInstall : NerdFontCollection = NerdFontCollection()
-	fontsToInstall.addFontDefn("FantasqueSansMono", ["FantasqueSansMNerdFont-.+\.ttf", "FantasqueSansMNerdFontMono-.+\.ttf"])
-	fontsToInstall.addFontDefn("CascadiaCode", ["CaskaydiaCoveNerdFont-.+\.ttf", "CaskaydiaCoveNerdFontMono-.+\.ttf"])
-	fontsToInstall.addFontDefn("Meslo", ["MesloLGSNerdFont-.+\.ttf", "MesloLGSNerdFontMono-.+\.ttf"])
+	fontsToInstall.addFontDefn("FantasqueSansMono", ["FantasqueSansMNerdFont-.+\.ttf"])#, "FantasqueSansMNerdFontMono-.+\.ttf"])
+	fontsToInstall.addFontDefn("CascadiaCode", ["CaskaydiaCoveNerdFont-.+\.ttf"])#, "CaskaydiaCoveNerdFontMono-.+\.ttf"])
+	fontsToInstall.addFontDefn("Meslo", ["MesloLGSNerdFont-.+\.ttf"])#, "MesloLGSNerdFontMono-.+\.ttf"])
 	for a in ghRelease.assets:
 		fontsToInstall.processAsset(a)
 	return fontsToInstall
