@@ -31,7 +31,7 @@ def main():
 	mainCmd.add_argument("-i", "--createIcosOnly", action="store_true", help="skip recopying the PNG files, just create ICOs")
 	mainCmd.add_argument("-p", "--copyPngsOnly", action="store_true", help="skip creating the ICO files, just copy PNGs")
 	mainCmd.add_argument("-b", "--backup", action="store_true", help="back up existing PNGs and ICOs instead of overwriting them by appending the file's timestamp")
-	mainCmd.add_argument("-tmp", "--tempFolder", default=r"D:\Users\michael\temp", help="override temp folder location")
+	mainCmd.add_argument("-tmp", "--tempFolder", default=str(Constants.BigDriveTemp), help="override temp folder location")
 	mainCmd.add_argument("-w", "--whatIf", action="store_true", help="enable test mode")
 	mainCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	mainCmd.set_defaults(func=processCreateIconsCommand)
@@ -45,6 +45,9 @@ def main():
 	renameBackupsCmd.set_defaults(func=processRenameBackupsCommand)
 
 	args = parser.parse_args()
+
+	print(args)
+	return
 
 	LogHelper.Init(args.verbose)
 
@@ -224,9 +227,10 @@ class Constants:
 	FldrScheme_TypeSize = 1
 
 	# D: is my external large drive, so using that for the beaucoups of source files, and for temp files, instead of the small SSD:
-	IconsSourceBasePath = pathlib.Path('D:/').joinpath(*(pathlib.Path(os.path.expandvars(r"%UserProfile%\temp\linux\icons")).parts[1:]))
-	PngsOutputPath = pathlib.Path('D:/').joinpath(*(pathlib.Path(os.path.expandvars(r"%UserProfile%\temp\linux\icons\_staging")).parts[1:]))
-	IconsOutputPath = pathlib.Path(os.path.expandvars(r"%UserProfile%\icons\linux"))
+	BigDriveTemp = pathlib.Path('D:/').joinpath(*(pathlib.Path(os.path.expandvars("%UserProfile%/temp")).parts[1:]))
+	IconsSourceBasePath = BigDriveTemp / "linux/icons"
+	PngsOutputPath = BigDriveTemp / "linux/icons/_staging"
+	IconsOutputPath = pathlib.Path(os.path.expandvars("%UserProfile%/icons/linux"))
 
 	PathToInkscape = Helpers.FindOnPath('inkscape.exe')
 	PathToImageMagick = Helpers.FindOnPath('magick.exe')

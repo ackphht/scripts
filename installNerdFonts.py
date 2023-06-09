@@ -7,6 +7,9 @@ from io import BytesIO
 from loghelper import LogHelper
 
 def main() -> int:
+	# https://www.nerdfonts.com/font-downloads
+	# https://github.com/ryanoasis/nerd-fonts/releases/latest
+	# https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/
 	parser = initArgParser()
 	args = parser.parse_args()
 	verboseLogging = args.verbose
@@ -245,7 +248,7 @@ def removeOldFonts(fontFldr : pathlib.Path, fontfldrV2 : pathlib.Path) -> None:
 	cleanUpOldFile("*.otf", fontFldr)
 	cleanUpOldFile("@version_*", fontFldr)
 
-def cleanUpOldFile(fontNameGlob : str, fontFldr : pathlib.Path):
+def cleanUpOldFile(fontNameGlob : str, fontFldr : pathlib.Path) -> None:
 	for f in fontFldr.glob(fontNameGlob):
 		LogHelper.Message3(f'removing old file "{f}"')
 		f.unlink()

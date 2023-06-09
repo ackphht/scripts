@@ -18,7 +18,7 @@ from musicFileProperties import MusicFileProperties
 
 LogHelper.Init()
 
-_musicAttributesDbPath = pathlib.Path("C:/Users/michael/Music/MyMusic/musicAttributes.sqlite")#.resolve()
+_musicAttributesDbPath = pathlib.Path(os.path.expandvars("%UserProfile%/Music/MyMusic/musicAttributes.sqlite"))#.resolve()
 _defaultTableFormat = "presto"#"simple"
 
 class DbRowHelper:

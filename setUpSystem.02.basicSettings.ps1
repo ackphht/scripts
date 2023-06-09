@@ -468,8 +468,8 @@ function ConfigureDefenderExclusions {
 	@(
 		"$env:UserProfile\Apps\Utils\NirSoft"
 		"$env:UserProfile\Installs\system utils\NirSoft Utils"
-		'D:\Users\michael\Backups\Apps\Utils\NirSoft'
-		'D:\Users\michael\Backups\Installs\system utils\NirSoft Utls'
+		("$env:UserProfile\Backups\Apps\Utils\NirSoft" -replace 'C:\\'<#regex#>,'D:\')
+		("$env:UserProfile\Backups\Installs\system utils\NirSoft Utils" -replace 'C:\\'<#regex#>,'D:\')
 		'I:\utils\NirSoft'
 		'W:\Apps\Utils\NirSoft'
 		'W:\Installs\system utils\NirSoft Utils'

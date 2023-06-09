@@ -208,7 +208,12 @@ function ProcessNerdFont {
 			# < v3.0 names:
 			#Where-Object { $_.Name -notlike '*Windows Compatible*' -or $_.Name -like '* Mono Windows Compatible*' } |
 			# >= v3.0 names:
-			Where-Object { <# $_.Name -like '*NerdFontMono-*' -or #> $_.Name -like '*NerdFontPropo-*' -or ($fontProps.FontFilter -and (& $fontProps.FontFilter $_)) } |
+			Where-Object {
+				# variants to remove from our save folder:
+				$_.Name -like '*NerdFontMono-*' -or
+				$_.Name -like '*NerdFontPropo-*' -or
+				($fontProps.FontFilter -and (& $fontProps.FontFilter $_))
+			} |
 			Remove-Item -Force
 	}
 
