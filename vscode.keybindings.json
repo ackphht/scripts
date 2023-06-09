@@ -1,0 +1,25 @@
+// Place your key bindings in this file to overwrite the defaults
+[
+	{
+		"key": "ctrl+right",
+		"command": "cursorWordStartRight",
+		"when": "editorTextFocus"
+	},
+	{
+		"key": "ctrl+shift+right",
+		"command": "cursorWordStartRightSelect",
+		"when": "editorTextFocus"
+	},
+	{
+		"key": "shift+alt+l",
+		"command": "editor.action.transformToLowercase"
+	},
+	{
+		"key": "shift+alt+u",
+		"command": "editor.action.transformToUppercase"
+	},
+	{
+		"key": "shift+alt+a",
+		"command": "-workbench.view.extension.azure"
+	}
+]
