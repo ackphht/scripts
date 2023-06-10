@@ -4,10 +4,11 @@
 #
 platform=$(uname -s)
 case $platform in
-	Linux) currShell=$(ps -p $$ -ocmd=) ;;
+	Linux) currShell=$(ps -p $$ -o cmd=) ;;
 	Darwin) currShell=$(ps -p $$ -ocommand=) ;;
+	MINGW*) currShell=$(basename $0) ;;	# for git's bash; doesn't support ps -o; there's also a 'readlink -f /proc/$$/exe'
 esac
-if [[ "$currShell" == "-bash" ]]; then currShell=bash; fi	# bash sometimes/usually/always(??) from this command has a '-' on the front ???
+if [[ "$currShell" == "-bash" ]]; then currShell=bash; fi	# bash from ps (others?) sometimes has a '-' on the front which means it's the login shell
 
 has() {
 	type -p "$1" >/dev/null
@@ -17,14 +18,17 @@ alias cls='clear'
 has screenfetch && alias sf='screenfetch' || true
 has neofetch && alias nf='neofetch' || true
 has pwsh && test -f ~/scripts/ackfetch.sh && alias af='bash ~/scripts/ackfetch.sh' || true
-if [[ "$platform" == "Linux" ]]; then
-	alias ll='ls -AlFhv --group-directories-first'
-	alias l='ls -AFv --group-directories-first'
-	alias cj='sudo journalctl --vacuum-time=1d'
-elif [[ "$platform" == "Darwin" ]]; then
-	alias ll='ls -AlFhv'
-	alias l='ls -AFv'
-fi
+case $platform in
+	Linux|MINGW*|MSYS*|CYGWIN*)
+		alias ll='ls -AlFhv --group-directories-first'
+		alias l='ls -AFv --group-directories-first'
+		alias cj='sudo journalctl --vacuum-time=1d'
+		;;
+	Darwin)
+		alias ll='ls -AlFhv'
+		alias l='ls -AFv'
+		;;
+esac
 
 # ???
 #alias reboot='sudo reboot --reboot'
@@ -114,8 +118,7 @@ case $currShell in
 	bash) PS1='\n\e[36m\s \e[95m\u@\h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m ' ;;
 	zsh) PS1=$'\n%{\C-[[36m%}zsh %{\C-[[95m%}%n@%m %{\C-[[33m%}%* %{\C-[[92m%}%~\n%{\C-[[32m%}WHAT?!? \$%{\C-[[0m%} ' ;;	# uhhh
 esac
-
-if has oh-my-posh; then
+if has oh-my-posh && test -n $currShell ; then
 	eval "$(oh-my-posh init $currShell --config ~/scripts/ack.omp.linux.json)"
 	alias omp='oh-my-posh'
 fi
