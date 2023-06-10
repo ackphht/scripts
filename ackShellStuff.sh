@@ -8,6 +8,7 @@ case $platform in
 	Darwin) currShell=$(ps -p $$ -ocommand=) ;;
 	MINGW*) currShell=$(basename $0) ;;	# for git's bash; doesn't support ps -o; there's also a 'readlink -f /proc/$$/exe'
 esac
+if [[ "${currShell:0:1}" == "/" ]]; then currShell=basename $currShell; fi	# sometimes get a full path
 if [[ "${currShell:0:1}" == "-" ]]; then currShell=${currShell:1}; fi	# sometimes has a '-' on the front which means it's the login shell
 
 has() {
