@@ -52,7 +52,7 @@ backupMultiFiles() {
 #fi
 verifyFolder $backupFolder
 
-if [[ -f "$HOME/.config/dconf/user" ]]; then
+if type -p dconf >/dev/null && [[ -f "$HOME/.config/dconf/user" ]]; then
 	if dconf list /com/gexperts/Tillix/ > /dev/null; then dconf dump /com/gexperts/Tillix/ > "$backupFolder/dconf_tillix"; fi	# Budgie's terminal
 	if dconf list /org/caja/ > /dev/null; then dconf dump /org/caja/ > "$backupFolder/dconf_caja"; fi
 	if dconf list /org/cinnamon/desktop/screensaver/ > /dev/null; then dconf dump /org/cinnamon/desktop/screensaver/ > "$backupFolder/dconf_cinnamonScreensaver"; fi
@@ -77,6 +77,9 @@ backUpFile "$HOME/.alias" '.alias'
 backUpFile "$HOME/.bash_aliases" '.bash_aliases'
 backUpFile "$HOME/.bash_profile" '.bash_profile'
 backUpFile "$HOME/.bashrc" '.bashrc'
+backUpFile "$HOME/.zshrc" '.zshrc'
+backUpFile "$HOME/.zprofile" '.zprofile'
+backUpFile "$HOME/.zshenv" '.zshenv'
 backUpFile "$HOME/.profile" '.profile'
 backUpFile "$HOME/.inputrc" '.inputrc'
 backUpFile "$HOME/.gitconfig" '.gitconfig'
@@ -102,6 +105,7 @@ backUpFile "$HOME/.config/pacmanfm-qt/lxqt/settings.conf" '.config/pacmanfm-qt/l
 backUpFile "$HOME/.config/powershell/Microsoft.PowerShell_profile.ps1" '.config/powershell/Microsoft.PowerShell_profile.ps1'
 backUpFile "$HOME/.config/xfce4/terminal/terminalrc" '.config/xfce4/terminal/terminalrc'
 backUpFile "$HOME/.local/share/user-places.xbel" '.local/share/user-places.xbel'
+backupMultiFiles "/etc/zsh/*" 'etc_zsh/'
 backupMultiFiles "$HOME/Documents/*" 'Documents/'
 backupMultiFiles "$HOME/Pictures/*" 'Pictures/'
 backupMultiFiles "$HOME/bin/*" 'bin/'
