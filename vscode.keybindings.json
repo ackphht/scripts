@@ -1,25 +1,57 @@
-// Place your key bindings in this file to overwrite the defaults
 [
 	{
-		"key": "ctrl+right",
-		"command": "cursorWordStartRight",
+		"key": "shift+alt+up",
+		"command": "-editor.action.insertCursorAbove",
 		"when": "editorTextFocus"
 	},
 	{
-		"key": "ctrl+shift+right",
-		"command": "cursorWordStartRightSelect",
+		"key": "shift+alt+down",
+		"command": "-editor.action.insertCursorBelow",
 		"when": "editorTextFocus"
 	},
 	{
-		"key": "shift+alt+l",
-		"command": "editor.action.transformToLowercase"
+		"key": "shift+alt+down",
+		"command": "editor.action.copyLinesDownAction",
+		"when": "editorTextFocus && !editorReadonly"
 	},
 	{
-		"key": "shift+alt+u",
-		"command": "editor.action.transformToUppercase"
+		"key": "ctrl+shift+alt+down",
+		"command": "-editor.action.copyLinesDownAction",
+		"when": "editorTextFocus && !editorReadonly"
 	},
 	{
-		"key": "shift+alt+a",
-		"command": "-workbench.view.extension.azure"
+		"key": "shift+alt+up",
+		"command": "editor.action.copyLinesUpAction",
+		"when": "editorTextFocus && !editorReadonly"
+	},
+	{
+		"key": "ctrl+shift+alt+up",
+		"command": "-editor.action.copyLinesUpAction",
+		"when": "editorTextFocus && !editorReadonly"
+	},
+	{
+		"key": "shift+alt+f",
+		"command": "-filesExplorer.findInFolder",
+		"when": "explorerResourceIsFolder && explorerViewletVisible && filesExplorerFocus && !inputFocus"
+	},
+	{
+		"key": "shift+alt+f",
+		"command": "editor.action.formatDocument",
+		"when": "editorHasDocumentFormattingProvider && editorTextFocus && !editorReadonly && !inCompositeEditor"
+	},
+	{
+		"key": "ctrl+shift+i",
+		"command": "-editor.action.formatDocument",
+		"when": "editorHasDocumentFormattingProvider && editorTextFocus && !editorReadonly && !inCompositeEditor"
+	},
+	{
+		"key": "shift+alt+f",
+		"command": "editor.action.formatDocument.none",
+		"when": "editorTextFocus && !editorHasDocumentFormattingProvider && !editorReadonly"
+	},
+	{
+		"key": "ctrl+shift+i",
+		"command": "-editor.action.formatDocument.none",
+		"when": "editorTextFocus && !editorHasDocumentFormattingProvider && !editorReadonly"
 	}
 ]
