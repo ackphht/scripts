@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, re, pathlib, shutil, subprocess, urllib.request, json, argparse, tarfile, zipfile
-from typing import Iterator, Self#, List, Dict#, Any, Pattern, Tuple
+from typing import Iterator#, Self#, List, Dict#, Any, Pattern, Tuple
 from io import BytesIO
 from loghelper import LogHelper
 
@@ -128,7 +128,7 @@ class GithubRelease:
 			self._assets.append(GithubReleaseAsset(a))
 
 	@staticmethod
-	def CreateReleaseInfo(url : str) -> Self:
+	def CreateReleaseInfo(url : str):# -> Self:	#only for 3.11+ ?? so not yet...
 		with urllib.request.urlopen(url) as resp:
 			return GithubRelease(resp.read())
 
