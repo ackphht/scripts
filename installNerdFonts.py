@@ -62,6 +62,10 @@ def main() -> int:
 	(userFontsFldr / currVerStr).touch()
 
 	if not testMode:
+		print("")
+		LogHelper.Message3("------------------------------------------------")
+		LogHelper.Message3("rebuilding font cache")
+		LogHelper.Message3("------------------------------------------------")
 		rebuildFontCache()
 
 def initArgParser() -> argparse.ArgumentParser:
