@@ -117,7 +117,7 @@ fi
 # default prompt in case oh-my-posh (below) isn't installed
 case $currShell in
 	bash) PS1='\n\e[36m\s \e[95m\u@\h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m ' ;;
-	zsh) PS1=$'\n%{\C-[[36m%}zsh %{\C-[[95m%}%n@%m %{\C-[[33m%}%* %{\C-[[92m%}%~\n%{\C-[[32m%}WHAT?!? \$%{\C-[[0m%} ' ;;	# uhhh
+	zsh) PS1=$'\n%F{cyan}zsh%f %F{magenta}%n@%m%f %F{yellow}%*%f %F{green}%~%f\n%F{green}WHAT?!? %#%f ' ;;
 esac
 if has oh-my-posh && test -n $currShell ; then
 	eval "$(oh-my-posh init $currShell --config ~/scripts/ack.omp.linux.json)"
