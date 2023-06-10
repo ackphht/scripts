@@ -2,25 +2,35 @@
 # add this to .bashrc (or .zshrc [will it work ??] or whatever) (and might need to go at the bottom of file [e.g. Ubuntu]):
 #	test -r ~/scripts/ackShellStuff.sh && source ~/scripts/ackShellStuff.sh || true
 #
+platform=$(uname -s)
+case $platform in
+	Linux) currShell=$(ps -p $$ -ocmd=) ;;
+	Darwin) currShell=$(ps -p $$ -ocommand=) ;;
+esac
+if [[ "$currShell" == "-bash" ]]; then currShell=bash; fi	# bash sometimes/usually/always(??) from this command has a '-' on the front ???
 
-# default prompt in case oh-my-posh (below) isn't installed
-PS1='\n\e[36m\s \e[95m\u @ \h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m '
-
-alias ll='ls -AlFhv --group-directories-first'
-alias l='ls -AFv --group-directories-first'
+has() {
+	type -p "$1" >/dev/null
+}
 
 alias cls='clear'
-
-type -p screenfetch >/dev/null && alias sf='screenfetch' || true
-type -p neofetch >/dev/null && alias nf='neofetch' || true
-test -f ~/scripts/ackfetch.sh >/dev/null && alias af='bash ~/scripts/ackfetch.sh' || true
-alias cj='sudo journalctl --vacuum-time=1d'
+has screenfetch && alias sf='screenfetch' || true
+has neofetch && alias nf='neofetch' || true
+has pwsh && test -f ~/scripts/ackfetch.sh && alias af='bash ~/scripts/ackfetch.sh' || true
+if [[ "$platform" == "Linux" ]]; then
+	alias ll='ls -AlFhv --group-directories-first'
+	alias l='ls -AFv --group-directories-first'
+	alias cj='sudo journalctl --vacuum-time=1d'
+elif [[ "$platform" == "Darwin" ]]; then
+	alias ll='ls -AlFhv'
+	alias l='ls -AFv'
+fi
 
 # ???
 #alias reboot='sudo reboot --reboot'
 #alias shutdown='sudo halt --poweroff --force --no-wall'
 
-if type -p apt >/dev/null; then
+if has apt; then
 	alias aptr='sudo apt update'
 	alias aptul='apt list --upgradable'
 	alias aptu='sudo apt upgrade --yes'
@@ -31,7 +41,7 @@ if type -p apt >/dev/null; then
 	alias aptx='sudo apt remove'	# leaves settings	(leaving off --yes)
 	alias aptxx='sudo apt purge'	# removes settings too
 	alias aptl='apt list --installed'
-elif type -p dnf >/dev/null; then
+elif has dnf; then
 	alias aptr='sudo dnf check-update --refresh'
 	alias aptul='sudo dnf check-update'	# ???
 	alias aptu='sudo dnf upgrade --assumeyes'
@@ -44,7 +54,7 @@ elif type -p dnf >/dev/null; then
 	alias aptx='sudo dnf remove'	# these both do the same thing
 	alias aptxx='sudo dnf remove'	# but to keep the same aliases available...
 	alias aptl='dnf list --installed'
-elif type -p zypper >/dev/null; then
+elif has zypper; then
 	alias aptr='sudo zypper refresh --force'	# if output is piped into, e.g. grep, it displays a warning about not having a 'stable CLI interface', 'use with caution'; ???
 	alias aptul='zypper list-updates'
 	alias aptu='sudo zypper update --no-confirm'
@@ -56,7 +66,7 @@ elif type -p zypper >/dev/null; then
 	alias aptx='sudo zypper remove --clean-deps'
 	alias aptxx='sudo zypper remove --clean-deps'
 	alias aptl='zypper packages --installed-only'
-elif type -p pacman >/dev/null; then
+elif has pacman; then
 	alias aptr='sudo pacman --sync --refresh'
 	alias aptul='pacman --query --upgrades'
 	alias aptu='sudo pacman --sync --sysupgrade --noconfirm'
@@ -69,7 +79,7 @@ elif type -p pacman >/dev/null; then
 	alias aptl='pacman --query'
 	# just to store this somewhere: to list all explicitly installed packages that aren't required by something else:
 	#	pacman --query --explicit --unrequired (or pacman -Qet if wanna be lazy)
-elif type -p apk >/dev/null; then
+elif has apk; then
 	alias aptr='sudo apk update'
 	alias aptul='apk list --upgradable'
 	alias aptu='sudo apk upgrade --available'
@@ -80,7 +90,18 @@ elif type -p apk >/dev/null; then
 	alias aptx='sudo apk del'
 	alias aptxx='sudo apk del'
 	alias aptl='apk list --installed'
-	#alias apta='apk list --available'
+elif has brew; then
+	# https://docs.brew.sh/Manpage
+	alias aptr='brew update'
+	alias aptul='brew outdated'
+	alias aptu='brew upgrade'
+	alias aptc='brew autoremove && brew cleanup'
+	alias apts='brew search'
+	alias aptn='brew desc'		# ???
+	alias apti='brew install'
+	alias aptx='brew uninstall'
+	alias aptxx='brew uninstall'
+	alias aptl='brew list'
 fi
 
 # can't use which or type for sbin stuff on openSuse:
@@ -88,7 +109,19 @@ if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
 	alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
 fi
 
-if type -p oh-my-posh >/dev/null; then
-	eval "$(oh-my-posh init bash --config ~/scripts/ack.omp.linux.json)"
+# default prompt in case oh-my-posh (below) isn't installed
+case $currShell in
+	bash) PS1='\n\e[36m\s \e[95m\u@\h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m ' ;;
+	zsh) PS1=$'\n%{\C-[[36m%}zsh %{\C-[[95m%}%n@%m %{\C-[[33m%}%* %{\C-[[92m%}%~\n%{\C-[[32m%}WHAT?!? \$%{\C-[[0m%} ' ;;	# uhhh
+esac
+
+if has oh-my-posh; then
+	eval "$(oh-my-posh init $currShell --config ~/scripts/ack.omp.linux.json)"
 	alias omp='oh-my-posh'
 fi
+
+case $currShell in
+	bash) unset has ;;
+	zsh) unfunction has ;;
+esac
+unset platform currShell
