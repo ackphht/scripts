@@ -4,7 +4,7 @@
 #
 platform=$(uname -s)
 case $platform in
-	Linux) currShell=$(ps -p $$ -o cmd=) ;;
+	Linux) currShell=$(ps -p $$ -o exe=) ;;		# things i found said to use 'cmd=' but that sometimes include all the args, too; think this one's more what i need
 	Darwin) currShell=$(ps -p $$ -ocommand=) ;;
 	MINGW*) currShell=$(basename $0) ;;	# for git's bash; doesn't support ps -o; there's also a 'readlink -f /proc/$$/exe'
 esac
