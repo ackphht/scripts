@@ -18,7 +18,7 @@ echo "\$OSTYPE = |$OSTYPE|"
 if has readlink; then
 	echo "\"readlink /proc/\$\$/exe\" = |$(readlink -f /proc/$$/exe)|"
 else
-	echo '"readlink /proc/$$/exe" = <n/a>'
+	echo '"readlink /proc/$$/exe" = |<n/a>|'
 fi
 if has uname; then
 	echo "uname: kernel-name [-s] = |$(uname -s)|"
@@ -26,25 +26,25 @@ if has uname; then
 	echo "uname: kernel-version [-v] = |$(uname -v)|"
 	echo "uname: operating system [-o] = |$(uname -o)|"
 	echo "uname: machine [-m] = |$(uname -m)|"
-	echo "uname: processor [-p] = |$(uname -p 2>/dev/null || echo \<n/a\>)|"
-	echo "uname: hardware-platform [-i] = |$(uname -i 2>/dev/null || echo \<n/a\>)|"
+	echo "uname: processor [-p] = |$(uname -p 2>/dev/null || echo \|\<n/a\>\|)|"
+	echo "uname: hardware-platform [-i] = |$(uname -i 2>/dev/null || echo \|\<n/a\>\|)|"
 else
-	echo 'uname = <n/a>'
+	echo 'uname = |<n/a>|'
 fi
 if has lsb_release; then
 	echo 'lsb_release = |'
 	lsb_release -a 2>/dev/null
 	echo '|'
 else
-	echo 'lsb_release = <n/a>'
+	echo 'lsb_release = |<n/a>|'
 fi
 if has python3; then
 	echo "python3 = |$(python3 --version)|"
 else
-	echo 'python3 = <n/a>'
+	echo 'python3 = |<n/a>|'
 fi
 if has git; then
 	echo "git = |$(git --version)|"
 else
-	echo 'git = <n/a>'
+	echo 'git = |<n/a>|'
 fi
