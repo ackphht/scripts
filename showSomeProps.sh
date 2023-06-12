@@ -43,3 +43,8 @@ if has python3; then
 else
 	echo 'python3 = <n/a>'
 fi
+if has git; then
+	echo "git = |$(git --version)|"
+else
+	echo 'git = <n/a>'
+fi
