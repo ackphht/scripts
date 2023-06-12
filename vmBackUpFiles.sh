@@ -113,7 +113,6 @@ backupMultiFiles "/etc/zsh/*" 'etc_zsh/'
 backupMultiFiles "$HOME/Documents/*" 'Documents/'
 backupMultiFiles "$HOME/Pictures/*" 'Pictures/'
 backupMultiFiles "$HOME/bin/*" 'bin/'
-backupMultiFiles "$HOME/scripts/*" 'scripts/'
 backupMultiFiles "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/*" '.config/xfce4/xfconf/xfce-perchannel-xml/'	# changing these files doesn't seem to do anything, so not sure these are correct to back up
 backupMultiFiles "$HOME/.local/bin/*" '.local/bin/'
 backupMultiFiles "$HOME/.local/share/fonts/*" '.local/share/fonts/'
