@@ -2,18 +2,21 @@
 # add this to .bashrc (or .zshrc [will it work ??] or whatever) (and might need to go at the bottom of file [e.g. Ubuntu]):
 #	test -r ~/scripts/ackShellStuff.sh && source ~/scripts/ackShellStuff.sh || true
 #
+has() { type -p "$1" >/dev/null; }
+
 platform=$(uname -s)
-case $platform in
-	Linux) currShell=$(ps -p $$ -o exe=) ;;		# things i found said to use 'cmd=' but that sometimes include all the args, too; think this one's more what i need
-	Darwin) currShell=$(ps -p $$ -ocommand=) ;;
-	MINGW*) currShell=$(basename $0) ;;	# for git's bash; doesn't support ps -o; there's also a 'readlink -f /proc/$$/exe'
-esac
+
+if has readlink && test -d /proc/$$/exe; then
+	currShell=$(readlink -f /proc/$$/exe)
+else
+	case $platform in
+		Linux) currShell=$(ps -p $$ -o exe=) ;;		# things i found said to use 'cmd=' but that sometimes include all the args, too; think this one's more what i need
+		Darwin) currShell=$(ps -p $$ -o command=) ;;
+		MINGW*) currShell=$0 ;;		# for git's bash; doesn't support ps -o
+	esac
+fi
 if [[ "${currShell:0:1}" == "/" ]]; then currShell=$(basename $currShell); fi	# sometimes get a full path
 if [[ "${currShell:0:1}" == "-" ]]; then currShell=${currShell:1}; fi	# sometimes has a '-' on the front which means it's the login shell
-
-has() {
-	type -p "$1" >/dev/null
-}
 
 alias cls='clear'
 has screenfetch && alias sf='screenfetch' || true
@@ -24,6 +27,9 @@ case $platform in
 		alias ll='ls -AlFhv --group-directories-first'
 		alias l='ls -AFv --group-directories-first'
 		alias cj='sudo journalctl --vacuum-time=1d'
+		# ???
+		#alias reboot='sudo reboot --reboot'
+		#alias shutdown='sudo halt --poweroff --force --no-wall'
 		;;
 	Darwin)
 		alias ll='ls -AlFhv'
@@ -31,11 +37,7 @@ case $platform in
 		;;
 esac
 
-# ???
-#alias reboot='sudo reboot --reboot'
-#alias shutdown='sudo halt --poweroff --force --no-wall'
-
-if has apt; then
+if [[ "$platform" != "Darwin" ]] && has apt; then	# macOs (at least version i have) has some java app called apt; don't know what it is
 	alias aptr='sudo apt update'
 	alias aptul='apt list --upgradable'
 	alias aptu='sudo apt upgrade --yes'
