@@ -38,3 +38,8 @@ if has lsb_release; then
 else
 	echo lsb_release = \<n/a\>
 fi
+if has python3; then
+	echo python3 = \|$(python3 --version)\|
+else
+	echo python3 = \<n/a\>
+fi
