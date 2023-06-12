@@ -26,8 +26,8 @@ if has uname; then
 	echo uname: kernel-version [-v] = \|$(uname -v)\|
 	echo uname: operating system [-o] = \|$(uname -o)\|
 	echo uname: machine [-m] = \|$(uname -m)\|
-	echo uname: processor [-p] = \|$(uname -p 2>/dev/null)\|
-	echo uname: hardware-platform [-i] = \|$(uname -i 2>/dev/null)\|
+	echo uname: processor [-p] = \|$(uname -p 2>/dev/null || echo \<n/a\>)\|
+	echo uname: hardware-platform [-i] = \|$(uname -i 2>/dev/null || echo \<n/a\>)\|
 else
 	echo uname = \<n/a\>
 fi
