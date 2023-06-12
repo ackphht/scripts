@@ -21,13 +21,13 @@ else
 	echo \"readlink /proc/\$\$/exe\" = \<n/a\>
 fi
 if has uname; then
-	echo uname: kernel-name = \|$(uname -s)\|
-	echo uname: kernel-release = \|$(uname -r)\|
-	echo uname: kernel-version = \|$(uname -v)\|
-	echo uname: operating system = \|$(uname -o)\|
-	echo uname: machine = \|$(uname -m)\|
-	echo uname: processor = \|$(uname -p 2>/dev/null)\|
-	echo uname: hardware-platform = \|$(uname -i 2>/dev/null)\|
+	echo uname: kernel-name (s) = \|$(uname -s)\|
+	echo uname: kernel-release (r) = \|$(uname -r)\|
+	echo uname: kernel-version (v) = \|$(uname -v)\|
+	echo uname: operating system (o) = \|$(uname -o)\|
+	echo uname: machine (m) = \|$(uname -m)\|
+	echo uname: processor (p) = \|$(uname -p 2>/dev/null)\|
+	echo uname: hardware-platform (i) = \|$(uname -i 2>/dev/null)\|
 else
 	echo uname = \<n/a\>
 fi
