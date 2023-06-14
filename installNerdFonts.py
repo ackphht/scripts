@@ -20,7 +20,8 @@ def main() -> int:
 
 	userFontsFldr = ""
 	if testMode:
-		userFontsFldr = pathlib.Path(os.path.expandvars("$HOME/tmp/fonts/NerdFonts"))
+		tmp = "temp" if sys.platform == "win32" else "tmp"
+		userFontsFldr = pathlib.Path(os.path.expandvars(f"$HOME/{tmp}/fonts/NerdFonts"))
 	elif sys.platform == "linux":
 		userFontsFldr = pathlib.Path(os.path.expandvars("$HOME/.local/share/fonts/NerdFonts"))
 	elif sys.platform == "darwin":
@@ -206,8 +207,11 @@ class NerdFontCollection:
 	def fonts(self) -> Iterator[NerdFontDefn]:
 		return [self._fonts[k] for k in self._fonts]
 
-	def addFontDefn(self, fontName : str, patternsToExtract : list[str]):
+	def addFontDefn(self, fontName : str, fontFilenameBases : list[str]):
 		if fontName not in self._fonts:
+			patternsToExtract : list[str] = []
+			for f in fontFilenameBases:
+				patternsToExtract.append(f"{f}-.+\.(?:t|o)tf")
 			self._fonts[fontName] = NerdFontDefn(fontName, patternsToExtract)
 
 	def processAsset(self, asset : GithubReleaseAsset):
@@ -233,9 +237,9 @@ def getNerdFontsVerStr(releaseInfo : GithubRelease) -> str:
 
 def initFontsToInstall(ghRelease : GithubRelease) -> NerdFontCollection:
 	fontsToInstall : NerdFontCollection = NerdFontCollection()
-	fontsToInstall.addFontDefn("FantasqueSansMono", ["FantasqueSansMNerdFont-.+\.ttf"])#, "FantasqueSansMNerdFontMono-.+\.ttf"])
-	fontsToInstall.addFontDefn("CascadiaCode", ["CaskaydiaCoveNerdFont-.+\.ttf"])#, "CaskaydiaCoveNerdFontMono-.+\.ttf"])
-	fontsToInstall.addFontDefn("Meslo", ["MesloLGSNerdFont-.+\.ttf"])#, "MesloLGSNerdFontMono-.+\.ttf"])
+	fontsToInstall.addFontDefn("FantasqueSansMono", ["FantasqueSansMNerdFont"])#, "FantasqueSansMNerdFontMono"])
+	fontsToInstall.addFontDefn("CascadiaCode", ["CaskaydiaCoveNerdFont"])#, "CaskaydiaCoveNerdFontMono"])
+	fontsToInstall.addFontDefn("Meslo", ["MesloLGSNerdFont"])#, "MesloLGSNerdFontMono"])
 	for a in ghRelease.assets:
 		fontsToInstall.processAsset(a)
 	return fontsToInstall
