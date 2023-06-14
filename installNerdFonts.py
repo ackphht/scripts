@@ -18,17 +18,16 @@ def main() -> int:
 
 	LogHelper.Init(verboseLogging)
 
-	userFontsFldr = userFontsFldrV2 = ""
+	userFontsFldr = ""
 	if testMode:
-		userFontsFldrV2 = pathlib.Path(os.path.expandvars("$HOME/tmp/fonts"))
 		userFontsFldr = pathlib.Path(os.path.expandvars("$HOME/tmp/fonts/NerdFonts"))
 	elif sys.platform == "linux":
-		userFontsFldrV2 = pathlib.Path(os.path.expandvars("$HOME/.local/share/fonts"))
 		userFontsFldr = pathlib.Path(os.path.expandvars("$HOME/.local/share/fonts/NerdFonts"))
 	elif sys.platform == "darwin":
-		userFontsFldrV2 = pathlib.Path(os.path.expandvars("$HOME/Library/Fonts"))
 		userFontsFldr = pathlib.Path(os.path.expandvars("$HOME/Library/Fonts/NerdFonts"))
-	elif '_pydevd_bundle' not in sys.modules:	# so if we're on windows and working in VSCode (or other editor?), rest of file won't be grayed out; there's also 'debugpy' that's MS specific ??
+	elif sys.platform == "win32":
+		userFontsFldr = pathlib.Path(os.path.expandvars("%LocalAppData%/Microsoft/Windows/Fonts"))
+	else:
 		raise RuntimeError(f"invalid/unrecognized OS: '{sys.platform}'")
 
 	LogHelper.Verbose(f"using userFontsFolder = |{userFontsFldr}|")
@@ -53,7 +52,7 @@ def main() -> int:
 
 	fontsToInstall = initFontsToInstall(ghRelease)
 
-	removeOldFonts(userFontsFldr, userFontsFldrV2)
+	removeOldFonts(userFontsFldr)
 
 	for nfd in fontsToInstall.fonts:
 		installFont(nfd, userFontsFldr)
@@ -241,13 +240,8 @@ def initFontsToInstall(ghRelease : GithubRelease) -> NerdFontCollection:
 		fontsToInstall.processAsset(a)
 	return fontsToInstall
 
-def removeOldFonts(fontFldr : pathlib.Path, fontfldrV2 : pathlib.Path) -> None:
-	# remove old fonts:
-	# for <= v2 those had different names and in plain folder, so remove explicitly:
-	cleanUpOldFile("Fantasque Sans Mono*.ttf", fontfldrV2)
-	cleanUpOldFile("Fira Code*.ttf", fontfldrV2)
-	cleanUpOldFile("FiraCodeNerdFont*.ttf", fontfldrV2)
-	# for v3+, started putting nerd fonts in their own folder, can just delete everything in there:
+def removeOldFonts(fontFldr : pathlib.Path) -> None:
+	# putting nerd fonts in their own folder, can just delete everything in there:
 	cleanUpOldFile("*.ttf", fontFldr)
 	cleanUpOldFile("*.otf", fontFldr)
 	cleanUpOldFile("@version_*", fontFldr)
