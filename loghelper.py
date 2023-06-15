@@ -54,12 +54,12 @@ class LogHelper:
 		ResetAll = "\033[0m"
 
 	class NoAnsiFore:
-		Black = Red = Green = Yellow = Blue = Magenta = Cyan = Whute = Reset = \
+		Black = Red = Green = Yellow = Blue = Magenta = Cyan = White = Reset = \
 			LightBlackEx = LightRedEx = LightGreenEx = LightYellowEx = LightBlueEx = \
 			LightMagentaEx = LightCyanEx = LightWhiteEx = ""
 
 	class NoAnsiBack:
-		Black = Red = Green = Yellow = Blue = Magenta = Cyan = Whute = Reset = \
+		Black = Red = Green = Yellow = Blue = Magenta = Cyan = White = Reset = \
 			LightBlackEx = LightRedEx = LightGreenEx = LightYellowEx = LightBlueEx = \
 			LightMagentaEx = LightCyanEx = LightWhiteEx = ""
 
