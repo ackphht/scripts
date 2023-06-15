@@ -1,5 +1,9 @@
 #!python3
 # -*- coding: utf-8 -*-
+import sys
+if sys.platform == "win32":
+	import ctypes
+	from ctypes import wintypes, byref, POINTER
 
 class LogHelper:
 	# these are ripped off from colorama module (https://pypi.org/project/colorama/) so i don't have to have an external dependency for something so simple
@@ -49,6 +53,19 @@ class LogHelper:
 		Normal = "\033[22m"
 		ResetAll = "\033[0m"
 
+	class NoAnsiFore:
+		Black = Red = Green = Yellow = Blue = Magenta = Cyan = Whute = Reset = \
+			LightBlackEx = LightRedEx = LightGreenEx = LightYellowEx = LightBlueEx = \
+			LightMagentaEx = LightCyanEx = LightWhiteEx = ""
+
+	class NoAnsiBack:
+		Black = Red = Green = Yellow = Blue = Magenta = Cyan = Whute = Reset = \
+			LightBlackEx = LightRedEx = LightGreenEx = LightYellowEx = LightBlueEx = \
+			LightMagentaEx = LightCyanEx = LightWhiteEx = ""
+
+	class NoAnsiStyle:
+		Bright = Dim = Normal = ResetAll = ""
+
 	Fore   = AnsiFore()
 	Back   = AnsiBack()
 	Style  = AnsiStyle()
@@ -57,6 +74,12 @@ class LogHelper:
 	@staticmethod
 	def Init(verbose : bool = False):
 		LogHelper._verboseEnabled = verbose
+		if not LogHelper._isAnsiSupported():
+			# if ansi escapes not supported:
+			# TODO: this isn't the right way; need to see what colorama is doing...
+			LogHelper.Fore = LogHelper.NoAnsiFore()
+			LogHelper.Back = LogHelper.NoAnsiBack()
+			LogHelper.Style = LogHelper.NoAnsiStyle()
 
 	@staticmethod
 	def Log(message : str):
@@ -103,3 +126,25 @@ class LogHelper:
 	def WhatIf(message : str):
 		"""prints a test mode type message to the console, prefixed with 'WhatIf: ', in  white"""
 		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.White}WhatIf: {message}{LogHelper.Style.ResetAll}")
+
+	@staticmethod
+	def _isAnsiSupported() -> bool:
+		if sys.platform != "win32": return True	# assume yes
+		# newer windows consoles and the Terminal app should support it, but check:
+		getStdHandle = ctypes.windll.kernel32.GetStdHandle
+		getStdHandle.restype = wintypes.HANDLE
+		getStdHandle.argtypes = [ wintypes.DWORD, ]
+		getConsoleMode = ctypes.windll.kernel32.GetConsoleMode
+		getConsoleMode.restype = wintypes.BOOL
+		getConsoleMode.argtypes = [ wintypes.HANDLE, POINTER(wintypes.DWORD) ]
+		setConsoleMode = ctypes.windll.kernel32.SetConsoleMode
+		setConsoleMode.argtypes = [ wintypes.HANDLE, wintypes.DWORD ]
+		setConsoleMode.restype = wintypes.BOOL
+		h = getStdHandle(-11)	# STDOUT
+		mode = wintypes.DWORD()
+		getConsoleMode(h, byref(mode))
+		if not mode.value & 0x0004:		# ENABLE_VIRTUAL_TERMINAL_PROCESSING
+			# if not already turned on, try turning it on and see if it sticks:
+			setConsoleMode(h, mode.value | 0x0004)
+			getConsoleMode(h, byref(mode))
+		return bool(mode.value & 0x0004)
