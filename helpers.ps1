@@ -344,3 +344,12 @@ if ([bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)) {
 		}
 	}
 }
+
+function HasProperty {
+	[OutputType([bool])]
+	param(
+		[Parameter(Mandatory=$true)] [object] $object,	# have to make it object here and cast to PSCustomObject below (e.g. Hasttable objects, maybe others, don't work otherwise...)
+		[Parameter(Mandatory=$true)] [string] $propertyName
+	)
+	return ([PSCustomObject]$object).PSObject.Properties[$propertyName] -ne $null
+}
