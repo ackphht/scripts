@@ -11,7 +11,7 @@ param(
 )
 
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Continue
-#Set-StrictMode -Version Latest
+Set-StrictMode -Version Latest
 
 . $PSScriptRoot/helpers.ps1
 . $PSScriptRoot/populateSystemData.ps1
@@ -38,6 +38,7 @@ function Main {
 
 	$unameAvail = [bool](Get-Command -Name 'uname' -ErrorAction Ignore)
 	$cimInstanceAvail = [bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)
+	$onMacOs = [bool](_getVariableValue -varName 'IsMacOS')
 
 	if ($unameAvail) {
 		WriteVerboseMessage 'getting uname info'
@@ -58,8 +59,8 @@ function Main {
 	$results = [List[PSObject]]::new(16) #[PSObject]::new()
 	_addProperty -obj $results -propName 'PSVersion_PowerShell' -propValue $PSVersionTable.PSVersion
 	_addProperty -obj $results -propName 'PSVersion_Edition' -propValue $PSVersionTable.PSEdition
-	_addProperty -obj $results -propName 'PSVersion_Platform' -propValue $PSVersionTable.Platform
-	_addProperty -obj $results -propName 'PSVersion_OS' -propValue $PSVersionTable.OS
+	_addProperty -obj $results -propName 'PSVersion_Platform' -propValue (_getPropertyIfExists -object $PSVersionTable -propertyName 'Platform')
+	_addProperty -obj $results -propName 'PSVersion_OS' -propValue (_getPropertyIfExists -object $PSVersionTable -propertyName 'OS')
 
 	_addProperty -obj $results -propName 'Var_PSEdition' -propValue (_getVariableValue -varName 'PSEdition')
 	_addProperty -obj $results -propName 'Var_IsCoreCLR' -propValue (_getVariableValue -varName 'IsCoreCLR')
@@ -84,7 +85,7 @@ function Main {
 	_addProperty -obj $results -propName 'Path_InvalidFileNameChars' -propValue (_charsToString -chars ([System.IO.Path]::GetInvalidFileNameChars()))
 
 	WriteVerboseMessage 'getting runtime info'
-	if ($IsMacOS) {
+	if ($onMacOs) {
 		# cache this, avoid a couple redundant calls below:
 		$macOsData = (system_profiler -json SPHardwareDataType SPSoftwareDataType) | ConvertFrom-Json
 	} else {
@@ -97,7 +98,7 @@ function Main {
 		_setProperty -obj $results -propName 'RuntimeInfo_ProcessArchitecture' -propValue ([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)
 		_setProperty -obj $results -propName 'RuntimeInfo_OSDescription' -propValue ([System.Runtime.InteropServices.RuntimeInformation]::OSDescription)
 		_setProperty -obj $results -propName 'RuntimeInfo_FrameworkDescription' -propValue ([System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription)
-		_setProperty -obj $results -propName 'RuntimeInfo_RuntimeIdentifier' -propValue ([System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier)
+		_setProperty -obj $results -propName 'RuntimeInfo_RuntimeIdentifier' -propValue (_getStaticPropertyIfExists -type 'System.Runtime.InteropServices.RuntimeInformation' -propertyName 'RuntimeIdentifier')
 	}
 
 	WriteVerboseMessage 'getting Computer info'
@@ -115,7 +116,7 @@ function Main {
 			_setProperty -obj $results -propName 'Computer_BIOSVersion' -propValue $be.Description
 			_setProperty -obj $results -propName 'Computer_SerialNumber' -propValue $be.SerialNumber
 		}
-	} elseif ($IsMacOS) {
+	} elseif ($onMacOs) {
 		_setProperty -obj $results -propName 'Computer_Manufacturer' -propValue 'Apple'
 		_setProperty -obj $results -propName 'Computer_Model' -propValue ('{0} ({1}) [model#: {2}]' -f $macOsData.SPHardwareDataType.machine_name, $macOsData.SPHardwareDataType.machine_model, $macOsData.SPHardwareDataType.model_number)
 		_setProperty -obj $results -propName 'Computer_BIOSVersion' -propValue $macOsData.SPHardwareDataType.boot_rom_version
@@ -162,7 +163,7 @@ function Main {
 			_setProperty -obj $results -propName 'Processor_LogicalProcessors' -propValue $proc.NumberOfLogicalProcessors
 			_setProperty -obj $results -propName 'Processor_ProcessorId' -propValue $proc.ProcessorId
 		}
-	} elseif ($IsMacOS) {
+	} elseif ($onMacOs) {
 		_setProperty -obj $results -propName 'Processor_Name' -propValue $macOsData.SPHardwareDataType.chip_type
 		_setProperty -obj $results -propName 'Processor_Architecture' -propValue (uname -m <# --machine #>)
 		_setProperty -obj $results -propName 'Processor_L2CacheSize' -propValue (sysctl -hin hw.l2cachesize)
@@ -207,10 +208,10 @@ function Main {
 	if ($procName -and (-not $procDesc -or $procDesc.Value -eq $script:NA)) {
 		_setProperty -obj $results -propName 'Processor_Description' -propValue $procName.Value
 	}
-	_addProperty -obj $results -propName 'Processor_IsVectorHardwareAccelerated' -propValue ([AckWare.Intrinsics]::IsVectorHardwareAccelerated)
-	_addProperty -obj $results -propName 'Processor_IsVector64HardwareAccelerated' -propValue ([AckWare.Intrinsics]::IsVector64HardwareAccelerated)
-	_addProperty -obj $results -propName 'Processor_IsVector128HardwareAccelerated' -propValue ([AckWare.Intrinsics]::IsVector128HardwareAccelerated)
-	_addProperty -obj $results -propName 'Processor_IsVector256HardwareAccelerated' -propValue ([AckWare.Intrinsics]::IsVector256HardwareAccelerated)
+	_addProperty -obj $results -propName 'Processor_IsVectorHardwareAccelerated' -propValue ([GetSysInfo.Intrinsics]::IsVectorHardwareAccelerated)
+	_addProperty -obj $results -propName 'Processor_IsVector64HardwareAccelerated' -propValue ([GetSysInfo.Intrinsics]::IsVector64HardwareAccelerated)
+	_addProperty -obj $results -propName 'Processor_IsVector128HardwareAccelerated' -propValue ([GetSysInfo.Intrinsics]::IsVector128HardwareAccelerated)
+	_addProperty -obj $results -propName 'Processor_IsVector256HardwareAccelerated' -propValue ([GetSysInfo.Intrinsics]::IsVector256HardwareAccelerated)
 
 	WriteVerboseMessage 'getting env var info'
 	_addProperty -obj $results -propName 'EnvVar_ProcessorArchitecture' -propValue (_getEnvVarValue -envVarName 'Processor_Architecture')
@@ -265,6 +266,33 @@ function Main {
 	}
 }
 
+function _getPropertyIfExists {
+	[OutputType([void])]
+	param(
+		[Parameter(Mandatory=$true)] [object] $object,
+		[Parameter(Mandatory=$true)] [string] $propertyName,
+		[object] $defaultVal = $null
+	)
+	if (HasProperty -object $object -propertyName $propertyName) {
+		return $object.$propertyName
+	}
+	return $defaultVal
+}
+
+function _getStaticPropertyIfExists {
+	[OutputType([void])]
+	param(
+		[Parameter(Mandatory=$true)] [type] $type,
+		[Parameter(Mandatory=$true)] [string] $propertyName,
+		[object] $defaultVal = $null
+	)
+	$prop = $type.GetProperty($propertyName, @([System.Reflection.BindingFlags]::Static, [System.Reflection.BindingFlags]::Public))
+	if ($prop) {
+		return $prop.GetValue($null)
+	}
+	return $defaultVal
+}
+
 function _addProperty {
 	[OutputType([void])]
 	param(
@@ -299,7 +327,7 @@ function _getVariableValue {
 	param(
 		[Parameter(Mandatory=$true)] [string] $varName
 	)
-	$value = $script:NA
+	$value = ''
 	$v = Get-Variable -Name $varName -ErrorAction SilentlyContinue
 	if ($v) {
 		$value = $v.Value
@@ -313,7 +341,7 @@ function _getEnvVarValue {
 	param(
 		[Parameter(Mandatory=$true)] [string] $envVarName
 	)
-	$value = $script:NA
+	$value = ''
 	$v = Get-Item -Path "env:$envVarName" -ErrorAction SilentlyContinue
 	if ($v) {
 		$value = $v.Value
@@ -373,7 +401,7 @@ if ($PSVersionTable.PSVersion -ge '7.3.0') {
 	# they always return false because they need RyuJit and PowerShell turns that off ??
 	# but doing it this way they seem to work...
 	Add-Type -TypeDefinition @"
-namespace AckWare {
+namespace GetSysInfo {
 	public static class Intrinsics {
 		public static bool IsVectorHardwareAccelerated => System.Numerics.Vector.IsHardwareAccelerated;
 		public static bool IsVector64HardwareAccelerated => System.Runtime.Intrinsics.Vector64.IsHardwareAccelerated;
@@ -385,12 +413,12 @@ namespace AckWare {
 } else {
 	# processor might support these, but this version of .NET and/or PowerShell can't tell:
 	Add-Type -TypeDefinition @"
-namespace AckWare {
+namespace GetSysInfo {
 	public static class Intrinsics {
-		public static bool IsVectorHardwareAccelerated => false;
-		public static bool IsVector64HardwareAccelerated => false;
-		public static bool IsVector128HardwareAccelerated => false;
-		public static bool IsVector256HardwareAccelerated => false;
+		public static bool IsVectorHardwareAccelerated { get { return false; } }
+		public static bool IsVector64HardwareAccelerated { get { return false; } }
+		public static bool IsVector128HardwareAccelerated { get { return false; } }
+		public static bool IsVector256HardwareAccelerated { get { return false; } }
 	}
 }
 "@
