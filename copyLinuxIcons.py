@@ -1221,6 +1221,9 @@ class IconsToCopy:
 				SourceImageSizeFolderMap(["16"], ["24", "22"], ["32"], None, None, None, None, None, None, None, None)),
 			IconThemeDefinition("Yaru", "NA", "_oss/yaru/icons/Yaru", Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32", "16x16@2x"], ["48x48", "24x24@2x"], ["32x32@2x"], ["48x48@2x"], None, None, ["256x256"], ["256x256@2x"], None)),
+			# ??? think Zorin is just a fork of Paper (or maybe other way around ??)...
+			#IconThemeDefinition("Zorin", "NA", "_oss/zorin-icon-themes/Zorin", Constants.FldrScheme_SizeType,
+			#	SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32", "16x16@2x"], ["48x48", "24x24@2x"], ["32x32@2x"], ["48x48@2x"], None, None, None, ["512x512"], ["512x512@2x"])),
 			# found repo for 'Adwaita', but it's weird: bigger filesize, but much fewer files, so ??
 			IconThemeDefinition("Adwaita", "fedora_36", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], ["96x96"], None, None, ["256x256"], ["512x512"], None)),
