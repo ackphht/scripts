@@ -153,7 +153,7 @@ function Main {
 		if ($proc) {
 			_setProperty -obj $results -propName 'Processor_Name' -propValue $proc.Name
 			_setProperty -obj $results -propName 'Processor_Description' -propValue $proc.Description
-			_setProperty -obj $results -propName 'Processor_Architecture' -propValue (_mapCimProcArch -arch $proc.Architecture)
+			_setProperty -obj $results -propName 'Processor_Architecture' -propValue (MapCimProcArch -arch $proc.Architecture)
 			_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $proc.AddressWidth
 			_setProperty -obj $results -propName 'Processor_DataWidth' -propValue $proc.DataWidth
 			_setProperty -obj $results -propName 'Processor_L2CacheSize' -propValue $proc.L2CacheSize
@@ -320,24 +320,6 @@ function _getEnvVarValue {
 	}
 	WriteVerboseMessage 'value for envVar |{0}| = |{1}|' @($envVarName, $value)
 	return $value
-}
-
-function _mapCimProcArch {
-	[OutputType([string])]
-	param(
-		[int] $arch
-	)
-	switch ($arch) {
-		0 { return '0 [x86]' }
-		1 { return '1 [MIPS]' }
-		2 { return '2 [Alpha]' }
-		3 { return '3 [PowerPC]' }
-		5 { return '5 [ARM32]' }
-		6 { return '6 [ia64]' }
-		9 { return '9 [x64]' }
-		12 { return '12 [ARM64]' }
-		default { return "$arch [Other]" }
-	}
 }
 
 $script:nonDisplayCharsMap = @{
