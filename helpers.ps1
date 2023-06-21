@@ -199,10 +199,10 @@ if ([bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)) {
 	function MapCimOsSku {
 		[CmdletBinding(SupportsShouldProcess=$false)]
 		[OutputType([string])]
-		param([Parameter(Mandatory = $true)] [System.UInt32] $ossku)
+		param([Parameter(Mandatory = $true)] [System.UInt32] $cimOsSku, [string] $cimOsCaption)
 		$result = '<unknown>'
 		# https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-operatingsystem, search for 'OperatingSystemSKU':
-		switch ($ossku) {
+		switch ($cimOsSku) {
 			# PRODUCT_UNDEFINED (0): Undefined
 			0 { $result = 'Undefined' }
 			# PRODUCT_ULTIMATE (1): Ultimate Edition, e.g. Windows Vista Ultimate.
@@ -275,14 +275,14 @@ if ([bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)) {
 			# PRODUCT_PROFESSIONAL (48): Windows Professional
 			48 {
 				# Pro Education originally had same SKU as Pro; real SKU below added later...
-				if ($wmios.Caption -notlike '*Education*') {
+				if ($cimOsCaption -notlike '*Education*') {
 					$result = 'Professional'
 				} else {
 					$result = 'ProfessionalEducation'
 				}
 			}
 			49 {
-				if ($wmios.Caption -notlike '*Education*') {
+				if ($cimOsCaption -notlike '*Education*') {
 					$result = 'ProfessionalN'
 				} else {
 					$result = 'ProfessionalEducationN'
@@ -324,7 +324,7 @@ if ([bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)) {
 			# PRODUCT_ENTERPRISE_FOR_VIRTUAL_DESKTOPS (175): Windows Enterprise for Virtual Desktops (Azure Virtual Desktop)
 			175 { $result = 'EnterpriseForVirtualDesktop' }
 		}
-		WriteVerboseMessage 'trying to map OS edition: ossku = "{0}" ==> "{1}"' $ossku,$result
+		WriteVerboseMessage 'trying to map OS edition: ossku = "{0}" ==> "{1}"' $cimOsSku,$result
 		return $result
 	}
 
