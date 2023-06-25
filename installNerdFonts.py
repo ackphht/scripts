@@ -318,9 +318,9 @@ class NerdFontCollection:
 					self._fonts[fontname].updateDownloadUrl(asset.downloadUrl, NerdFontDefn.DownloadTypeZip)
 
 def checkPrereqs(osHelper : OSHelper) -> bool:
-	if not shutil.which("wget"):
-		LogHelper.Error("could not find command 'wget'")
-		return False
+	#if not shutil.which("wget"):
+	#	LogHelper.Error("could not find command 'wget'")
+	#	return False
 
 	# make sure font directory userFontsFldr exists
 	if not osHelper.fontsFldr.exists():
