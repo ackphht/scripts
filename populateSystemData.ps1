@@ -186,18 +186,19 @@ function _getOSArchitecture {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
 	param()
+	$result = ''
 	if ('System.Runtime.InteropServices.Architecture' -as [type] -and
 			[bool]([System.Runtime.InteropServices.RuntimeInformation].GetProperty('OSArchitecture', @([System.Reflection.BindingFlags]::Static, [System.Reflection.BindingFlags]::Public)))) {
-		switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
-			# posh switch can't compare the enum value directly ???
-			'X64' { $result = 'x86-64'; break; }
-			'X86' { $result = 'x86-32'; break; }
-			default { $result = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString(); break; }
-		}
+		$result = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
 	} elseif (Test-Path -Path env:PROCESSOR_ARCHITECTURE -PathType Leaf) {
 		$result = $env:PROCESSOR_ARCHITECTURE
 	} else {
 		<# ??? if linux, can try uname --hardware-platform; or just fall back to uname --machine and assume the OS type is same as cpu type ??? #>
+	}
+	switch ($result) {
+		{$_ -eq 'X64' -or $_ -eq 'AMD64' -or $_ -eq 'EM64T'} { $result = 'x86-64'; break; }
+		'X86' { $result = 'x86-32'; break; }
+		# ARM ones just use as-is
 	}
 	return $result
 }
