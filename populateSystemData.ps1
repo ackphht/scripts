@@ -352,7 +352,7 @@ function _getWindowsVersion {
 			break
 		}
 		{ $_ -ge 10240 } {
-			if ($build -ge 10586) { $rev = $kernelVersion.Revision }
+			if ($kernelVersion.Build -ge 10586) { $rev = $kernelVersion.Revision }
 			else { $rev = 0 }
 			$result = [System.Version]::new(10, 0, $kernelVersion.Build, $rev)
 			break
@@ -360,14 +360,14 @@ function _getWindowsVersion {
 		{ $_ -ge 9600 } { $result = [System.Version]::new(8, 1, $kernelVersion.Build, 0); break; }
 		{ $_ -ge 9200 } { $result = [System.Version]::new(8, 0, $kernelVersion.Build, 0); break; }
 		{ $_ -ge 7600 } {
-			if ($build -gt 7601) { $min = 1 }
+			if ($kernelVersion.Build -gt 7601) { $min = 1 }
 			else { $result = $min = 0 }
 			$result = [System.Version]::new(7, $min, $kernelVersion.Build, 0)
 			break
 		}
 		{ $_ -ge 6000 } {
-			if ($build -gt 6002) { $min = 2 }
-			if ($build -eq 6001) { $min = 1 }
+			if ($kernelVersion.Build -gt 6002) { $min = 2 }
+			if ($kernelVersion.Build -eq 6001) { $min = 1 }
 			else { $result = $min = 0 }
 			$result = [System.Version]::new(6, $min, $kernelVersion.Build, 0)
 			break
