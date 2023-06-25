@@ -6,7 +6,7 @@ param()
 
 Set-StrictMode -Version Latest
 
-. ./setUpSystem.00.common.ps1
+. $PSScriptRoot/setUpSystem.00.common.ps1
 
 function Main {
 	[CmdletBinding(SupportsShouldProcess=$true)]
