@@ -186,7 +186,8 @@ function _getOSArchitecture {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
 	param()
-	if ('System.Runtime.InteropServices.Architecture'-as [type]) {	# property 'System.Runtime.InteropServices.RuntimeInformation.OSArchitecture' and this enum were added at same time...
+	if ('System.Runtime.InteropServices.Architecture' -as [type] -and
+			[bool]([System.Runtime.InteropServices.RuntimeInformation].GetProperty('OSArchitecture', @([System.Reflection.BindingFlags]::Static, [System.Reflection.BindingFlags]::Public)))) {
 		switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
 			# posh switch can't compare the enum value directly ???
 			'X64' { $result = 'x86-64'; break; }
