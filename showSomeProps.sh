@@ -35,7 +35,7 @@ else
 	echo 'uname = |<n/a>|'
 fi
 if has lsb_release; then
-	echo "lsb_release = |$(lsb_release -a | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//' | sed -E 's/\|/ ¦ /g')|"
+	echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//' | sed -E 's/\|/ ¦ /g')|"
 else
 	echo 'lsb_release = |<n/a>|'
 fi
