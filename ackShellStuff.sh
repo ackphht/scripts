@@ -111,6 +111,18 @@ elif has brew; then
 	alias aptl='brew list'
 fi
 
+if has snap; then
+	alias snaptul='snap refresh --list'
+	alias snaptr='snap refresh --list'
+	alias snaptu='sudo snap refresh'
+	alias snapts='snap find'
+	alias snaptn='snap info'
+	alias snapti='sudo snap install'
+	alias snaptx='sudo snap remove'
+	alias snaptxx='sudo snap remove'
+	alias snaptl='snap list'
+fi
+
 # can't use which or type for sbin stuff on openSuse:
 if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
 	alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
