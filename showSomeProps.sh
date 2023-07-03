@@ -5,6 +5,7 @@ has() { which "$1" >/dev/null 2>/dev/null && [[ ! $(which "$1") =~ ^/mnt/[[:alph
 echo
 echo "\$0 = |$0|"
 echo "\$SHELL = |$SHELL|"
+has readlink && echo "\"readlink /proc/\$\$/exe\" = |$(readlink -f /proc/$$/exe)|" || echo '"readlink /proc/$$/exe" = |<n/a>|'
 echo "\$TERM = |$TERM|"
 echo "\$COLORTERM = |$COLORTERM|"
 echo "\$BASH = |$BASH|"
@@ -19,11 +20,10 @@ echo "\$CPUTYPE = |$CPUTYPE|"
 echo "\$MACHTYPE = |$MACHTYPE|"
 echo "\$OSTYPE = |$OSTYPE|"
 echo "\$LANG = |$LANG|"
-if has readlink; then
-	echo "\"readlink /proc/\$\$/exe\" = |$(readlink -f /proc/$$/exe)|"
-else
-	echo '"readlink /proc/$$/exe" = |<n/a>|'
-fi
+echo "\$WSL_DISTRO_NAME = |$WSL_DISTRO_NAME|"
+echo
+# for future me: can do multiple sed subs by separating with a ';' or can specify multiples with '-e' (-e <expr1> -e <expr2>):
+has lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//;s/\|/ ¦ /g')|" || echo 'lsb_release = |<n/a>|'
 if has uname; then
 	echo "uname: kernel-name [-s] = |$(uname -s)|"
 	echo "uname: kernel-release [-r] = |$(uname -r)|"
@@ -35,8 +35,6 @@ if has uname; then
 else
 	echo 'uname = |<n/a>|'
 fi
-# for future me: can do multiple sed subs by separating with a ';' or can specify multiples with '-e' (-e <expr1> -e <expr2>):
-has lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//;s/\|/ ¦ /g')|" || echo 'lsb_release = |<n/a>|'
 echo
 has python3 && echo "python3 = |$(python3 --version | awk '{print $2}')|" || echo 'python3 = |<n/a>|'
 has git     && echo "git     = |$(git --version | awk '{print $3}')|" || echo 'git     = |<n/a>|'
