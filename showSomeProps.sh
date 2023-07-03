@@ -18,6 +18,7 @@ echo "\$HOSTTYPE = |$HOSTTYPE|"
 echo "\$CPUTYPE = |$CPUTYPE|"
 echo "\$MACHTYPE = |$MACHTYPE|"
 echo "\$OSTYPE = |$OSTYPE|"
+echo "\$LANG = |$LANG|"
 if has readlink; then
 	echo "\"readlink /proc/\$\$/exe\" = |$(readlink -f /proc/$$/exe)|"
 else
