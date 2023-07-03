@@ -35,7 +35,8 @@ if has uname; then
 else
 	echo 'uname = |<n/a>|'
 fi
-has lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//' | sed -E 's/\|/ ¦ /g')|" || echo 'lsb_release = |<n/a>|'
+# for future me: can do multiple sed subs by separating with a ';' or can specify multiples with '-e' (-e <expr1> -e <expr2>):
+has lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//;s/\|/ ¦ /g')|" || echo 'lsb_release = |<n/a>|'
 echo
 has python3 && echo "python3 = |$(python3 --version | awk '{print $2}')|" || echo 'python3 = |<n/a>|'
 has git     && echo "git     = |$(git --version | awk '{print $3}')|" || echo 'git     = |<n/a>|'
