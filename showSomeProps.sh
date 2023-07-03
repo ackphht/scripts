@@ -1,4 +1,4 @@
-##!/bin/bash
+#!/bin/sh
 
 has() { type -p "$1" >/dev/null; }
 
@@ -35,18 +35,11 @@ if has uname; then
 else
 	echo 'uname = |<n/a>|'
 fi
-if has lsb_release; then
-	echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//' | sed -E 's/\|/ ¦ /g')|"
-else
-	echo 'lsb_release = |<n/a>|'
-fi
-if has python3; then
-	echo "python3 = |$(python3 --version)|"
-else
-	echo 'python3 = |<n/a>|'
-fi
-if has git; then
-	echo "git = |$(git --version)|"
-else
-	echo 'git = |<n/a>|'
-fi
+has lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//' | sed -E 's/\|/ ¦ /g')|" || echo 'lsb_release = |<n/a>|'
+has python3 && echo "python3 = |$(python3 --version)|" || echo 'python3 = |<n/a>|'
+has git     && echo "git     = |$(git --version)|" || echo 'git     = |<n/a>|'
+has snap    && echo "snap    = |$(snap --version | head --lines 1 | awk '{print $2}')|" || echo "snap    = |<n/a>|"
+has java    && echo "java    = |$(java --version | head --lines 1)|" || echo 'java    = |<n/a>|'
+has perl    && echo "perl    = |$(perl --version | head --lines 2 | tail --lines 1)|" || echo 'perl    = |<n/a>|'
+has ruby    && echo "ruby    = |$(ruby --version)|" || echo "ruby    = |<n/a>|"
+has go      && echo "go      = |$(go version)|" || echo "go      = |<n/a>|"
