@@ -1,6 +1,6 @@
 #!/bin/sh
 
-has() { type -p "$1" >/dev/null; }
+has() { which "$1" >/dev/null 2>/dev/null && [[ ! $(which "$1") =~ ^/mnt/[[:alpha:]]/.+ ]] }	# filter out WSL paths
 
 echo
 echo "\$0 = |$0|"
@@ -36,6 +36,7 @@ else
 	echo 'uname = |<n/a>|'
 fi
 has lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//' | sed -E 's/\|/ ¦ /g')|" || echo 'lsb_release = |<n/a>|'
+echo
 has python3 && echo "python3 = |$(python3 --version | awk '{print $2}')|" || echo 'python3 = |<n/a>|'
 has git     && echo "git     = |$(git --version | awk '{print $3}')|" || echo 'git     = |<n/a>|'
 has snap    && echo "snap    = |$(snap --version | head --lines 1 | awk '{print $2}')|" || echo "snap    = |<n/a>|"
