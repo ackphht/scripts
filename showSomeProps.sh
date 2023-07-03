@@ -44,3 +44,5 @@ has java    && echo "java    = |$(java --version | head --lines 1)|" || echo 'ja
 has perl    && echo "perl    = |$(perl --version | head --lines 2 | tail --lines 1 | sed -E 's/^(.+)\((v[\.0-9]+)\)(.+)$/\2/')|" || echo 'perl    = |<n/a>|'
 has ruby    && echo "ruby    = |$(ruby --version | awk '{print $2}')|" || echo "ruby    = |<n/a>|"
 has go      && echo "go      = |$(go version | awk '{print $3}')|" || echo "go      = |<n/a>|"
+has pwsh    && echo "pwsh    = |$(pwsh --version | awk '{print $2}')|" || echo "pwsh    = |<n/a>|"
+has code    && echo "code    = |$(code --version | head --lines 1)|" || echo "code    = |<n/a>|"
