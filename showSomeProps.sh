@@ -39,6 +39,7 @@ has lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' '
 has python3 && echo "python3 = |$(python3 --version)|" || echo 'python3 = |<n/a>|'
 has git     && echo "git     = |$(git --version)|" || echo 'git     = |<n/a>|'
 has snap    && echo "snap    = |$(snap --version | head --lines 1 | awk '{print $2}')|" || echo "snap    = |<n/a>|"
+has flatpak && echo "flatpak = |$(flatpak --version | awk '{print $2}')|" || echo "flatpak = |<n/a>|"
 has java    && echo "java    = |$(java --version | head --lines 1)|" || echo 'java    = |<n/a>|'
 has perl    && echo "perl    = |$(perl --version | head --lines 2 | tail --lines 1)|" || echo 'perl    = |<n/a>|'
 has ruby    && echo "ruby    = |$(ruby --version)|" || echo "ruby    = |<n/a>|"
