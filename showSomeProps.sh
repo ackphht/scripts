@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/sh
 
 has() { which "$1" >/dev/null 2>/dev/null && [[ ! $(which "$1") =~ ^/mnt/[[:alpha:]]/.+ ]] }	# filter out WSL paths
 
@@ -6,6 +6,9 @@ echo
 echo "\$0 = |$0|"
 echo "\$SHELL = |$SHELL|"
 has readlink && echo "\"readlink /proc/\$\$/exe\" = |$(readlink -f /proc/$$/exe)|" || echo '"readlink /proc/$$/exe" = |<n/a>|'
+has realpath && test -f /usr/bin/sh && echo "/usr/bin/sh = |$(realpath /usr/bin/sh)|" || echo '/usr/bin/sh = |<n/a>|'
+
+echo
 echo "\$TERM = |$TERM|"
 echo "\$COLORTERM = |$COLORTERM|"
 echo "\$BASH = |$BASH|"
@@ -21,6 +24,7 @@ echo "\$MACHTYPE = |$MACHTYPE|"
 echo "\$OSTYPE = |$OSTYPE|"
 echo "\$LANG = |$LANG|"
 echo "\$WSL_DISTRO_NAME = |$WSL_DISTRO_NAME|"
+
 echo
 # for future me: can do multiple sed subs by separating with a ';' or can specify multiples with '-e' (-e <expr1> -e <expr2>):
 has lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//;s/\|/ ¦ /g')|" || echo 'lsb_release = |<n/a>|'
@@ -35,6 +39,7 @@ if has uname; then
 else
 	echo 'uname = |<n/a>|'
 fi
+
 echo
 has python3 && echo "python3 = |$(python3 --version | awk '{print $2}')|" || echo 'python3 = |<n/a>|'
 has git     && echo "git     = |$(git --version | awk '{print $3}')|" || echo 'git     = |<n/a>|'
