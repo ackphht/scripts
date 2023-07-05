@@ -22,6 +22,7 @@ alias cls='clear'
 has screenfetch && alias sf='screenfetch' || true
 has neofetch && alias nf='neofetch' || true
 has pwsh && test -f ~/scripts/ackfetch.sh && alias af='bash ~/scripts/ackfetch.sh' || true
+has git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" && alias scup='pushd ~/scripts && git pull && popd' || true
 case $platform in
 	Linux|MINGW*|MSYS*|CYGWIN*)
 		alias ll='ls -AlFhv --group-directories-first'
