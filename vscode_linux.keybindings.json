@@ -1,5 +1,23 @@
 [
 	{
+		"key": "ctrl+right",
+		"command": "cursorWordStartRight",
+		"when": "editorTextFocus"
+	},
+	{
+		"key": "ctrl+shift+right",
+		"command": "cursorWordStartRightSelect",
+		"when": "editorTextFocus"
+	},
+	{
+		"key": "shift+alt+l",
+		"command": "editor.action.transformToLowercase"
+	},
+	{
+		"key": "shift+alt+u",
+		"command": "editor.action.transformToUppercase"
+	},
+	{
 		"key": "shift+alt+up",
 		"command": "-editor.action.insertCursorAbove",
 		"when": "editorTextFocus"
