@@ -1,5 +1,5 @@
 #!/bin/bash
-backupFolder=$HOME/backup_$HOSTNAME
+backupFolder=$HOME/backup_$HOSTNAME		# TODO, kinda: zsh doesn't have HOSTNAME ??
 
 verifyFolder() {
 	if [[ ! -d $1 ]]; then
@@ -29,19 +29,25 @@ backUpFile() {
 }
 
 backupMultiFiles() {
-	local origFileSpec=$1
+	#local origFileSpec=$1
+	local fldr=$1
 	local backUpTo=$backupFolder/$2
 	#echo "backupMultiFiles: origFileSpec = '$origFileSpec' / backUpTo = '$backUpTo'"
-	#if [ -f $origFileSpec ]; then
-	if compgen -G $origFileSpec > /dev/null; then
+	#if [ -f $origFileSpec ]; then		# with single brackets, the test works; with double it doesn't ???
+	#if compgen -G $origFileSpec > /dev/null; then		# why ?? not always available
+	# in this, if $fldr is empty, find will print something, else if $fldr is not empty,
+	# it does not print anything; weird but okay:
+	if [[ -d $fldr && -z "$(find $fldr -prune -empty 2>/dev/null)" ]]; then
 		#echo "    found filespec '$origFileSpec'"
 		#if [ ! -d $backUpTo ]; then
 		#	#echo "    creating folder '$backUpTo'"
 		#	mkdir -p $backUpTo
 		#fi
 		verifyFolder $backUpTo
-		echo "backing files '$origFileSpec' to '$backUpTo'"
-		cp $origFileSpec $backUpTo
+		#echo "backing up files '$origFileSpec' to '$backUpTo'"
+		#cp $origFileSpec $backUpTo
+		echo "backing up files in '$fldr' to '$backUpTo'"
+		cp $fldr/* $backUpTo
 	#else
 	#	echo "    filespec '$origFileSpec' does not exist"
 	fi
@@ -114,13 +120,13 @@ backUpFile "$HOME/.config/pacmanfm-qt/lxqt/settings.conf" '.config/pacmanfm-qt/l
 backUpFile "$HOME/.config/powershell/Microsoft.PowerShell_profile.ps1" '.config/powershell/Microsoft.PowerShell_profile.ps1'
 backUpFile "$HOME/.config/xfce4/terminal/terminalrc" '.config/xfce4/terminal/terminalrc'
 backUpFile "$HOME/.local/share/user-places.xbel" '.local/share/user-places.xbel'
-backupMultiFiles "/etc/zsh/*" 'etc_zsh/'
-backupMultiFiles "$HOME/Documents/*" 'Documents/'
-backupMultiFiles "$HOME/Pictures/*" 'Pictures/'
-backupMultiFiles "$HOME/bin/*" 'bin/'
-backupMultiFiles "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/*" '.config/xfce4/xfconf/xfce-perchannel-xml/'	# changing these files doesn't seem to do anything, so not sure these are correct to back up
-backupMultiFiles "$HOME/.local/bin/*" '.local/bin/'
-backupMultiFiles "$HOME/.local/share/fonts/*" '.local/share/fonts/'
-backupMultiFiles "$HOME/.local/share/konsole/*" '.local/share/konsole/'
-backupMultiFiles "$HOME/.local/share/plasma-systemmonitor/*" '.local/share/plasma-systemmonitor/'
-backupMultiFiles "$HOME/.ssh/*" '.ssh/'
+backupMultiFiles "/etc/zsh" 'etc_zsh/'
+backupMultiFiles "$HOME/Documents" 'Documents/'
+backupMultiFiles "$HOME/Pictures" 'Pictures/'
+backupMultiFiles "$HOME/bin" 'bin/'
+backupMultiFiles "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml" '.config/xfce4/xfconf/xfce-perchannel-xml/'	# changing these files doesn't seem to do anything, so not sure these are correct to back up
+backupMultiFiles "$HOME/.local/bin" '.local/bin/'
+backupMultiFiles "$HOME/.local/share/fonts" '.local/share/fonts/'
+backupMultiFiles "$HOME/.local/share/konsole" '.local/share/konsole/'
+backupMultiFiles "$HOME/.local/share/plasma-systemmonitor" '.local/share/plasma-systemmonitor/'
+backupMultiFiles "$HOME/.ssh" '.ssh/'
