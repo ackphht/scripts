@@ -1,5 +1,9 @@
 #!/bin/bash
-scriptRoot=$(realpath $(dirname ${BASH_SOURCE[0]}))
+if [[ -n "$ZSH_SCRIPT" ]]; then	# think there's also a ZSH_ARGZERO that has same info ?? these are both there in v5.8 and v5.9
+	scriptRoot=$(realpath $(dirname ${ZSH_SCRIPT}))
+else
+	scriptRoot=$(realpath $(dirname ${BASH_SOURCE[0]}))
+fi
 targetFolder="$HOME/distInfo"
 
 if [ ! -d $targetFolder ]; then
