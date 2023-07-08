@@ -1,25 +1,3 @@
-## bindkey docs: https://zsh.sourceforge.io/Doc/Release/Zsh-Line-Editor.html#Zle-Builtins-1
-## to run new user configuration, run this in zsh:
-## 	autoload -Uz zsh-newuser-install && zsh-newuser-install -f
-## to see full list of zsh options and desctiptions: man zshoptions
-#
-## Lines configured by zsh-newuser-install
-#HISTFILE=~/.zsh_history
-#HISTSIZE=1000
-#SAVEHIST=1000
-##setopt autocd nomatch
-##unsetopt beep extendedglob notify
-#setopt autocd extendedglob
-#unsetopt beep nomatch notify
-#bindkey -e
-## End of lines configured by zsh-newuser-install
-## The following lines were added by compinstall
-#zstyle :compinstall filename '/home/michael/.zshrc'
-#
-#autoload -Uz compinit
-#compinit
-## End of lines added by compinstall
-
 ########################################
 # from Kali's default .zshrc:
 WORDCHARS=${WORDCHARS//\/} # Don't consider certain characters part of the word
@@ -57,11 +35,11 @@ zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 HISTFILE=~/.zsh_history
 HISTSIZE=1000
 SAVEHIST=2000
-setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
-setopt hist_ignore_dups       # ignore duplicated commands history list
-setopt hist_ignore_space      # ignore commands that start with space
-setopt hist_verify            # show command with history expansion to user before running it
-#setopt share_history         # share command history data
+setopt hist_expire_dups_first	# delete duplicates first when HISTFILE size exceeds HISTSIZE
+setopt hist_ignore_dups			# ignore duplicated commands history list
+setopt hist_ignore_space		# ignore commands that start with space
+setopt hist_verify				# show command with history expansion to user before running it
+#setopt share_history			# share command history data
 
 # enable color support of ls, less and man, and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
@@ -78,13 +56,13 @@ if [ -x /usr/bin/dircolors ]; then
 	alias diff='diff --color=auto'
 	alias ip='ip --color=auto'
 
-	export LESS_TERMCAP_mb=$'\E[1;31m'     # begin blink
-	export LESS_TERMCAP_md=$'\E[1;36m'     # begin bold
-	export LESS_TERMCAP_me=$'\E[0m'        # reset bold/blink
-	export LESS_TERMCAP_so=$'\E[01;33m'    # begin reverse video
-	export LESS_TERMCAP_se=$'\E[0m'        # reset reverse video
-	export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
-	export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
+	export LESS_TERMCAP_mb=$'\E[1;31m'		# begin blink
+	export LESS_TERMCAP_md=$'\E[1;36m'		# begin bold
+	export LESS_TERMCAP_me=$'\E[0m'			# reset bold/blink
+	export LESS_TERMCAP_so=$'\E[01;33m'		# begin reverse video
+	export LESS_TERMCAP_se=$'\E[0m'			# reset reverse video
+	export LESS_TERMCAP_us=$'\E[1;32m'		# begin underline
+	export LESS_TERMCAP_ue=$'\E[0m'			# reset underline
 
 	# Take advantage of $LS_COLORS for completion as well
 	zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
