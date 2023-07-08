@@ -110,15 +110,5 @@ bindkey '^[' 		kill-whole-line					# esc
 bindkey '^H' 		backward-delete-word			# Ctrl-Backspace
 bindkey '^[[3;5~'	delete-word						# ctrl-delete
 
-# make sure these paths are added:
-if [[ -d /snap/bin && ! "$PATH" =~ "/snap/bin" ]]; then
-	export PATH="/snap/bin:$PATH"
-fi
-if [[ -d ~/scripts && ! "$PATH" =~ "$HOME/scripts" ]]; then
-	export PATH="$HOME/scripts:$PATH"
-fi
-if [[ -d ~/.local/bin && ! "$PATH" =~ "$HOME/.local/bin" ]]; then
-	export PATH="$HOME/.local/bin:$PATH"
-fi
 
 test -r ~/scripts/ackShellStuff.sh && source ~/scripts/ackShellStuff.sh || true

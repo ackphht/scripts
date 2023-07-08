@@ -18,6 +18,17 @@ fi
 if [[ "${currShell:0:1}" == "/" ]]; then currShell=$(basename $currShell); fi	# sometimes get a full path
 if [[ "${currShell:0:1}" == "-" ]]; then currShell=${currShell:1}; fi	# sometimes has a '-' on the front which means it's the login shell
 
+# make sure these paths are added:
+if [[ -d /snap/bin && ! "$PATH" =~ "/snap/bin" ]]; then
+	export PATH="/snap/bin:$PATH"
+fi
+if [[ -d ~/scripts && ! "$PATH" =~ "$HOME/scripts" ]]; then
+	export PATH="$HOME/scripts:$PATH"
+fi
+if [[ -d ~/.local/bin && ! "$PATH" =~ "$HOME/.local/bin" ]]; then
+	export PATH="$HOME/.local/bin:$PATH"
+fi
+
 alias cls='clear'
 has screenfetch && alias sf='screenfetch' || true
 has neofetch && alias nf='neofetch' || true
