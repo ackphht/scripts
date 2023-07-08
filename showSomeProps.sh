@@ -1,6 +1,6 @@
 #! /usr/bin/sh
 
-has() { which "$1" >/dev/null 2>/dev/null && [[ ! $(which "$1") =~ ^/mnt/[[:alpha:]]/.+ ]] }	# filter out WSL paths
+has() { which "$1" >/dev/null 2>/dev/null && [[ ! $(which "$1") =~ ^/mnt/[[:alpha:]]/.+ ]]; }	# filter out WSL paths
 
 echo
 echo "\$0 = |$0|"
