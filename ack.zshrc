@@ -112,7 +112,7 @@ bindkey '^[[3;5~'	delete-word						# ctrl-delete
 
 # make sure these paths are added:
 if [[ -d /snap/bin && ! "$PATH" =~ "/snap/bin" ]]; then
-	export PATH="$PATH:/snap/bin"
+	export PATH="/snap/bin:$PATH"
 fi
 if [[ -d ~/scripts && ! "$PATH" =~ "$HOME/scripts" ]]; then
 	export PATH="$HOME/scripts:$PATH"
