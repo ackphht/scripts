@@ -29,33 +29,17 @@ backUpFile() {
 }
 
 backupMultiFiles() {
-	#local origFileSpec=$1
 	local fldr=$1
 	local backUpTo=$backupFolder/$2
-	#echo "backupMultiFiles: origFileSpec = '$origFileSpec' / backUpTo = '$backUpTo'"
-	#if [ -f $origFileSpec ]; then		# with single brackets, the test works; with double it doesn't ???
-	#if compgen -G $origFileSpec > /dev/null; then		# why ?? not always available
 	# in this, if $fldr is empty, find will print something, else if $fldr is not empty,
 	# it does not print anything; weird but okay:
 	if [[ -d $fldr && -z "$(find $fldr -prune -empty 2>/dev/null)" ]]; then
-		#echo "    found filespec '$origFileSpec'"
-		#if [ ! -d $backUpTo ]; then
-		#	#echo "    creating folder '$backUpTo'"
-		#	mkdir -p $backUpTo
-		#fi
 		verifyFolder $backUpTo
-		#echo "backing up files '$origFileSpec' to '$backUpTo'"
-		#cp $origFileSpec $backUpTo
 		echo "backing up files in '$fldr' to '$backUpTo'"
 		cp $fldr/* $backUpTo
-	#else
-	#	echo "    filespec '$origFileSpec' does not exist"
 	fi
 }
 
-#if [ ! -d $backupFolder ]; then
-#	mkdir -p $backupFolder
-#fi
 verifyFolder $backupFolder
 
 if type -p dconf >/dev/null && [[ -f "$HOME/.config/dconf/user" ]]; then
