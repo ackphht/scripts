@@ -6,7 +6,7 @@ has() { type -p "$1" >/dev/null; }
 
 platform=$(uname -s)
 
-if has readlink && test -d /proc/$$/exe; then
+if has readlink && test -f /proc/$$/exe; then
 	currShell=$(readlink -f /proc/$$/exe)
 else
 	case $platform in
