@@ -36,7 +36,7 @@ backupMultiFiles() {
 	if [[ -d $fldr && -z "$(find $fldr -prune -empty 2>/dev/null)" ]]; then
 		verifyFolder $backUpTo
 		echo "backing up files in '$fldr' to '$backUpTo'"
-		cp $fldr/* $backUpTo
+		cp -r $fldr/* $backUpTo
 	fi
 }
 
@@ -110,7 +110,7 @@ backupMultiFiles "$HOME/Pictures" 'Pictures/'
 backupMultiFiles "$HOME/bin" 'bin/'
 backupMultiFiles "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml" '.config/xfce4/xfconf/xfce-perchannel-xml/'	# changing these files doesn't seem to do anything, so not sure these are correct to back up
 backupMultiFiles "$HOME/.local/bin" '.local/bin/'
-backupMultiFiles "$HOME/.local/share/fonts" '.local/share/fonts/'
+#backupMultiFiles "$HOME/.local/share/fonts" '.local/share/fonts/'
 backupMultiFiles "$HOME/.local/share/konsole" '.local/share/konsole/'
 backupMultiFiles "$HOME/.local/share/plasma-systemmonitor" '.local/share/plasma-systemmonitor/'
 backupMultiFiles "$HOME/.ssh" '.ssh/'
