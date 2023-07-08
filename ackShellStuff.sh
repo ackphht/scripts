@@ -75,7 +75,7 @@ elif has zypper; then
 	alias aptxx='sudo zypper remove --clean-deps'
 	alias aptl='zypper packages --installed-only'
 elif has pacman; then
-	alias aptr='sudo pacman --sync --refresh'
+	alias aptr='sudo pacman -Syy'	# --sync --refresh x 2 to force updae
 	alias aptul='pacman --query --upgrades'
 	alias aptu='sudo pacman --sync --sysupgrade --noconfirm'
 	alias aptc='sudo pacman --sync --clean --noconfirm'
