@@ -6,16 +6,15 @@ has() { type -p "$1" >/dev/null; }
 
 platform=$(uname -s)
 
-if has readlink && test -f /proc/$$/exe; then
-	currShell=$(readlink -f /proc/$$/exe)
-else
+currShell=$(readlink -f /proc/$$/exe 2>/dev/null)
+if [[ -z "$currShell" ]]; then
 	case $platform in
 		Linux) currShell=$(ps -p $$ -o exe=) ;;		# things i found said to use 'cmd=' but that sometimes include all the args, too; think this one's more what i need
 		Darwin) currShell=$(ps -p $$ -o command=) ;;
 		MINGW*) currShell=$0 ;;		# for git's bash; doesn't support ps -o
 	esac
 fi
-if [[ "${currShell:0:1}" == "/" ]]; then currShell=$(basename $currShell); fi	# sometimes get a full path
+if [[ "${currShell:0:1}" == "/" ]]; then currShell=$(basename $currShell); fi	# in case got a full path
 if [[ "${currShell:0:1}" == "-" ]]; then currShell=${currShell:1}; fi	# sometimes has a '-' on the front which means it's the login shell
 
 # make sure these paths are added:
