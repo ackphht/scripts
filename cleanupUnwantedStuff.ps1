@@ -736,6 +736,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserStartMenu('Notepad3.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey Window Spy.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey.lnk', 'Applications')
+		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey Dash.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('Cloud Nine Keyboard Application.lnk', 'Maintenance')
 		[StartMenuCleanupItem]::FromUserPrograms('Fiddler 4.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromUserPrograms('Fiddler Classic.lnk', 'Applications')
@@ -1042,6 +1043,8 @@ function CleanUpPathVars {
 		'C:\Program Files (x86)\GnuPG\bin'
 		'*\go\bin'
 		'*\Python\Launcher\'
+		'*\TortoiseGit\bin'
+		'*\gsudo\*'
 		# these i'm trying to use env vars for, but they keep getting put back in without:
 		"$env:AppData\npm"
 		"$env:LocalAppData\Microsoft\WindowsApps"
