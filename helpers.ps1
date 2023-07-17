@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+﻿#Requires -Version 4
 
 [CmdletBinding(SupportsShouldProcess=$true)]
 param()
@@ -195,7 +195,7 @@ function Coalesce {
 	return $null
 }
 
-if ([bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)) {
+if ([bool](Get-Command -Name 'Get-CimInstance' -ErrorAction SilentlyContinue)) {
 	function MapCimOsSku {
 		[CmdletBinding(SupportsShouldProcess=$false)]
 		[OutputType([string])]
