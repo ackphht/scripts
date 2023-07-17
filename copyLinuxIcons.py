@@ -75,6 +75,39 @@ class Helpers:
 	TempPath = None
 	_hashBufferSize = 256*1024
 
+	class RunProcessResults:
+		def __init__(self):
+			self._exitCode = 0
+			self._stdout = ''
+			self._stderr = ''
+
+		def setResult(self, result : subprocess.CompletedProcess):
+			self._exitCode = result.returncode
+			self._stdout = result.stdout
+			self._stderr = result.stderr
+
+		@property
+		def exitCode(self):
+			return self._exitCode
+
+		@property
+		def stdout(self):
+			return self._stdout
+
+		@property
+		def stderr(self):
+			return self._stderr
+
+		def getCombinedStdoutStderr(self):
+			result = ''
+			if self._stdout and self._stderr:
+				result = f"{self._stdout}{os.linesep}{self._stderr}"
+			elif self._stdout:
+				result = self._stdout
+			elif self._stderr:
+				result = self._stderr
+			return result
+
 	class _TempFile:
 		def __init__(self, prefix : str, ext : str):
 			self._path : pathlib.Path = None
@@ -105,15 +138,14 @@ class Helpers:
 				LogHelper.WhatIf(f"creating folder '{folder}'")
 
 	@staticmethod
-	def RunProcess(args : List, description : str, ignoreWhatIf : bool = False) -> int:
-		exitcode = 0
+	def RunProcess(args : List, description : str, ignoreWhatIf : bool = False) :#-> Helpers.RunProcessResults:
+		result = Helpers.RunProcessResults()
 		if not Helpers.EnableWhatIf or ignoreWhatIf:
-			process = subprocess.run(args)
-			if process.returncode:
-				exitcode = process.returncode
+			process = subprocess.run(args, capture_output=True, text=True)
+			result.setResult(process)
 		else:
 			LogHelper.WhatIf(f"{description}:{os.linesep}  command line = |{' '.join(str(a) for a in args)}|")
-		return exitcode
+		return result
 
 	@staticmethod
 	def CopyFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, description : str, ignoreWhatIf : bool = False):
@@ -249,7 +281,7 @@ class Constants:
 
 class Executables:
 	@staticmethod
-	def ConvertFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, targetSize : int = None, ignoreWhatIf : bool = False) -> int:
+	def ConvertFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, targetSize : int = None, ignoreWhatIf : bool = False) -> Helpers.RunProcessResults:
 		# using Inkscape to do these conversions and resizings; should be able to use ImageMagick, which we're using to create the ICO files below, but am getting really crappy results:
 		args = [Constants.PathToInkscape, "--without-gui", sourceFile, "--export-filename", targetFile]
 		if targetSize is not None and targetSize > 0:
@@ -257,7 +289,7 @@ class Executables:
 		return Helpers.RunProcess(args, f"converting '{Helpers.GetRelativePath(sourceFile)}' to '{targetFile}'", ignoreWhatIf)
 
 	@staticmethod
-	def CreateIcoFile(sourceImgs : Iterator[pathlib.Path], icoOutputFile : pathlib.Path, ignoreWhatIf : bool = False):
+	def CreateIcoFile(sourceImgs : Iterator[pathlib.Path], icoOutputFile : pathlib.Path, ignoreWhatIf : bool = False) -> Helpers.RunProcessResults:
 		args = [Constants.PathToImageMagick, "convert"]
 		for img in sourceImgs:
 			args.append(img)
@@ -265,10 +297,10 @@ class Executables:
 		return Helpers.RunProcess(args, f"creating ICO file '{Helpers.GetRelativePath(icoOutputFile)}'", ignoreWhatIf)
 
 	@staticmethod
-	def OptimizePng(pngFilepath : pathlib.Path, ignoreWhatIf : bool = False):
+	def OptimizePng(pngFilepath : pathlib.Path, ignoreWhatIf : bool = False) -> Helpers.RunProcessResults:
 		args = [Constants.PathToOptipng, "-o7", "-nx", "-strip", "all"]
 		#if not Helpers.EnableVerbose:
-		args.append("-quiet")
+		#args.append("-quiet")
 		args.append(pngFilepath)
 		return Helpers.RunProcess(args, f"optimizing PNG file '{Helpers.GetRelativePath(pngFilepath)}'", ignoreWhatIf=ignoreWhatIf)
 
@@ -765,17 +797,17 @@ class PngFilesHelper:
 	@staticmethod
 	def _optimizePng(targetFilepath : pathlib.Path, ignoreWhatIf : bool = False) -> bool:
 		Helpers.LogVerbose(f"optimizing file '{Helpers.GetRelativePath(targetFilepath)}'")
-		exitcode = Executables.OptimizePng(targetFilepath, ignoreWhatIf)
-		if exitcode != 0:
-			LogHelper.Error(f"failed optimizing file '{targetFilepath}' (exit code: {exitcode})")
+		results = Executables.OptimizePng(targetFilepath, ignoreWhatIf)
+		if results.exitCode != 0:
+			LogHelper.Error(f"failed optimizing file '{targetFilepath}' (exit code: {results.exitCode}):{os.linesep}{results.getCombinedStdoutStderr()}")
 			return False
 		return True
 
 	@staticmethod
 	def _convertFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, targetSize : int, ignoreWhatIf : bool = False):
-		exitcode = Executables.ConvertFile(sourceFile, targetFile, targetSize, ignoreWhatIf)
-		if exitcode != 0:
-			LogHelper.Error(f"failed converting file '{Helpers.GetRelativePath(sourceFile)}' to png (exit code: {exitcode})")
+		results = Executables.ConvertFile(sourceFile, targetFile, targetSize, ignoreWhatIf)
+		if results.exitCode != 0:
+			LogHelper.Error(f"failed converting file '{Helpers.GetRelativePath(sourceFile)}' to png (exit code: {results.exitCode}):{os.linesep}{results.getCombinedStdoutStderr()}")
 			return False
 		return True
 
@@ -804,9 +836,9 @@ class IcoFilesHelper:
 
 	@staticmethod
 	def _createIcoFile(sourceImgs : IcoSourceFilesList, icoOutputFile : pathlib.Path, ignoreWhatIf : bool = False):
-		exitcode = Executables.CreateIcoFile(sourceImgs, icoOutputFile, ignoreWhatIf)
-		if exitcode != 0:
-			LogHelper.Error(f"failed creating ICO file '{icoOutputFile}' (exit code: {exitcode})")
+		results = Executables.CreateIcoFile(sourceImgs, icoOutputFile, ignoreWhatIf)
+		if results.exitCode != 0:
+			LogHelper.Error(f"failed creating ICO file '{icoOutputFile}' (exit code: {results.exitCode}):{os.linesep}{results.getCombinedStdoutStderr()}")
 			return False
 		return True
 
