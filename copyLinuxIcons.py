@@ -46,9 +46,6 @@ def main():
 
 	args = parser.parse_args()
 
-	print(args)
-	return
-
 	LogHelper.Init(args.verbose)
 
 	args.func(args)
