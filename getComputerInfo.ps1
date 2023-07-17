@@ -9,6 +9,9 @@ param(
 $script:bigDivider = '=' * 80
 $script:smallDivider = '-' * 80
 
+. $PSScriptRoot/helpers.ps1
+Set-StrictMode -Off # helpers.ps1 above is turning it on
+
 $script:cimAvailable = [bool](Get-Command -Name 'Get-CimInstance' -ErrorAction SilentlyContinue)
 
 function Main {
@@ -25,7 +28,7 @@ function Main {
 	if ($writeAll -and (Get-Command -Name 'Get-ComputerInfo' -ErrorAction SilentlyContinue)) {
 		_writeHeader 'Get-ComputerInfo'
 		$ci = Get-ComputerInfo
-		$ci | Format-List (_getSortedPropertyNames $ci)
+		$ci | Format-List (GetSortedPropertyNames $ci)
 	}
 
 	_dumpCimProperties -cn 'ComputerSystem' -a:$writeAll -p  @('Manufacturer', 'Model', 'SystemFamily', 'SystemSKUNumber', 'SystemType', 'NumberOfProcessors', @{ name='TotalPhysicalMemory'; expression={ GetFriendlyBytes -value $_.TotalPhysicalMemory }; }, 'Name', 'Domain')
@@ -60,13 +63,13 @@ function _dumpCimProperties {
 		$arr = @($info)
 		if ($arr.Length -eq 1) {
 			if ($writeAllProps) {
-				$info | Format-List -Property (_getSortedPropertyNames $info)
+				$info | Format-List -Property (GetSortedPropertyNames $info)
 			} else {
 				$info | Format-List -Property $stdPropList
 			}
 		} else {
 			if ($writeAllProps) {
-				$propNames = _getSortedPropertyNames @($info)[0]
+				$propNames = GetSortedPropertyNames @($info)[0]
 			}
 			for ($idx = 0; $idx -lt $arr.Length; ++$idx) {
 				if ($writeAllProps) {
@@ -80,13 +83,6 @@ function _dumpCimProperties {
 			}
 		}
 	}
-}
-
-function _getSortedPropertyNames {
-	param(
-		[PSObject] $object
-	)
-	return [string[]]($object | Get-Member -MemberType Property | ForEach-Object { $_.Name } | Sort-Object)
 }
 
 function _writeHeader {
