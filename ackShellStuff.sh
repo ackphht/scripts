@@ -147,6 +147,7 @@ esac
 if has oh-my-posh && test -n $currShell ; then
 	eval "$(oh-my-posh init $currShell --config ~/scripts/ack.omp.linux.json)"
 	alias omp='oh-my-posh'
+	alias ompu='bash ~/scripts/installOhMyPosh.sh'
 fi
 
 case $currShell in
