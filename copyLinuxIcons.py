@@ -1243,7 +1243,7 @@ class IconsToCopy:
 			IconThemeDefinition("Mint-Y", "NA", "_oss/mint-y-icons/usr/share/icons/Mint-Y", Constants.FldrScheme_TypeSize,
 				SourceImageSizeFolderMap(["16"], ["24"], ["32", "16@2x"], ["48", "24@2x"], ["64", "32@2x"], ["96", "48@2x"], ["128", "64@2x"], ["96@2x"], ["256", "128@2x"], ["256@2x"], None)),
 			IconThemeDefinition("Mint-L", "NA", "_oss/mint-l-icons/usr/share/icons/Mint-L", Constants.FldrScheme_TypeSize,
-				SourceImageSizeFolderMap(["16"], ["24"], ["32", "16@2x"], ["48", "24@2x"], ["64", "32@2x"], ["48@2x"], ["128", "64@2x"], None, ["128@2x"], None, None)),
+				SourceImageSizeFolderMap(["16"], ["24", "22"], ["32", "16@2x"], ["48", "24@2x"], ["64", "32@2x"], ["96", "48@2x"], ["128", "64@2x"], ["96@2x"], ["256", "128@2x"], ["256@2x"], None)),
 			IconThemeDefinition("oxygen", "NA", "_oss/oxygen-icons5", Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["22x22"], ["32x32"], ["48x48"], ["64x64"], None, ["128x128"], None, ["256x256"], None, None)),
 			IconThemeDefinition("Paper", "NA", "_oss/paper-icon-theme/Paper", Constants.FldrScheme_SizeType,
