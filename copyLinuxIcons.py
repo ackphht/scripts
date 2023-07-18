@@ -1,17 +1,8 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-#from msilib.schema import Property
-#from tkinter import Pack
-import sys
-import os
-import re
-import argparse
-import pathlib
+import sys, os, re, pathlib, shutil, subprocess, tempfile, argparse, hashlib, time
 from datetime import datetime, timezone
-import shutil
-import subprocess
-import tempfile
 from typing import Any, List, Pattern, Tuple, Iterator, Dict
 #from tabulate import tabulate	# https://pypi.org/project/tabulate/
 from operator import attrgetter, itemgetter
