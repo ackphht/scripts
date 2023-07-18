@@ -113,7 +113,17 @@ class Helpers:
 
 		def __exit__(self, excep_type, excep_value, traceback):
 			if (self._path is not None and self._path.exists()):
-				self._path.unlink()
+				retryCount = 0
+				while True:
+					try:
+						self._path.unlink()
+						break
+					except PermissionError:
+						++retryCount
+						if retryCount >= 5:
+							raise
+						LogHelper.Warning(f"error trying to delete file \"{self._path}\"; will wait and retry")
+						time.sleep(1)
 			return False	# propagate any exceptions
 
 	@staticmethod
