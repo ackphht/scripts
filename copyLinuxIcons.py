@@ -1192,7 +1192,7 @@ class IconThemeDefinition:
 				Helpers.LogVerbose(f"skipping iconType for '{iconList.baseTypeName}' (doesn't match --type option '{workUnit.onlyType}')")
 				continue
 			elif workUnit.onlyType:
-			Helpers.LogVerbose(f"processing iconType '{iconList.baseTypeName}'")
+				Helpers.LogVerbose(f"processing iconType '{iconList.baseTypeName}'")
 			else:
 				LogHelper.MessageGreen(f"processing iconType '{iconList.baseTypeName}'")
 			pngsOutputPath = workUnit.pngsBasePath / self.outputFolderTemplate.format(theme = self.themeName, distro = self.distroName, type = iconList.getOutputTypename(self.themeName))
@@ -1316,6 +1316,7 @@ class IconsToCopy:
 				Icon("audio-midi", ["audio-x-midi"], ["mid", "midi"]),
 				Icon("audio-mp2", ["audio-x-mp2"], extensions=["mp2"]),
 				Icon("audio-mpeg", ["audio-mp3", "audio-x-mpeg", "audio-x-mp3"], ["mp3", "mpga"]),
+				Icon("audio-mp4", ["audio-m4a", "audio-x-mp4", "audio-x-m4a"], extensions=["m4a"]),
 				Icon("audio-ogg", ["audio-x-vorbis+ogg", "audio-x-ogg"], ["oga", "ogg", "opus"]),
 				Icon("audio-webm"),
 				Icon("audio-x-generic", ["media-audio"]),
