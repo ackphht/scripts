@@ -754,7 +754,7 @@ class PngFilesHelper:
 		if not targetFilepath.exists():
 			# if target file does not exist yet, just create it in place:
 			Helpers.LogVerbose("target does not exist: copying source to target")
-			LogHelper.Message(f"copying '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
+			LogHelper.MessageGray(f"copying '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
 			Helpers.CopyFile(sourceFilepath, targetFilepath, f"copying '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
 			if Helpers.OptimizePngs and targetExt == ".png":
 				if not PngFilesHelper._optimizePng(targetFilepath):
@@ -778,7 +778,7 @@ class PngFilesHelper:
 		if not targetFilepath.exists():
 			# if target file does not exist yet, just create it in place:
 			Helpers.LogVerbose("target does not exist: converting source to target")
-			LogHelper.Message(f"converting '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
+			LogHelper.MessageGray(f"converting '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
 			if not PngFilesHelper._convertFile(sourceFilepath, targetFilepath, targetSize):
 				return False
 			if Helpers.OptimizePngs and targetExt == ".png":
@@ -824,7 +824,7 @@ class IcoFilesHelper:
 		if not primOutputFile.exists():
 			# create an icon in place using the primary name, and we're done
 			Helpers.LogVerbose("icon with primary name does not exist: converting source to target")
-			LogHelper.Message2(f"creating ICO file '{Helpers.GetRelativePath(primOutputFile)}'{altSourceNameMsg}")
+			LogHelper.MessageCyan(f"creating ICO file '{Helpers.GetRelativePath(primOutputFile)}'{altSourceNameMsg}")
 			if not IcoFilesHelper._createIcoFile(sourceImgs, primOutputFile):
 				return False
 		else:
@@ -1183,7 +1183,6 @@ class IconThemeDefinition:
 		pngPrimarySizeRegex = re.compile(self.pngPrimarySizeRegexPattern)
 		pngAltSizeRegex = re.compile(self.pngAltSizeRegexPattern)
 		# now can loop thru icons:
-		Helpers.LogVerbose(f"{Constants.LargeDivider}{os.linesep}processing theme '{self.themeName}'")
 		pastFirstOne = False
 		for iconList in workUnit.iconTypeList:
 			if pastFirstOne:
@@ -1192,7 +1191,10 @@ class IconThemeDefinition:
 			if workUnit.onlyType and iconList.baseTypeName != workUnit.onlyType:
 				Helpers.LogVerbose(f"skipping iconType for '{iconList.baseTypeName}' (doesn't match --type option '{workUnit.onlyType}')")
 				continue
+			elif workUnit.onlyType:
 			Helpers.LogVerbose(f"processing iconType '{iconList.baseTypeName}'")
+			else:
+				LogHelper.MessageGreen(f"processing iconType '{iconList.baseTypeName}'")
 			pngsOutputPath = workUnit.pngsBasePath / self.outputFolderTemplate.format(theme = self.themeName, distro = self.distroName, type = iconList.getOutputTypename(self.themeName))
 			iconOutputPath = workUnit.iconsBasePath / iconList.getOutputTypename(self.themeName)
 
@@ -1949,6 +1951,10 @@ class IconsToCopy:
 				if onlyTheme and th.themeName != onlyTheme:
 					Helpers.LogVerbose(f"skipping iconTheme for '{th.themeName}', doesn't match --theme option '{onlyTheme}'")
 					continue
+				elif onlyTheme:
+					Helpers.LogVerbose(f"{Constants.LargeDivider}{os.linesep}processing theme '{th.themeName}'")
+				else:
+					LogHelper.MessageMagenta(f"{Constants.LargeDivider}{os.linesep}processing theme '{th.themeName}'")
 				workUnit = IconThemeDefinition.WorkUnit(self.inputBasePath, self.pngsBasePath, self.iconsBasePath, createIcosOnly,
 														copyPngsOnly, onlyType, onlyNames, self.iconTypeLists, self.targetPngSizes)
 				th.process(workUnit)
