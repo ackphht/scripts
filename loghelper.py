@@ -110,17 +110,42 @@ class LogHelper:
 	@staticmethod
 	def Message(message : str):
 		"""prints a regular message to the console in cyan"""
-		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.Cyan}{message}{LogHelper.Style.ResetAll}")
+		LogHelper.MessageCyan(message)
 
 	@staticmethod
 	def Message2(message : str):
+		"""prints a regular message to the console in magenta, like maybe for headers [OBSOLETE; use MessageMagenta()]"""
+		LogHelper.MessageMagenta(message)
+
+	@staticmethod
+	def Message3(message : str):
+		"""prints a regular message to the console in yellow [OBSOLETE; use MessageYellow()]"""
+		LogHelper.MessageYellow(message)
+
+	@staticmethod
+	def MessageCyan(message : str):
+		"""prints a regular message to the console in cyan"""
+		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.Cyan}{message}{LogHelper.Style.ResetAll}")
+
+	@staticmethod
+	def MessageMagenta(message : str):
 		"""prints a regular message to the console in magenta, like maybe for headers"""
 		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.Magenta}{message}{LogHelper.Style.ResetAll}")
 
 	@staticmethod
-	def Message3(message : str):
+	def MessageYellow(message : str):
 		"""prints a regular message to the console in yellow"""
 		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.Yellow}{message}{LogHelper.Style.ResetAll}")
+
+	@staticmethod
+	def MessageGreen(message : str):
+		"""prints a regular message to the console in green"""
+		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.Green}{message}{LogHelper.Style.ResetAll}")
+
+	@staticmethod
+	def MessageGray(message : str):
+		"""prints a regular message to the console in gray"""
+		print(f"{LogHelper.Style.Normal}{LogHelper.Fore.LightBlackEx}{message}{LogHelper.Style.ResetAll}")
 
 	@staticmethod
 	def WhatIf(message : str):
