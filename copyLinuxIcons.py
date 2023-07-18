@@ -1242,6 +1242,8 @@ class IconsToCopy:
 				SourceImageSizeFolderMap(["16"], ["24", "22"], ["32"], ["48"], None, ["96"], None, None, None, None, None)),
 			IconThemeDefinition("Mint-Y", "NA", "_oss/mint-y-icons/usr/share/icons/Mint-Y", Constants.FldrScheme_TypeSize,
 				SourceImageSizeFolderMap(["16"], ["24"], ["32", "16@2x"], ["48", "24@2x"], ["64", "32@2x"], ["96", "48@2x"], ["128", "64@2x"], ["96@2x"], ["256", "128@2x"], ["256@2x"], None)),
+			IconThemeDefinition("Mint-L", "NA", "_oss/mint-l-icons/usr/share/icons/Mint-L", Constants.FldrScheme_TypeSize,
+				SourceImageSizeFolderMap(["16"], ["24"], ["32", "16@2x"], ["48", "24@2x"], ["64", "32@2x"], ["48@2x"], ["128", "64@2x"], None, ["128@2x"], None, None)),
 			IconThemeDefinition("oxygen", "NA", "_oss/oxygen-icons5", Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["22x22"], ["32x32"], ["48x48"], ["64x64"], None, ["128x128"], None, ["256x256"], None, None)),
 			IconThemeDefinition("Paper", "NA", "_oss/paper-icon-theme/Paper", Constants.FldrScheme_SizeType,
@@ -1258,11 +1260,13 @@ class IconsToCopy:
 			# found repo for 'Adwaita', but it's weird: bigger filesize, but much fewer files, so ??
 			IconThemeDefinition("Adwaita", "fedora_36", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], ["96x96"], None, None, ["256x256"], ["512x512"], None)),
-			IconThemeDefinition("gnome", "mint_21.0", None, Constants.FldrScheme_SizeType,
+			IconThemeDefinition("gnome", "mint_21.2", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], None, ["128x128"], None, ["256x256"], ["512x512"], None)),
 			# found repo for 'mate', but it seems to have less in it ??
-			IconThemeDefinition("mate", "mint_21.0", None, Constants.FldrScheme_SizeType,
+			IconThemeDefinition("mate", "mint_21.2", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], None, None, None, None, ["256x256"], None, None)),
+			IconThemeDefinition("Numix", "mint_21.2", None, Constants.FldrScheme_SizeType,
+				SourceImageSizeFolderMap(["16"], ["24", "22"], ["32"], ["48"], ["64"], None, None, None, None, None, None)),
 			IconThemeDefinition("Humanity", "ubuntu_22.04", None, Constants.FldrScheme_TypeSize,
 				SourceImageSizeFolderMap(["16"], ["24"], ["32"], ["48"], ["64"], None, ["128"], ["192"], ["256"], None, None)),
 		]
@@ -1315,7 +1319,7 @@ class IconsToCopy:
 				Icon("audio-x-generic", ["media-audio"]),
 				Icon("audio-x-matroska", extensions=["mka"]),
 				Icon("audio-x-mod", extensions=["mod", "669"]),
-				Icon("audio-x-mpegurl", ["playlist"], ["m3u", "m3u8"]),
+				Icon("audio-x-mpegurl", ["playlist", "application-audio-playlist"], ["m3u", "m3u8"]),
 				Icon("audio-x-ms-asx", ["audio-x-ms-wax"], ["asx", "wax"]),
 				Icon("audio-x-ms-wma", ["audio-wma"], ["wma"]),
 				Icon("audio-x-wav", ["audio-wav"], ["wav"]),
