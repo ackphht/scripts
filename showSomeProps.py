@@ -22,9 +22,8 @@ def main():
 	print(f'sys.getdefaultencoding() = |{sys.getdefaultencoding()}|')
 	print(f'sys.getfilesystemencoding() = |{sys.getfilesystemencoding()}|')
 	print(f'sys.getrecursionlimit() = |{sys.getrecursionlimit()}|')
-	print(f'sys.getswitchinterval() = |{sys.getswitchinterval()}|')
-	if sys.platform == 'win32':
-		print(f'sys.getwindowsversion() = |{sys.getwindowsversion()}|')
+	print(f'sys.getswitchinterval() = |{sys.getswitchinterval() if "getswitchinterval" in dir(sys) else "<N/A>"}|')
+	print(f'sys.getwindowsversion() = |{sys.getwindowsversion() if sys.platform == "win32" else "<N/A>"}|')
 	print(f'sys.hexversion = |{sys.hexversion}| [hex() = ', hex(sys.hexversion), ']')
 	print(f'sys.implementation = |{sys.implementation}|')
 	print(f'sys.int_info = |{sys.int_info}|')
@@ -34,12 +33,11 @@ def main():
 	print(f'sys.prefix = |{sys.prefix}|')
 	#print(f'sys.ps1 = |{sys.ps1}|')
 	#print(f'sys.ps2 = |{sys.ps2}|')
-	print(f'sys.thread_info = |{sys.thread_info}|')
+	print(f'sys.thread_info = |{sys.thread_info if "thread_info" in dir(sys) else "<N/A>"}|')
 	#print(f'sys.tracebacklimit = |{sys.tracebacklimit}|')
 	print(f'sys.version = |{sys.version}|')
 	print(f'sys.version_info = |{sys.version_info}|')
-	if sys.platform == 'win32':
-		print(f'sys.winver = |{sys.winver}|')
+	print(f'sys.winver = |{sys.winver if sys.platform == "win32" else "<N/A>"}|')
 	print('=' * 40)
 	print('values from os module:')
 	print('=' * 40)
@@ -64,11 +62,8 @@ def main():
 	print(f"os.getcwd() = |{os.getcwd()}|")
 	print(f"os.strerror(2) = |{os.strerror(2)}|")
 	print(f"os.times() = |{os.times()}|")
-	if sys.platform != 'win32':
-		print(f"os.uname() = |{os.uname()}|")
-	else:
-		print("os.uname() = |<not supported on windows>|")
-	print(f"os.cpu_count() = |{os.cpu_count()}|")
+	print(f"os.uname() = |{os.uname() if sys.platform != 'win32' else '<not supported on windows>'}|")
+	print(f"os.cpu_count() = |{os.cpu_count() if 'cpu_count' in dir(os) else '<N/A>'}|")
 	#print("os.urandom(8) = |", hex(os.urandom(8)), "|")
 	print(f"os.urandom(8) = |{os.urandom(8)}|")
 	print(f"os.path.exists('C:/Windows/System32/notepad.exe') = |{os.path.exists('C:/Windows/System32/notepad.exe')}|")
@@ -108,7 +103,7 @@ def main():
 	print(f'platform.uname() = |{platform.uname()}|')
 	if sys.platform == 'win32':
 		print(f'platform.win32_ver() = |{platform.win32_ver()}|')
-		print(f'platform.win32_edition() = |{platform.win32_edition()}|')
+		print(f'platform.win32_edition() = |{platform.win32_edition() if "win32_edition" in dir(platform) else "<N/A>"}|')
 
 
 if __name__ == "__main__":
