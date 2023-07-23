@@ -64,7 +64,7 @@ elif has dnf; then
 	alias aptul='sudo dnf check-update'	# ???
 	alias aptu='sudo dnf upgrade --assumeyes'
 	#alias aptc='sudo dnf autoremove --assumeyes --cacheonly && sudo dnf clean all --assumeyes --cacheonly'
-	alias aptc='sudo dnf autoremove --assumeyes && sudo dnf clean all --assumeyes --cacheonly'
+	alias aptc='sudo dnf autoremove --assumeyes && sudo dnf clean packages dbcache --assumeyes --cacheonly'
 	#alias aptc='sudo dnf autoremove --assumeyes --cacheonly && pkcon refresh force --cache-age -1 && sudo dnf clean all --assumeyes --cacheonly'
 	alias apts='dnf search'
 	alias aptn='dnf info'
