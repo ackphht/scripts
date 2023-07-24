@@ -32,12 +32,9 @@ function Main {
 	$allResults.EnvVars = Get-ChildItem -Path env: | Select-Object -Property Name,Value | Sort-Object -Property Name
 
 	WriteVerboseMessage 'dumping posh variables'
-	$allResults.PoshVars = Get-ChildItem -Path variable: |
+	$allResults.PoshVars = Get-Variable -Scope Global |
 		Where-Object {
-			# this is horrible but can't find another way to filter out local vars:
-			$_.Name -notin @('StackTrace','allResults','_formatBase','_formatSizes','arrayObjStartRegex',,'multiObjRegex'
-							'asCsv','saveCsv','asJson','saveJson','asText','saveText','saveToFldr','outputFolder','cachedOsDetails',
-							'divider','input','NA','nonDisplayCharsMap','splitLine','properIndentsCache','stupidIndentsCache','twoSpaceIndentRegex')
+			$_.Name -notin @('StackTrace')
 		} |
 		Select-Object -Property Name,Value |
 		Sort-Object -Property Name
