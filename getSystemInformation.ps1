@@ -50,7 +50,7 @@ function Main {
 
 	$unameAvail = [bool](Get-Command -Name 'uname' -ErrorAction Ignore)
 	$cimInstanceAvail = [bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)
-	$onMacOs = [bool](_getVariableValue -varName 'IsMacOS')
+	$onMacOs = [bool](_getVariableValue -n 'IsMacOS')
 
 	if ($unameAvail) {
 		WriteVerboseMessage 'getting uname info'
@@ -69,32 +69,32 @@ function Main {
 	WriteVerboseMessage 'getting system properties'
 
 	$results = [List[PSObject]]::new(16) #[PSObject]::new()
-	_addProperty -obj $results -propName 'PSVersion_PowerShell' -propValue $PSVersionTable.PSVersion
-	_addProperty -obj $results -propName 'PSVersion_Edition' -propValue $PSVersionTable.PSEdition
-	_addProperty -obj $results -propName 'PSVersion_Platform' -propValue (_getPropertyIfExists -object $PSVersionTable -propertyName 'Platform')
-	_addProperty -obj $results -propName 'PSVersion_OS' -propValue (_getPropertyIfExists -object $PSVersionTable -propertyName 'OS')
+	_addProperty -o $results -n 'PSVersion_PowerShell' -v $PSVersionTable.PSVersion
+	_addProperty -o $results -n 'PSVersion_Edition' -v $PSVersionTable.PSEdition
+	_addProperty -o $results -n 'PSVersion_Platform' -v (_getPropertyIfExists -o $PSVersionTable -n 'Platform')
+	_addProperty -o $results -n 'PSVersion_OS' -v (_getPropertyIfExists -o $PSVersionTable -n 'OS')
 
-	_addProperty -obj $results -propName 'Var_PSEdition' -propValue (_getVariableValue -varName 'PSEdition')
-	_addProperty -obj $results -propName 'Var_IsCoreCLR' -propValue (_getVariableValue -varName 'IsCoreCLR')
-	_addProperty -obj $results -propName 'Var_IsWindows' -propValue (_getVariableValue -varName 'IsWindows')
-	_addProperty -obj $results -propName 'Var_IsLinux' -propValue (_getVariableValue -varName 'IsLinux')
-	_addProperty -obj $results -propName 'Var_IsMacOS' -propValue (_getVariableValue -varName 'IsMacOS')
+	_addProperty -o $results -n 'Var_PSEdition' -v (_getVariableValue -n 'PSEdition')
+	_addProperty -o $results -n 'Var_IsCoreCLR' -v (_getVariableValue -n 'IsCoreCLR')
+	_addProperty -o $results -n 'Var_IsWindows' -v (_getVariableValue -n 'IsWindows')
+	_addProperty -o $results -n 'Var_IsLinux' -v (_getVariableValue -n 'IsLinux')
+	_addProperty -o $results -n 'Var_IsMacOS' -v (_getVariableValue -n 'IsMacOS')
 
-	_addProperty -obj $results -propName 'SysEnv_DotNetVersion' -propValue ([System.Environment]::Version.ToString())
-	_addProperty -obj $results -propName 'SysEnv_OSPlatform' -propValue ([System.Environment]::OSVersion.Platform)
-	_addProperty -obj $results -propName 'SysEnv_OSVersion' -propValue ([System.Environment]::OSVersion.Version.ToString())
-	_addProperty -obj $results -propName 'SysEnv_OSVersionString' -propValue ([System.Environment]::OSVersion.VersionString)
-	_addProperty -obj $results -propName 'SysEnv_Is64BitOperatingSystem' -propValue ([System.Environment]::Is64BitOperatingSystem)
-	_addProperty -obj $results -propName 'SysEnv_Is64BitProcess' -propValue ([System.Environment]::Is64BitProcess)
-	_addProperty -obj $results -propName 'SysEnv_ProcessorCount' -propValue ([System.Environment]::ProcessorCount)
-	_addProperty -obj $results -propName 'SysEnv_Newline' -propValue (_charsToString -chars ([System.Environment]::NewLine))
+	_addProperty -o $results -n 'SysEnv_DotNetVersion' -v ([System.Environment]::Version.ToString())
+	_addProperty -o $results -n 'SysEnv_OSPlatform' -v ([System.Environment]::OSVersion.Platform)
+	_addProperty -o $results -n 'SysEnv_OSVersion' -v ([System.Environment]::OSVersion.Version.ToString())
+	_addProperty -o $results -n 'SysEnv_OSVersionString' -v ([System.Environment]::OSVersion.VersionString)
+	_addProperty -o $results -n 'SysEnv_Is64BitOperatingSystem' -v ([System.Environment]::Is64BitOperatingSystem)
+	_addProperty -o $results -n 'SysEnv_Is64BitProcess' -v ([System.Environment]::Is64BitProcess)
+	_addProperty -o $results -n 'SysEnv_ProcessorCount' -v ([System.Environment]::ProcessorCount)
+	_addProperty -o $results -n 'SysEnv_Newline' -v (_charsToString -chars ([System.Environment]::NewLine))
 
-	_addProperty -obj $results -propName 'Path_DirectorySeparatorChar' -propValue ([System.IO.Path]::DirectorySeparatorChar)
-	_addProperty -obj $results -propName 'Path_AltDirectorySeparatorChar' -propValue ([System.IO.Path]::AltDirectorySeparatorChar)
-	_addProperty -obj $results -propName 'Path_PathSeparator' -propValue ([System.IO.Path]::PathSeparator)
-	_addProperty -obj $results -propName 'Path_VolumeSeparatorChar' -propValue ([System.IO.Path]::VolumeSeparatorChar)
-	_addProperty -obj $results -propName 'Path_InvalidPathChars' -propValue (_charsToString -chars ([System.IO.Path]::InvalidPathChars))
-	_addProperty -obj $results -propName 'Path_InvalidFileNameChars' -propValue (_charsToString -chars ([System.IO.Path]::GetInvalidFileNameChars()))
+	_addProperty -o $results -n 'Path_DirectorySeparatorChar' -v ([System.IO.Path]::DirectorySeparatorChar)
+	_addProperty -o $results -n 'Path_AltDirectorySeparatorChar' -v ([System.IO.Path]::AltDirectorySeparatorChar)
+	_addProperty -o $results -n 'Path_PathSeparator' -v ([System.IO.Path]::PathSeparator)
+	_addProperty -o $results -n 'Path_VolumeSeparatorChar' -v ([System.IO.Path]::VolumeSeparatorChar)
+	_addProperty -o $results -n 'Path_InvalidPathChars' -v (_charsToString -chars ([System.IO.Path]::InvalidPathChars))
+	_addProperty -o $results -n 'Path_InvalidFileNameChars' -v (_charsToString -chars ([System.IO.Path]::GetInvalidFileNameChars()))
 
 	WriteVerboseMessage 'getting runtime info'
 	if ($onMacOs) {
@@ -104,108 +104,108 @@ function Main {
 		$macOsData = [PSCustomObject]@{}
 	}
 	@('OSArchitecture', 'ProcessArchitecture', 'OSDescription', 'FrameworkDescription', 'RuntimeIdentifier') |
-		ForEach-Object { _addProperty -obj $results -propName "RuntimeInfo_$_" -propValue '' }
+		ForEach-Object { _addProperty -o $results -n "RuntimeInfo_$_" -v '' }
 	if ([bool]('System.Runtime.InteropServices.RuntimeInformation' -as [type])) {
-		_setProperty -obj $results -propName 'RuntimeInfo_OSArchitecture' -propValue ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)
-		_setProperty -obj $results -propName 'RuntimeInfo_ProcessArchitecture' -propValue ([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)
-		_setProperty -obj $results -propName 'RuntimeInfo_OSDescription' -propValue ([System.Runtime.InteropServices.RuntimeInformation]::OSDescription)
-		_setProperty -obj $results -propName 'RuntimeInfo_FrameworkDescription' -propValue ([System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription)
-		_setProperty -obj $results -propName 'RuntimeInfo_RuntimeIdentifier' -propValue (_getStaticPropertyIfExists -type 'System.Runtime.InteropServices.RuntimeInformation' -propertyName 'RuntimeIdentifier')
+		_setProperty -o $results -n 'RuntimeInfo_OSArchitecture' -v ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)
+		_setProperty -o $results -n 'RuntimeInfo_ProcessArchitecture' -v ([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)
+		_setProperty -o $results -n 'RuntimeInfo_OSDescription' -v ([System.Runtime.InteropServices.RuntimeInformation]::OSDescription)
+		_setProperty -o $results -n 'RuntimeInfo_FrameworkDescription' -v ([System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription)
+		_setProperty -o $results -n 'RuntimeInfo_RuntimeIdentifier' -v (_getStaticPropertyIfExists -t 'System.Runtime.InteropServices.RuntimeInformation' -n 'RuntimeIdentifier')
 	}
 
 	WriteVerboseMessage 'getting Computer info'
 	@('Manufacturer', 'Model', 'SystemType', 'BIOSVersion', 'SerialNumber') |
-		ForEach-Object { _addProperty -obj $results -propName "Computer_$_" -propValue '' }
+		ForEach-Object { _addProperty -o $results -n "Computer_$_" -v '' }
 	if ($cimInstanceAvail) {
 		$cs = Get-CimInstance -ClassName 'CIM_ComputerSystem'
 		if ($cs) {
-			_setProperty -obj $results -propName 'Computer_Manufacturer' -propValue $cs.Manufacturer
-			_setProperty -obj $results -propName 'Computer_Model' -propValue $cs.Model
-			_setProperty -obj $results -propName 'Computer_SystemType' -propValue $cs.SystemType
+			_setProperty -o $results -n 'Computer_Manufacturer' -v $cs.Manufacturer
+			_setProperty -o $results -n 'Computer_Model' -v $cs.Model
+			_setProperty -o $results -n 'Computer_SystemType' -v $cs.SystemType
 		}
 		$be = Get-CimInstance -ClassName 'CIM_BIOSElement'
 		if ($be) {
-			_setProperty -obj $results -propName 'Computer_BIOSVersion' -propValue $be.Description
-			_setProperty -obj $results -propName 'Computer_SerialNumber' -propValue $be.SerialNumber
+			_setProperty -o $results -n 'Computer_BIOSVersion' -v $be.Description
+			_setProperty -o $results -n 'Computer_SerialNumber' -v $be.SerialNumber
 		}
 	} elseif ($onMacOs) {
-		_setProperty -obj $results -propName 'Computer_Manufacturer' -propValue 'Apple'
-		_setProperty -obj $results -propName 'Computer_Model' -propValue ('{0} ({1}) [model#: {2}]' -f $macOsData.SPHardwareDataType.machine_name, $macOsData.SPHardwareDataType.machine_model, $macOsData.SPHardwareDataType.model_number)
-		_setProperty -obj $results -propName 'Computer_BIOSVersion' -propValue $macOsData.SPHardwareDataType.boot_rom_version
-		_setProperty -obj $results -propName 'Computer_SerialNumber' -propValue $macOsData.SPHardwareDataType.serial_number
-		_setProperty -obj $results -propName 'Computer_SystemType' -propValue (uname -m <# --machine; macOS doesn't support the '--' options ??? #>)
+		_setProperty -o $results -n 'Computer_Manufacturer' -v 'Apple'
+		_setProperty -o $results -n 'Computer_Model' -v ('{0} ({1}) [model#: {2}]' -f $macOsData.SPHardwareDataType.machine_name, $macOsData.SPHardwareDataType.machine_model, $macOsData.SPHardwareDataType.model_number)
+		_setProperty -o $results -n 'Computer_BIOSVersion' -v $macOsData.SPHardwareDataType.boot_rom_version
+		_setProperty -o $results -n 'Computer_SerialNumber' -v $macOsData.SPHardwareDataType.serial_number
+		_setProperty -o $results -n 'Computer_SystemType' -v (uname -m <# --machine; macOS doesn't support the '--' options ??? #>)
 	}
 
 	WriteVerboseMessage 'getting OS info'
 	@('Platform', 'Distributor', 'Name', 'Id', 'Release', 'Version', 'OSArchitecture', 'Kernel', 'SKU', 'OSType', 'Codename') |
-		ForEach-Object { _addProperty -obj $results -propName "OS_$_" -propValue '' }
+		ForEach-Object { _addProperty -o $results -n "OS_$_" -v '' }
 	$osDetails = Get-OSDetails
-	_setProperty -obj $results -propName 'OS_Platform' -propValue $osDetails.Platform
-	_setProperty -obj $results -propName 'OS_Distributor' -propValue $osDetails.Distributor
-	_setProperty -obj $results -propName 'OS_Name' -propValue $osDetails.Description
-	_setProperty -obj $results -propName 'OS_Id' -propValue $osDetails.Id
-	_setProperty -obj $results -propName 'OS_Release' -propValue $osDetails.Release
-	_setProperty -obj $results -propName 'OS_Version' -propValue $(if ($osDetails.ReleaseVersion) {$osDetails.ReleaseVersion.ToString()} else {''})
-	_setProperty -obj $results -propName 'OS_OSArchitecture' -propValue $osDetails.OSArchitecture
-	_setProperty -obj $results -propName 'OS_Kernel' -propValue $osDetails.KernelVersion
-	_setProperty -obj $results -propName 'OS_Codename' -propValue $osDetails.Codename
+	_setProperty -o $results -n 'OS_Platform' -v $osDetails.Platform
+	_setProperty -o $results -n 'OS_Distributor' -v $osDetails.Distributor
+	_setProperty -o $results -n 'OS_Name' -v $osDetails.Description
+	_setProperty -o $results -n 'OS_Id' -v $osDetails.Id
+	_setProperty -o $results -n 'OS_Release' -v $osDetails.Release
+	_setProperty -o $results -n 'OS_Version' -v $(if ($osDetails.ReleaseVersion) {$osDetails.ReleaseVersion.ToString()} else {''})
+	_setProperty -o $results -n 'OS_OSArchitecture' -v $osDetails.OSArchitecture
+	_setProperty -o $results -n 'OS_Kernel' -v $osDetails.KernelVersion
+	_setProperty -o $results -n 'OS_Codename' -v $osDetails.Codename
 	if ($cimInstanceAvail) {
 		$os = Get-CimInstance -ClassName 'CIM_OperatingSystem'
 		if ($os) {
-			_setProperty -obj $results -propName 'OS_SKU' -propValue $os.OperatingSystemSKU
-			_setProperty -obj $results -propName 'OS_OSType' -propValue $os.OSType
+			_setProperty -o $results -n 'OS_SKU' -v $os.OperatingSystemSKU
+			_setProperty -o $results -n 'OS_OSType' -v $os.OSType
 		}
 	}
 
 	WriteVerboseMessage 'getting processor info'
-	_addProperty -obj $results -propName 'Processor_IsLittleEndian' -propValue ([System.BitConverter]::IsLittleEndian)
+	_addProperty -o $results -n 'Processor_IsLittleEndian' -v ([System.BitConverter]::IsLittleEndian)
 	@('Name', 'Description', 'Architecture', 'AddressWidth', 'DataWidth', 'L2CacheSize', 'L3CacheSize', 'NumberOfCores', 'LogicalProcessors', 'ProcessorId') |
-		ForEach-Object { _addProperty -obj $results -propName "Processor_$_" -propValue '' }
+		ForEach-Object { _addProperty -o $results -n "Processor_$_" -v '' }
 	if ($cimInstanceAvail) {
 		$proc = Get-CimInstance -ClassName 'CIM_Processor'
 		if ($proc) {
-			_setProperty -obj $results -propName 'Processor_Name' -propValue $proc.Name
-			_setProperty -obj $results -propName 'Processor_Description' -propValue $proc.Description
-			_setProperty -obj $results -propName 'Processor_Architecture' -propValue (MapCimProcArch -arch $proc.Architecture)
-			_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $proc.AddressWidth
-			_setProperty -obj $results -propName 'Processor_DataWidth' -propValue $proc.DataWidth
-			_setProperty -obj $results -propName 'Processor_L2CacheSize' -propValue $proc.L2CacheSize
-			_setProperty -obj $results -propName 'Processor_L3CacheSize' -propValue $proc.L3CacheSize
-			_setProperty -obj $results -propName 'Processor_NumberOfCores' -propValue $proc.NumberOfCores
-			_setProperty -obj $results -propName 'Processor_LogicalProcessors' -propValue $proc.NumberOfLogicalProcessors
-			_setProperty -obj $results -propName 'Processor_ProcessorId' -propValue $proc.ProcessorId
+			_setProperty -o $results -n 'Processor_Name' -v $proc.Name
+			_setProperty -o $results -n 'Processor_Description' -v $proc.Description
+			_setProperty -o $results -n 'Processor_Architecture' -v (MapCimProcArch -arch $proc.Architecture)
+			_setProperty -o $results -n 'Processor_AddressWidth' -v $proc.AddressWidth
+			_setProperty -o $results -n 'Processor_DataWidth' -v $proc.DataWidth
+			_setProperty -o $results -n 'Processor_L2CacheSize' -v $proc.L2CacheSize
+			_setProperty -o $results -n 'Processor_L3CacheSize' -v $proc.L3CacheSize
+			_setProperty -o $results -n 'Processor_NumberOfCores' -v $proc.NumberOfCores
+			_setProperty -o $results -n 'Processor_LogicalProcessors' -v $proc.NumberOfLogicalProcessors
+			_setProperty -o $results -n 'Processor_ProcessorId' -v $proc.ProcessorId
 		}
 	} elseif ($onMacOs) {
-		_setProperty -obj $results -propName 'Processor_Name' -propValue $macOsData.SPHardwareDataType.chip_type
-		_setProperty -obj $results -propName 'Processor_Architecture' -propValue (uname -m <# --machine #>)
-		_setProperty -obj $results -propName 'Processor_L2CacheSize' -propValue (sysctl -hin hw.l2cachesize)
-		_setProperty -obj $results -propName 'Processor_L3CacheSize' -propValue (sysctl -hin hw.l3cachesize)	# doesn't exist but maybe will get added
-		_setProperty -obj $results -propName 'Processor_NumberOfCores' -propValue (sysctl -hin hw.physicalcpu)
-		_setProperty -obj $results -propName 'Processor_LogicalProcessors' -propValue (sysctl -hin hw.logicalcpu)
+		_setProperty -o $results -n 'Processor_Name' -v $macOsData.SPHardwareDataType.chip_type
+		_setProperty -o $results -n 'Processor_Architecture' -v (uname -m <# --machine #>)
+		_setProperty -o $results -n 'Processor_L2CacheSize' -v (sysctl -hin hw.l2cachesize)
+		_setProperty -o $results -n 'Processor_L3CacheSize' -v (sysctl -hin hw.l3cachesize)	# doesn't exist but maybe will get added
+		_setProperty -o $results -n 'Processor_NumberOfCores' -v (sysctl -hin hw.physicalcpu)
+		_setProperty -o $results -n 'Processor_LogicalProcessors' -v (sysctl -hin hw.logicalcpu)
 		# don't see anything better for these next two:
-		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $(if ([System.Environment]::Is64BitOperatingSystem) { '64' } else { '32' })
-		_setProperty -obj $results -propName 'Processor_DataWidth' -propValue $(if ([System.Environment]::Is64BitOperatingSystem) { '64' } else { '32' })
+		_setProperty -o $results -n 'Processor_AddressWidth' -v $(if ([System.Environment]::Is64BitOperatingSystem) { '64' } else { '32' })
+		_setProperty -o $results -n 'Processor_DataWidth' -v $(if ([System.Environment]::Is64BitOperatingSystem) { '64' } else { '32' })
 	} elseif ((Get-Command -Name 'lscpu' -ErrorAction Ignore)) {
 		$lscpu = lscpu | ParseLinesToLookup
-		_setProperty -obj $results -propName 'Processor_Name' -propValue $lscpu['Model name']
-		_setProperty -obj $results -propName 'Processor_Architecture' -propValue $lscpu['Architecture']
-		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $lscpu['Address sizes']
+		_setProperty -o $results -n 'Processor_Name' -v $lscpu['Model name']
+		_setProperty -o $results -n 'Processor_Architecture' -v $lscpu['Architecture']
+		_setProperty -o $results -n 'Processor_AddressWidth' -v $lscpu['Address sizes']
 		$coresPerSocket = $lscpu['Core(s) per socket']
 		$socketCnt = $lscpu['Socket(s)']
 		if ($coresPerSocket -and $socketCnt) {
-			_setProperty -obj $results -propName 'Processor_NumberOfCores' -propValue ([int]$coresPerSocket * [int]$socketCnt)
+			_setProperty -o $results -n 'Processor_NumberOfCores' -v ([int]$coresPerSocket * [int]$socketCnt)
 		}
-		_setProperty -obj $results -propName 'Processor_LogicalProcessors' -propValue $lscpu['CPU(s)']
-		_setProperty -obj $results -propName 'Processor_L2CacheSize' -propValue $lscpu['L2 cache']
-		_setProperty -obj $results -propName 'Processor_L3CacheSize' -propValue $lscpu['L3 cache']
+		_setProperty -o $results -n 'Processor_LogicalProcessors' -v $lscpu['CPU(s)']
+		_setProperty -o $results -n 'Processor_L2CacheSize' -v $lscpu['L2 cache']
+		_setProperty -o $results -n 'Processor_L3CacheSize' -v $lscpu['L3 cache']
 	} elseif ((Test-Path -Path '/proc/cpuinfo' -ErrorAction Ignore)) {
 		$cpuinfo = Get-Content -Path '/proc/cpuinfo' | ParseLinesToLookup -saveFirstValue
-		_setProperty -obj $results -propName 'Processor_Name' -propValue $cpuinfo['model name']
-		_setProperty -obj $results -propName 'Processor_AddressWidth' -propValue $cpuinfo['address sizes']
-		_setProperty -obj $results -propName 'Processor_NumberOfCores' -propValue $cpuinfo['cpu cores']
+		_setProperty -o $results -n 'Processor_Name' -v $cpuinfo['model name']
+		_setProperty -o $results -n 'Processor_AddressWidth' -v $cpuinfo['address sizes']
+		_setProperty -o $results -n 'Processor_NumberOfCores' -v $cpuinfo['cpu cores']
 		# ???:
-		_setProperty -obj $results -propName 'Processor_LogicalProcessors' -propValue $cpuinfo['siblings']
-		_setProperty -obj $results -propName 'Processor_L3CacheSize' -propValue $cpuinfo['cache size']
+		_setProperty -o $results -n 'Processor_LogicalProcessors' -v $cpuinfo['siblings']
+		_setProperty -o $results -n 'Processor_L3CacheSize' -v $cpuinfo['cache size']
 	}
 	$procArch = $results | Where-Object { $_.Name -eq 'Processor_Architecture' }
 	if ((-not $procArch -or $procArch.Value -eq $script:NA) -and $unameAvail) {
@@ -213,24 +213,24 @@ function Main {
 		if (-not $procarch -or $procarch -eq 'unknown') {
 			$procarch = (uname --machine)	<# fall back; or should we just leave it blank ?? #>
 		}
-		_setProperty -obj $results -propName 'Processor_Architecture' -propValue $procarch
+		_setProperty -o $results -n 'Processor_Architecture' -v $procarch
 	}
 	$procDesc = $results | Where-Object { $_.Name -eq 'Processor_Description' }
 	$procName = $results | Where-Object { $_.Name -eq 'Processor_Name' }
 	if ($procName -and (-not $procDesc -or $procDesc.Value -eq $script:NA)) {
-		_setProperty -obj $results -propName 'Processor_Description' -propValue $procName.Value
+		_setProperty -o $results -n 'Processor_Description' -v $procName.Value
 	}
-	_addProperty -obj $results -propName 'Processor_IsVectorHardwareAccelerated' -propValue ([GetSysInfo.Intrinsics]::IsVectorHardwareAccelerated)
-	_addProperty -obj $results -propName 'Processor_IsVector64HardwareAccelerated' -propValue ([GetSysInfo.Intrinsics]::IsVector64HardwareAccelerated)
-	_addProperty -obj $results -propName 'Processor_IsVector128HardwareAccelerated' -propValue ([GetSysInfo.Intrinsics]::IsVector128HardwareAccelerated)
-	_addProperty -obj $results -propName 'Processor_IsVector256HardwareAccelerated' -propValue ([GetSysInfo.Intrinsics]::IsVector256HardwareAccelerated)
+	_addProperty -o $results -n 'Processor_IsVectorHardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVectorHardwareAccelerated)
+	_addProperty -o $results -n 'Processor_IsVector64HardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVector64HardwareAccelerated)
+	_addProperty -o $results -n 'Processor_IsVector128HardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVector128HardwareAccelerated)
+	_addProperty -o $results -n 'Processor_IsVector256HardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVector256HardwareAccelerated)
 
 	WriteVerboseMessage 'getting env var info'
-	_addProperty -obj $results -propName 'EnvVar_ProcessorArchitecture' -propValue (_getEnvVarValue -envVarName 'Processor_Architecture')
-	_addProperty -obj $results -propName 'EnvVar_ProcessorIdentifier' -propValue (_getEnvVarValue -envVarName 'Processor_Identifier')
-	_addProperty -obj $results -propName 'EnvVar_CPU' -propValue (_getEnvVarValue -envVarName 'CPU')
-	_addProperty -obj $results -propName 'EnvVar_HostType' -propValue (_getEnvVarValue -envVarName 'HostType')
-	_addProperty -obj $results -propName 'EnvVar_OsType' -propValue (_getEnvVarValue -envVarName 'OsType')
+	_addProperty -o $results -n 'EnvVar_ProcessorArchitecture' -v (_getEnvVarValue -n 'Processor_Architecture')
+	_addProperty -o $results -n 'EnvVar_ProcessorIdentifier' -v (_getEnvVarValue -n 'Processor_Identifier')
+	_addProperty -o $results -n 'EnvVar_CPU' -v (_getEnvVarValue -n 'CPU')
+	_addProperty -o $results -n 'EnvVar_HostType' -v (_getEnvVarValue -n 'HostType')
+	_addProperty -o $results -n 'EnvVar_OsType' -v (_getEnvVarValue -n 'OsType')
 
 	$allResults.SysProps = $results
 
@@ -286,9 +286,9 @@ function Main {
 function _getPropertyIfExists {
 	[OutputType([void])]
 	param(
-		[Parameter(Mandatory=$true)] [object] $object,
-		[Parameter(Mandatory=$true)] [string] $propertyName,
-		[object] $defaultVal = $null
+		[Parameter(Mandatory=$true)] [Alias('o')] [object] $object,
+		[Parameter(Mandatory=$true)] [Alias('n')] [string] $propertyName,
+		[Alias('v')] [object] $defaultVal = $null
 	)
 	if (HasProperty -object $object -propertyName $propertyName) {
 		return $object.$propertyName
@@ -299,9 +299,9 @@ function _getPropertyIfExists {
 function _getStaticPropertyIfExists {
 	[OutputType([void])]
 	param(
-		[Parameter(Mandatory=$true)] [type] $type,
-		[Parameter(Mandatory=$true)] [string] $propertyName,
-		[object] $defaultVal = $null
+		[Parameter(Mandatory=$true)] [Alias('t')] [type] $type,
+		[Parameter(Mandatory=$true)] [Alias('n')] [string] $propertyName,
+		[Alias('v')] [object] $defaultVal = $null
 	)
 	$prop = $type.GetProperty($propertyName, @([System.Reflection.BindingFlags]::Static, [System.Reflection.BindingFlags]::Public))
 	if ($prop) {
@@ -313,9 +313,9 @@ function _getStaticPropertyIfExists {
 function _addProperty {
 	[OutputType([void])]
 	param(
-		<# [Parameter(Mandatory=$true)] #> [ValidateNotNull()] [List[PSObject]] $obj,
-		[Parameter(Mandatory=$true)] [string] $propName,
-		[object] $propValue,
+		<# [Parameter(Mandatory=$true)] #> [ValidateNotNull()] [Alias('o')] [List[PSObject]] $obj,
+		[Parameter(Mandatory=$true)] [Alias('n')] [string] $propName,
+		[Alias('v')] [object] $propValue,
 		[switch] $allowNull
 	)
 	if (-not $allowNull -and ($propValue -eq $null -or ($propValue -is [string] -and $propValue -eq ''))) { $propValue = $script:NA }
@@ -325,9 +325,9 @@ function _addProperty {
 function _setProperty {
 	[OutputType([void])]
 	param(
-		[Parameter(Mandatory=$true)] [List[PSObject]] $obj,
-		[Parameter(Mandatory=$true)] [string] $propName,
-		[object] $propValue,
+		[Parameter(Mandatory=$true)] [Alias('o')] [List[PSObject]] $obj,
+		[Parameter(Mandatory=$true)] [Alias('n')] [string] $propName,
+		[Alias('v')] [object] $propValue,
 		[switch] $allowNull
 	)
 	if (-not $allowNull -and -not $propValue) { $propValue = $script:NA }
@@ -342,7 +342,7 @@ function _setProperty {
 function _getVariableValue {
 	[OutputType([string])]
 	param(
-		[Parameter(Mandatory=$true)] [string] $varName
+		[Parameter(Mandatory=$true)] [Alias('n')] [string] $varName
 	)
 	$value = ''
 	$v = Get-Variable -Name $varName -ErrorAction SilentlyContinue
@@ -356,7 +356,7 @@ function _getVariableValue {
 function _getEnvVarValue {
 	[OutputType([string])]
 	param(
-		[Parameter(Mandatory=$true)] [string] $envVarName
+		[Parameter(Mandatory=$true)] [Alias('n')] [string] $envVarName
 	)
 	$value = ''
 	$v = Get-Item -Path "env:$envVarName" -ErrorAction SilentlyContinue
