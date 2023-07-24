@@ -27,8 +27,20 @@ function Main {
 		[string] $saveToFldr
 	)
 	$allResults = @{}
+
 	WriteVerboseMessage 'dumping environment vars'
 	$allResults.EnvVars = Get-ChildItem -Path env: | Select-Object -Property Name,Value | Sort-Object -Property Name
+
+	WriteVerboseMessage 'dumping posh variables'
+	$allResults.PoshVars = Get-ChildItem -Path variable: |
+		Where-Object {
+			# this is horrible but can't find another way to filter out local vars:
+			$_.Name -notin @('StackTrace','allResults','_formatBase','_formatSizes','arrayObjStartRegex',,'multiObjRegex'
+							'asCsv','saveCsv','asJson','saveJson','asText','saveText','saveToFldr','outputFolder','cachedOsDetails',
+							'divider','input','NA','nonDisplayCharsMap','splitLine','properIndentsCache','stupidIndentsCache','twoSpaceIndentRegex')
+		} |
+		Select-Object -Property Name,Value |
+		Sort-Object -Property Name
 
 	# dump out special folder paths (??)
 	WriteVerboseMessage 'getting special folders'
@@ -228,6 +240,7 @@ function Main {
 		if ($saveJson) {
 			$encoding = if ($PSEdition -ne 'Core') { 'UTF8' } else { 'UTF8NoBOM' }
 			ConvertTo-ProperFormattedJson -InputObject $allResults.EnvVars | Set-Content -LiteralPath "$outputBaseName.EnvVars.json" -Encoding $encoding -NoNewline
+			ConvertTo-ProperFormattedJson -InputObject $allResults.PoshVars | Set-Content -LiteralPath "$outputBaseName.PoshVars.json" -Encoding $encoding -NoNewline
 			ConvertTo-ProperFormattedJson -InputObject $allResults.SpecFldrs | Set-Content -LiteralPath "$outputBaseName.SpecFldrs.json" -Encoding $encoding -NoNewline
 			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
 				ConvertTo-ProperFormattedJson -InputObject $allResults.UnameVals | Set-Content -LiteralPath "$outputBaseName.Uname.json" -Encoding $encoding -NoNewline
@@ -238,6 +251,7 @@ function Main {
 			$parms = @{ NoTypeInformation = $true; }
 			if ($PSEdition -eq 'Core') { $parms.Add('UseQuotes', 'AsNeeded') }
 			$allResults.EnvVars | Export-Csv -LiteralPath "$outputBaseName.EnvVars.csv" @parms
+			$allResults.PoshVars | Export-Csv -LiteralPath "$outputBaseName.PoshVars.csv" @parms
 			$allResults.SpecFldrs | Export-Csv -LiteralPath "$outputBaseName.SpecFldrs.csv" @parms
 			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
 				$allResults.UnameVals | Export-Csv -LiteralPath "$outputBaseName.Uname.csv" @parms
@@ -245,24 +259,27 @@ function Main {
 			$allResults.SysProps | Export-Csv -LiteralPath "$outputBaseName.SysProps.csv" @parms
 		}
 		if ($saveText) {
-			$allResults.EnvVars | Format-Table -AutoSize | Out-File -LiteralPath "$outputBaseName.EnvVars.txt" -Width 4096
-			$allResults.SpecFldrs | Format-Table -AutoSize -Property Folder,Path | Out-File -LiteralPath "$outputBaseName.SpecFldrs.txt" -Width 4096
+			$allResults.EnvVars | Format-Table -AutoSize -Wrap | Out-File -LiteralPath "$outputBaseName.EnvVars.txt" -Width 4096
+			$allResults.PoshVars | Format-Table -Property Name,@{Label='Value';Expression={$_.Value};Alignment='Left';} -AutoSize -Wrap | Out-File -LiteralPath "$outputBaseName.PoshVars.txt" -Width 4096
+			$allResults.SpecFldrs | Format-Table -Property Folder,Path -AutoSize -Wrap | Out-File -LiteralPath "$outputBaseName.SpecFldrs.txt" -Width 4096
 			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
-				$allResults.UnameVals | Format-Table -AutoSize | Out-File -LiteralPath "$outputBaseName.Uname.txt" -Width 4096
+				$allResults.UnameVals | Format-Table -AutoSize -Wrap | Out-File -LiteralPath "$outputBaseName.Uname.txt" -Width 4096
 			}
-			$allResults.SysProps | Format-Table -AutoSize | Out-File -LiteralPath "$outputBaseName.SysProps.txt" -Width 4096
+			$allResults.SysProps | Format-Table -AutoSize -Wrap | Out-File -LiteralPath "$outputBaseName.SysProps.txt" -Width 4096
 		}
 	} else {
 		WriteHeader -text 'Environment Variables' -includeExtraSpace $false
-		$allResults.EnvVars | Format-Table -AutoSize
+		$allResults.EnvVars | Format-Table -AutoSize -Wrap
+		WriteHeader -text 'PowerShell Variables' -includeExtraSpace $false
+		$allResults.PoshVars | Format-Table -Property Name,@{Label='Value';Expression={$_.Value};Alignment='Left';} -AutoSize -Wrap
 		WriteHeader -text 'System Special Folders'
-		$allResults.SpecFldrs | Format-Table -Property Folder,Path -AutoSize
+		$allResults.SpecFldrs | Format-Table -Property Folder,Path -AutoSize -Wrap
 		if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
 			WriteHeader -text 'uname'
-			$allResults.UnameVals | Format-Table -AutoSize
+			$allResults.UnameVals | Format-Table -AutoSize -Wrap
 		}
 		WriteHeader -text 'System Properties'
-		$allResults.SysProps | Format-Table -AutoSize
+		$allResults.SysProps | Format-Table -AutoSize -Wrap
 	}
 }
 
