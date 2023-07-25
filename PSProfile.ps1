@@ -1,3 +1,19 @@
+#Requires -Version 5.1
+[CmdletBinding(SupportsShouldProcess=$true)]
+param(
+	[switch] $install
+)
+if ($install) {
+	Write-Verbose "`$PROFILE = |$PROFILE|; this file = |$PSCommandPath|"
+	if (Test-Path -Path $PROFILE -PathType Leaf) {
+		Write-Warning "powershell profile `"$PROFILE`" already exists; exiting"
+	} else {
+		# create a symlink at $PROFILE pointing to this file:
+		Write-Host "creating symlink from |$PROFILE| to |$PSCommandPath|" -ForegroundColor Cyan
+		[void](New-Item -ItemType SymbolicLink -Path $PROFILE -Value $PSCommandPath)
+	}
+	return
+}
 # in case we're running < .net 4.6, make sure TLS 1.2 is enabled:
 if ([System.Net.ServicePointManager]::SecurityProtocol -ne 0 <# SystemDefault (added in 4.7/Core) #> -and
 	([System.Net.ServicePointManager]::SecurityProtocol -band [System.Net.SecurityProtocolType]::Tls12) -eq 0)
