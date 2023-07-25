@@ -81,11 +81,12 @@ function GetSortedPropertyNames {
 	return [string[]]($object | Get-Member -MemberType Property | ForEach-Object { $_.Name } | Sort-Object)
 }
 
-$script:properIndentsCache = @{ 1 = "`t"; 2 = "`t`t"; 3 = "`t`t`t"; 4 = "`t`t`t`t"; }
-$script:stupidIndentsCache = @{ 1 = '    '; 2 = '        '; 3 = '            '; 4 = '                '; }
-$script:twoSpaceIndentRegex = [regex]::new('^((?<fu>  )+)', @('MultiLine', 'Compiled'))
-$script:arrayObjStartRegex = [regex]::new('\[[\r\n\s]+{', @('MultiLine', 'Compiled'))
-$script:multiObjRegex = [regex]::new('},[\r\n\s]+{', @('MultiLine', 'Compiled'))
+# create script vars this way so we can set the Visibility to keep them only visible in this script (since this script is for dot sourcing, just using script:xxxx will still leak the vars into caller)
+Set-Variable -Scope 'Script' -Visibility 'Private' -Name 'properIndentsCache' -Value @{ 1 = "`t"; 2 = "`t`t"; 3 = "`t`t`t"; 4 = "`t`t`t`t"; }
+Set-Variable -Scope 'Script' -Visibility 'Private' -Name 'stupidIndentsCache' -Value @{ 1 = '    '; 2 = '        '; 3 = '            '; 4 = '                '; }
+Set-Variable -Scope 'Script' -Visibility 'Private' -Name 'twoSpaceIndentRegex' -Value ([regex]::new('^((?<fu>  )+)', @('MultiLine', 'Compiled')))
+Set-Variable -Scope 'Script' -Visibility 'Private' -Name 'arrayObjStartRegex' -Value ([regex]::new('\[[\r\n\s]+{', @('MultiLine', 'Compiled')))
+Set-Variable -Scope 'Script' -Visibility 'Private' -Name 'multiObjRegex' -Value ([regex]::new('},[\r\n\s]+{', @('MultiLine', 'Compiled')))
 function ConvertTo-ProperFormattedJson {
 	[OutputType([string])]
 	param(
@@ -128,7 +129,7 @@ function ConvertTo-ProperFormattedJson {
 	}
 }
 
-$script:splitLine = [regex]::new('^\s*(?<nam>.+?)\s*[:=]\s*("?)\s*(?<val>.+?)\s*\1\s*$', 'Compiled')
+Set-Variable -Scope 'Script' -Visibility 'Private' -Name 'splitLine' -Value ([regex]::new('^\s*(?<nam>.+?)\s*[:=]\s*("?)\s*(?<val>.+?)\s*\1\s*$', 'Compiled'))
 function ParseLinesToLookup {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([hashtable])]
@@ -156,8 +157,8 @@ function ParseLinesToLookup {
 	end { return $results }
 }
 
-$script:_formatSizes = @('', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB' <# ulong can't hold anything this big, but including just to be a nerd #>, 'YB')
-$script:_formatBase = 1024
+Set-Variable -Scope 'Script' -Visibility 'Private' -Name '_formatSizes' -Value @('', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB' <# ulong can't hold anything this big, but including just to be a nerd #>, 'YB')
+Set-Variable -Scope 'Script' -Visibility 'Private' -Name '_formatBase' -Value 1024
 function GetFriendlyBytes {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
