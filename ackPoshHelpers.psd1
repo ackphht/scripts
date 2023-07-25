@@ -1,5 +1,5 @@
 ﻿@{
-RootModule = 'helpers.psm1'
+RootModule = 'ackPoshHelpers.psm1'
 ModuleVersion = '1.0.0'
 GUID = 'ded707d6-74e8-4196-a635-3efa89573d43'
 Author = 'AckWare'

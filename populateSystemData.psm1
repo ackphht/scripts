@@ -6,9 +6,9 @@
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-# this script also gets symlinked as setUpSystem.00.SystemData for copying to other systems, so the helpers.ps1 might, too (ugh):
-if ([bool](Get-Module -Name "$PSScriptRoot/helpers.psd1" -ListAvailable)) {
-	Import-Module -Name "$PSScriptRoot/helpers.psd1"
+# this script also gets symlinked as setUpSystem.00.SystemData for copying to other systems, so the ackPoshHelpers.ps1 might, too (ugh):
+if ([bool](Get-Module -Name "$PSScriptRoot/ackPoshHelpers.psd1" -ListAvailable)) {
+	Import-Module -Name "$PSScriptRoot/ackPoshHelpers.psd1"
 } elseif ([bool](Get-Module -Name "setUpSystem.00.Helpers.psd1" -ListAvailable)) {
 	Import-Module -Name "$PSScriptRoot/setUpSystem.00.Helpers.psd1"
 }
