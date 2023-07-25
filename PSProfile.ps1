@@ -64,7 +64,7 @@ if ($PSEdition -ne 'Core' -or $IsWindows) {
 	Remove-Variable -Name 'properModulesDir'
 	Remove-Variable -Name 'documentsModulesDI'
 }
-$scriptsDir = "$HOME\scripts"
+$scriptsDir = (Join-Path -Path $HOME -ChildPath 'scripts')
 if (Test-Path -Path $scriptsDir -PathType Container) {
 	AddPathValue -pathVarName 'Path' -value $scriptsDir -prepend
 	AddPathValue -pathVarName 'PSModulePath' -value $scriptsDir -prepend
@@ -75,9 +75,13 @@ Remove-Variable -Name 'scriptsDir'
 # add oh-my-posh:
 #
 if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
-	foreach ($maybeAckTheme in @("$env:OneDrive/Documents/omp/ack.omp.json",
-									"$PSScriptRoot/Themes/ack.omp.json",
-									"$HOME/scripts/ack.omp.linux.json")) {
+	$themePaths = [System.Collections.Generic.List[string]]::new(4)
+	if (Test-Path -Path env:OneDrive) {
+		$themePaths.Add((Join-Path -Path $env:OneDrive -ChildPath 'Documents' -AdditionalChildPath 'omp','ack.omp.json'))
+	}
+	$themePaths.Add((Join-Path -Path $PSScriptRoot -ChildPath 'Themes' -AdditionalChildPath 'ack.omp.json'))
+	$themePaths.Add((Join-Path -Path $HOME -ChildPath 'scripts' -AdditionalChildPath 'ack.omp.linux.json'))
+	foreach ($maybeAckTheme in $themePaths) {
 		if (Test-Path -Path $maybeAckTheme -PathType Leaf) {
 			Write-Verbose "$($MyInvocation.InvocationName): using oh-my-posh profile `"$maybeAckTheme`""
 			oh-my-posh --init --shell pwsh --config $maybeAckTheme | Invoke-Expression
@@ -85,6 +89,7 @@ if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 		}
 	}
 	Remove-Variable -Name 'maybeAckTheme'
+	Remove-Variable -Name 'themePaths'
 	Set-Alias -Name 'omp' -Value 'oh-my-posh.exe'
 }
 #
@@ -134,7 +139,7 @@ if ($psReadLineProfile) {
 Remove-Variable -Name 'psReadLineProfile'
 
 # support having a profile that's system specific, not shared and not in git:
-$SystemProfile = "$HOME\.system_profile.ps1"
+$SystemProfile = Join-Path -Path $HOME -ChildPath '.system_profile.ps1'
 if (Test-Path -Path $SystemProfile -PathType Leaf) {
 	Write-Verbose "$($MyInvocation.InvocationName): importing local profile `"$SystemProfile`""
 	. $SystemProfile
