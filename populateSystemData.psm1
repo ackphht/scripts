@@ -7,7 +7,11 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 # this script also gets symlinked as setUpSystem.00.SystemData for copying to other systems, so the helpers.ps1 might, too (ugh):
-if (Test-Path -Path "$PSScriptRoot/helpers.ps1") { . "$PSScriptRoot/helpers.ps1" } elseif (Test-Path -Path "$PSScriptRoot/setUpSystem.00.Helpers.ps1") { . "$PSScriptRoot/setUpSystem.00.Helpers.ps1" }
+if ([bool](Get-Module -Name "$PSScriptRoot/helpers.psd1" -ListAvailable)) {
+	Import-Module -Name "$PSScriptRoot/helpers.psd1"
+} elseif ([bool](Get-Module -Name "setUpSystem.00.Helpers.psd1" -ListAvailable)) {
+	Import-Module -Name "$PSScriptRoot/setUpSystem.00.Helpers.psd1"
+}
 
 class OSDetails {
 	[string] $Platform			# 'Windows' or 'Linux' or 'MacOS'
