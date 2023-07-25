@@ -36,15 +36,17 @@ function AddPathValue {
 # fix up some paths:
 #
 if ($PSEdition -ne 'Core' -or $IsWindows) {
-	$properModulesDir = "$env:LocalAppData\PowerShell\Modules"
-	#if (-not (Test-Path -LiteralPath $properModulesDir -PathType Container)) {
-	#	New-Item -Path $properModulesDir -Type Directory | Out-Null
-	#}
 	AddPathValue -pathVarName 'Path' -value $PSScriptRoot -prepend
-	if (Test-Path -Path $properModulesDir -PathType Container) {
+	$properModulesDir = "$env:LocalAppData\PowerShell\Modules"
+	$documentsModulesDI = Get-Item -Path (Join-Path (Split-Path -Path $PROFILE -Parent) 'Modules') -ErrorAction SilentlyContinue
+	# add $properModulesDir to PSModulePath:
+	if ((Test-Path -Path $properModulesDir -PathType Container) -and
+			# but only if the Modules folder in the Documents folder (sigh) isn't a junction/symlink pointing to it:
+			-not ($documentsModulesDI -and $documentsModulesDI.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint) -and $properModulesDir -in @($documentsModulesDI.Target))) {
 		AddPathValue -pathVarName 'PSModulePath' -value $properModulesDir -prepend
 	}
 	Remove-Variable -Name 'properModulesDir'
+	Remove-Variable -Name 'documentsModulesDI'
 }
 $scriptsDir = "$HOME\scripts"
 if (Test-Path -Path $scriptsDir -PathType Container) {
