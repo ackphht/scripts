@@ -13,8 +13,8 @@ param(
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Continue
 Set-StrictMode -Version Latest
 
-. $PSScriptRoot/helpers.ps1
-. $PSScriptRoot/populateSystemData.ps1
+Import-Module -Name $PSScriptRoot/ackPoshHelpers
+Import-Module -Name $PSScriptRoot/populateSystemData
 
 $script:NA = 'N/A'
 

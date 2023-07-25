@@ -14,7 +14,7 @@ if ($showAllProps) {
 	$propList = @('Id','Distributor','Description','Codename','Release','KernelVersion')
 }
 
-. $PSScriptRoot/populateSystemData.ps1
+Import-Module -Name $PSScriptRoot/populateSystemData
 Get-OSDetails |
 	Select-Object -Property $propList |
 	Format-List

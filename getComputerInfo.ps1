@@ -9,7 +9,7 @@ param(
 $script:bigDivider = '=' * 80
 $script:smallDivider = '-' * 80
 
-. $PSScriptRoot/helpers.ps1
+Import-Module -Name $PSScriptRoot/ackPoshHelpers
 Set-StrictMode -Off # helpers.ps1 above is turning it on
 
 $script:cimAvailable = [bool](Get-Command -Name 'Get-CimInstance' -ErrorAction SilentlyContinue)

@@ -17,7 +17,7 @@ param(
 	[switch] $onlyMisc
 )
 
-. $PSScriptRoot/helpers.ps1
+Import-Module -Name $PSScriptRoot/ackPoshHelpers
 
 Set-StrictMode -Off #-Version Latest	# helpers.ps1 above is turning it on, which i didn't think was supposed to happen ??
 #[System.Environment]::CurrentDirectory = (Get-Location).Path
