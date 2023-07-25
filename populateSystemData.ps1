@@ -40,7 +40,7 @@ class OSDetails {
 }
 
 # create script vars this way so we can set the Visibility to keep them only visible in this script (since this script is for dot sourcing, just using script:xxxx will still leak the vars into caller)
-Set-Variable -Scope 'Script' -Visibility 'Private' -Name 'cachedOsDetails' -Value $null		# it's not going to change, so...
+New-Variable -Scope 'Script' -Visibility 'Private' -Name 'cachedOsDetails' -Value $null		# it's not going to change, so...
 function Get-OSDetails {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([OSDetails])]
