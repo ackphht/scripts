@@ -77,10 +77,10 @@ Remove-Variable -Name 'scriptsDir'
 if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 	$themePaths = [System.Collections.Generic.List[string]]::new(4)
 	if (Test-Path -Path env:OneDrive) {
-		$themePaths.Add((Join-Path -Path $env:OneDrive -ChildPath 'Documents' -AdditionalChildPath 'omp','ack.omp.json'))
+		$themePaths.Add([System.IO.Path]::Combine($env:OneDrive, 'Documents', 'omp', 'ack.omp.json'))	# Join-Path has different signature on desktop posh, so can't use that
 	}
-	$themePaths.Add((Join-Path -Path $PSScriptRoot -ChildPath 'Themes' -AdditionalChildPath 'ack.omp.json'))
-	$themePaths.Add((Join-Path -Path $HOME -ChildPath 'scripts' -AdditionalChildPath 'ack.omp.linux.json'))
+	$themePaths.Add([System.IO.Path]::Combine($PSScriptRoot, 'Themes', 'ack.omp.json'))
+	$themePaths.Add([System.IO.Path]::Combine($HOME, 'scripts', 'ack.omp.linux.json'))
 	foreach ($maybeAckTheme in $themePaths) {
 		if (Test-Path -Path $maybeAckTheme -PathType Leaf) {
 			Write-Verbose "$($MyInvocation.InvocationName): using oh-my-posh profile `"$maybeAckTheme`""
