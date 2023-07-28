@@ -9,6 +9,10 @@ if ($install) {
 		Write-Warning "powershell profile `"$PROFILE`" already exists; exiting"
 	} else {
 		# create a symlink at $PROFILE pointing to this file:
+		$profileFldr = Split-Path -Path $PROFILE -Parent
+		if (-not (Test-Path -Path $profileFldr -PathType Container)) {
+			[void] (New-Item -ItemType Directory -Path $profileFldr -Force)
+		}
 		Write-Host "creating symlink from |$PROFILE| to |$PSCommandPath|" -ForegroundColor Cyan
 		[void](New-Item -ItemType SymbolicLink -Path $PROFILE -Value $PSCommandPath)
 	}
