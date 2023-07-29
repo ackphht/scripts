@@ -162,75 +162,75 @@ function ConfigureWindowsAndExplorer {
 	$hklmPoliciesMicrosoft = "$hklmSoftware\Policies\Microsoft"
 
 	# disable prefixing 'Shortcut to' when creating shortcuts
-	SetRegistryEntry -path $hkcuCurrentVersionExplorer -name 'link' -value ([byte[]](0x00,0x00,0x00,0x00)) -type 'Binary'
+	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'link' -v ([byte[]](0x00,0x00,0x00,0x00)) -t 'Binary'
 	# DateTime preferences:
-	SetRegistryEntry -path $hkcuCtrlPnlIntl -name 'sShortDate' -value 'yyyy-MM-dd' -type 'String'
-	SetRegistryEntry -path $hkcuCtrlPnlIntl -name 'sShortTime' -value 'HH:mm' -type 'String'
-	SetRegistryEntry -path $hkcuCtrlPnlIntl -name 'sTimeFormat' -value 'HH:mm:ss' -type 'String'
+	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'sShortDate' -v 'yyyy-MM-dd' -t 'String'
+	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'sShortTime' -v 'HH:mm' -t 'String'
+	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'sTimeFormat' -v 'HH:mm:ss' -t 'String'
 	# (not sure if i actually need these, but they were on my list before, so)
-	SetRegistryEntry -path $hkcuCtrlPnlIntl -name 'sDate' -value '-' -type 'String'
-	SetRegistryEntry -path $hkcuCtrlPnlIntl -name 'iDate' -value '2' -type 'String'
-	SetRegistryEntry -path $hkcuCtrlPnlIntl -name 'iTime' -value '1' -type 'String'
-	SetRegistryEntry -path $hkcuCtrlPnlIntl -name 'iTLZero' -value '1' -type 'String'
+	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'sDate' -v '-' -t 'String'
+	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iDate' -v '2' -t 'String'
+	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iTime' -v '1' -t 'String'
+	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iTLZero' -v '1' -t 'String'
 	# Explorer options:
-	SetRegistryEntry -path $hkcuCurrentVersionExplorer -name 'ShowRecent' -value 0 -type 'DWord'					# don't show recent files in Quick Access
-	SetRegistryEntry -path $hkcuCurrentVersionExplorer -name 'ShowFrequent' -value 1 -type 'DWord'					# do show frequent folders in Quick Access
-	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'Hidden' -value 1 -type 'DWord'						# show hidden files
-	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'HideFileExt' -value 0 -type 'DWord'				# don't hide file extensions
-	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'PersistBrowsers' -value 0 -type 'DWord'			# don't restore previous windows at login
-	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'ShowEncryptCompressedColor' -value 1 -type 'DWord'	# show compressed & encrypted files names in color
-	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'AutoCheckSelect' -value 0 -type 'DWord'			# don't use checkboxes for selecting files/folders
-	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'HideMergeConflicts' -value 0 -type 'DWord'			# don't show folder merge conflicts
-	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'LaunchTo' -value 1 -type 'DWord'					# Open File Explorer to "This PC" (2 = Quick Access)
-	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'SeparateProcess' -value 0 -type 'DWord'			# disable launch folders in separate process
-	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'ShowTaskViewButton' -value 0 -type 'DWord'			# hide Task View button on taskbar
-	SetRegistryEntry -path "$hkcuCurrentVersionExplorer\CabinetState" -name 'FullPath' -value 1 -type 'DWord'		# show full path in titlebar
-	#SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'NavPaneShowAllFolders' -value 1 -type 'DWord'
+	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowRecent' -v 0 -t 'DWord'					# don't show recent files in Quick Access
+	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowFrequent' -v 1 -t 'DWord'					# do show frequent folders in Quick Access
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'Hidden' -v 1 -t 'DWord'						# show hidden files
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'HideFileExt' -v 0 -t 'DWord'				# don't hide file extensions
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'PersistBrowsers' -v 0 -t 'DWord'			# don't restore previous windows at login
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'ShowEncryptCompressedColor' -v 1 -t 'DWord'	# show compressed & encrypted files names in color
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'AutoCheckSelect' -v 0 -t 'DWord'			# don't use checkboxes for selecting files/folders
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'HideMergeConflicts' -v 0 -t 'DWord'			# don't show folder merge conflicts
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'LaunchTo' -v 1 -t 'DWord'					# Open File Explorer to "This PC" (2 = Quick Access)
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'SeparateProcess' -v 0 -t 'DWord'			# disable launch folders in separate process
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'ShowTaskViewButton' -v 0 -t 'DWord'			# hide Task View button on taskbar
+	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\CabinetState" -n 'FullPath' -v 1 -t 'DWord'		# show full path in titlebar
+	#SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'NavPaneShowAllFolders' -v 1 -t 'DWord'
 	# screen saver grace period before locking system:
-	SetRegistryEntry -path "$hkcuCurrentVersion\Winlogon" -name 'ScreenSaverGracePeriod' -value 10 -type 'DWord'
+	SetRegistryEntry -p "$hkcuCurrentVersion\Winlogon" -n 'ScreenSaverGracePeriod' -v 10 -t 'DWord'
 	# disable saving zone information in downloads (that Sophia app/module/whatever writes to somewhere else [function 'SaveZoneInformation'], but below has always worked for me)
-	SetRegistryEntry -path "$hkcuCurrentVersion\Policies\Associations" -name 'DefaultFileTypeRisk' -value 0x1808 -type 'DWord'	# 0x1808 = "Low Risk"; 0x1807 = "Moderate", 0x1806 = "High Risk"
-	SetRegistryEntry -path "$hkcuCurrentVersion\Policies\Attachments" -name 'SaveZoneInformation' -value 1 -type 'DWord'			# 1 = "Do not preserve zone information", 2 = "Do preserve zone information"
+	SetRegistryEntry -p "$hkcuCurrentVersion\Policies\Associations" -n 'DefaultFileTypeRisk' -v 0x1808 -t 'DWord'	# 0x1808 = "Low Risk"; 0x1807 = "Moderate", 0x1806 = "High Risk"
+	SetRegistryEntry -p "$hkcuCurrentVersion\Policies\Attachments" -n 'SaveZoneInformation' -v 1 -t 'DWord'			# 1 = "Do not preserve zone information", 2 = "Do preserve zone information"
 	# show explorer file operations in Detailed/Expanded mode
-	SetRegistryEntry -path "$hkcuCurrentVersionExplorer\OperationStatusManager" -name 'EnthusiastMode' -value 1 -type 'DWord'
+	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\OperationStatusManager" -n 'EnthusiastMode' -v 1 -t 'DWord'
 	# enable Large Icons in Control Panel:
-	SetRegistryEntry -path "$hkcuCurrentVersionExplorer\ControlPanel" -name 'AllItemsIconView' -value 0 -type 'DWord'
-	SetRegistryEntry -path "$hkcuCurrentVersionExplorer\ControlPanel" -name 'StartupPage' -value 1 -type 'DWord'
+	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\ControlPanel" -n 'AllItemsIconView' -v 0 -t 'DWord'
+	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\ControlPanel" -n 'StartupPage' -v 1 -t 'DWord'
 	# show Details pane in right side:
-	SetRegistryEntry -path "$hkcuCurrentVersionExplorer\Modules\GlobalSettings\DetailsContainer" -name 'DetailsContainer' -value ([byte[]](0x01,0x00,0x00,0x00,0x02,0x00,0x00,0x00)) -type 'Binary'
-	SetRegistryEntry -path "$hkcuCurrentVersionExplorer\Modules\GlobalSettings\Sizer" -name 'DetailsContainerSizer' -value ([byte[]](0x15,0x01,0x00,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xe1,0x04,0x00,0x00)) -type 'Binary'
+	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\Modules\GlobalSettings\DetailsContainer" -n 'DetailsContainer' -v ([byte[]](0x01,0x00,0x00,0x00,0x02,0x00,0x00,0x00)) -t 'Binary'
+	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\Modules\GlobalSettings\Sizer" -n 'DetailsContainerSizer' -v ([byte[]](0x15,0x01,0x00,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xe1,0x04,0x00,0x00)) -t 'Binary'
 	# show Libraries on left side (i think):
-	SetRegistryEntry -path "$hkcuClasses\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -name 'System.IsPinnedToNameSpaceTree' -value 1 -type 'DWord'
+	SetRegistryEntry -p "$hkcuClasses\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -n 'System.IsPinnedToNameSpaceTree' -v 1 -t 'DWord'
 	# set console default params:
 	$consoleKey = 'HKCU:\Console'
-	SetRegistryEntry -path $consoleKey -name 'WindowSize' -value 0x003200a0 -type 'DWord'	# 160x50
-	SetRegistryEntry -path $consoleKey -name 'FaceName' -value 'Consolas' -type 'String'
-	SetRegistryEntry -path $consoleKey -name 'FontSize' -value 0x00100000 -type 'DWord'		# 16
+	SetRegistryEntry -p $consoleKey -n 'WindowSize' -v 0x003200a0 -t 'DWord'	# 160x50
+	SetRegistryEntry -p $consoleKey -n 'FaceName' -v 'Consolas' -t 'String'
+	SetRegistryEntry -p $consoleKey -n 'FontSize' -v 0x00100000 -t 'DWord'		# 16
 	$consoleKey = 'HKCU:\Console\%SystemRoot%_System32_WindowsPowerShell_v1.0_powershell.exe'
 	if (Test-Path -LiteralPath $consoleKey) {
-		SetRegistryEntry -path $consoleKey -name 'WindowSize' -value 0x003200a0 -type 'DWord'	# 160x50
-		SetRegistryEntry -path $consoleKey -name 'FaceName' -value 'Consolas' -type 'String'
-		SetRegistryEntry -path $consoleKey -name 'FontSize' -value 0x00100000 -type 'DWord'		# 16
+		SetRegistryEntry -p $consoleKey -n 'WindowSize' -v 0x003200a0 -t 'DWord'	# 160x50
+		SetRegistryEntry -p $consoleKey -n 'FaceName' -v 'Consolas' -t 'String'
+		SetRegistryEntry -p $consoleKey -n 'FontSize' -v 0x00100000 -t 'DWord'		# 16
 	}
 	$consoleKey = 'HKCU:\Console\%SystemRoot%_SYSTEM32_cmd.exe'
 	if (Test-Path -LiteralPath $consoleKey) {
-		SetRegistryEntry -path $consoleKey -name 'WindowSize' -value 0x003200a0 -type 'DWord'	# 160x50
-		SetRegistryEntry -path $consoleKey -name 'FaceName' -value 'Consolas' -type 'String'
-		SetRegistryEntry -path $consoleKey -name 'FontSize' -value 0x00100000 -type 'DWord'		# 16
+		SetRegistryEntry -p $consoleKey -n 'WindowSize' -v 0x003200a0 -t 'DWord'	# 160x50
+		SetRegistryEntry -p $consoleKey -n 'FaceName' -v 'Consolas' -t 'String'
+		SetRegistryEntry -p $consoleKey -n 'FontSize' -v 0x00100000 -t 'DWord'		# 16
 	}
 	# enable showing Restart Notifications for Windows Update
-	SetRegistryEntry -path "$hklmSoftware\Microsoft\WindowsUpdate\UX\Settings" -name 'RestartNotificationsAllowed2' -value 1 -type 'DWord'
+	SetRegistryEntry -p "$hklmSoftware\Microsoft\WindowsUpdate\UX\Settings" -n 'RestartNotificationsAllowed2' -v 1 -t 'DWord'
 	# disable auto restarting after updates
-	SetRegistryEntry -path "$hklmSoftware\Microsoft\WindowsUpdate\UX\Settings" -name 'IsExpedited' -value 0 -type 'DWord'
+	SetRegistryEntry -p "$hklmSoftware\Microsoft\WindowsUpdate\UX\Settings" -n 'IsExpedited' -v 0 -t 'DWord'
 	# disable expand to open folder on navigation pane
-	SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'NavPaneExpandToCurrentFolder' -value 0 -type 'DWord'
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'NavPaneExpandToCurrentFolder' -v 0 -t 'DWord'
 	# always underline access key menu shortcuts:
-	SetRegistryEntry -path "$hkcuCtrlPnl\Accessibility\Keyboard Preference" -name 'On' -value '1' -type 'String'
+	SetRegistryEntry -p "$hkcuCtrlPnl\Accessibility\Keyboard Preference" -n 'On' -v '1' -t 'String'
 	# turn on NumLock by default
-	SetRegistryEntry -path "$hkcuCtrlPnl\Keyboard" -name 'InitialKeyboardIndicators' -value '2' -type 'String'
-	SetRegistryEntry -path 'Registry::HKEY_USERS\.DEFAULT\Control Panel\Keyboard' -name 'InitialKeyboardIndicators' -value '2147483650' -type 'String'	# the '.DEFAULT' one has the upper bit set, too ??
+	SetRegistryEntry -p "$hkcuCtrlPnl\Keyboard" -n 'InitialKeyboardIndicators' -v '2' -t 'String'
+	SetRegistryEntry -p 'Registry::HKEY_USERS\.DEFAULT\Control Panel\Keyboard' -n 'InitialKeyboardIndicators' -v '2147483650' -t 'String'	# the '.DEFAULT' one has the upper bit set, too ??
 	# disable all AutoPlay handlers
-	SetRegistryEntry -Path "$hkcuCurrentVersionExplorer\AutoplayHandlers" -name 'DisableAutoplay' -value 1 -type 'DWord'
+	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\AutoplayHandlers" -n 'DisableAutoplay' -v 1 -t 'DWord'
 
 	if ($osDetails.ReleaseVersion.Major -ge 6) {	# Vista and up
 		# make sure current account has user right to create symlinks:
@@ -239,101 +239,101 @@ function ConfigureWindowsAndExplorer {
 
 	if ($osDetails.ReleaseVersion.Major -in @(10, 11)) {	# TODO?: maybe could check based on build number, so it would for servers, too, and handle future version of Windows
 		# set default color mode to Dark:
-		SetRegistryEntry -path "$hkcuCurrentVersion\Themes\Personalize" -name 'SystemUsesLightTheme' -value 0 -type 'DWord'
-		SetRegistryEntry -path "$hkcuCurrentVersion\Themes\Personalize" -name 'AppsUseLightTheme' -value 0 -type 'DWord'
-		SetRegistryEntry -path "$hkcuCurrentVersion\Themes\Personalize" -name 'EnableTransparency' -value 1 -type 'DWord'	# enable transparency effects
-		SetRegistryEntry -path $hkcuCtrlDesktop -name 'AutoColorization' -value 1 -type 'DWord'						# automatically select accent color from background
-		SetRegistryEntry -path "$hkcuSoftwareMicrosoft\Windows\DWM" -name 'ColorPrevalence' -value 1 -type 'DWord'	# show accent colors on title bars and window borders
+		SetRegistryEntry -p "$hkcuCurrentVersion\Themes\Personalize" -n 'SystemUsesLightTheme' -v 0 -t 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersion\Themes\Personalize" -n 'AppsUseLightTheme' -v 0 -t 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersion\Themes\Personalize" -n 'EnableTransparency' -v 1 -t 'DWord'	# enable transparency effects
+		SetRegistryEntry -p $hkcuCtrlDesktop -n 'AutoColorization' -v 1 -t 'DWord'						# automatically select accent color from background
+		SetRegistryEntry -p "$hkcuSoftwareMicrosoft\Windows\DWM" -n 'ColorPrevalence' -v 1 -t 'DWord'	# show accent colors on title bars and window borders
 		# set dark wallpaper if it's currently Windows 11 light wallpaper:
 		if ($osDetails.ReleaseVersion.Major -eq 11) {
 			$wp = GetRegPropertyValue -registryPath $hkcuCtrlDesktop -propertyName 'WallPaper'
 			if ($wp -like '*\img0.jpg')	{
 				$newWpPath = $wp -replace '\\img0\.jpg','\img19.jpg'
-				SetRegistryEntry -path $hkcuCtrlDesktop -name 'WallPaper' -value $newWpPath -type 'String'
+				SetRegistryEntry -p $hkcuCtrlDesktop -n 'WallPaper' -v $newWpPath -t 'String'
 				[AckWare.WallpaperHelper]::SetWallpaper($newWpPath)
 			}
 		}
 		# show some icons on desktop
-		SetRegistryEntry -path "$hkcuCurrentVersionExplorer\HideDesktopIcons\NewStartPanel" -name '{59031a47-3f72-44a7-89c5-5595fe6b30ee}' <# home folder #> -value 0 -type 'DWord'
-		SetRegistryEntry -path "$hkcuCurrentVersionExplorer\HideDesktopIcons\NewStartPanel" -name '{20D04FE0-3AEA-1069-A2D8-08002B30309D}' <# This PC #> -value 0 -type 'DWord'
-		SetRegistryEntry -path "$hkcuCurrentVersionExplorer\HideDesktopIcons\NewStartPanel" -name '{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}' <# Network #> -value 0 -type 'DWord'
-		#SetRegistryEntry -path "$hkcuCurrentVersionExplorer\HideDesktopIcons\NewStartPanel" -name '{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}' <# Control Panel #> -value 0 -type 'DWord'
-		#SetRegistryEntry -path "$hkcuCurrentVersionExplorer\HideDesktopIcons\NewStartPanel" -name '{018D5C66-4533-4307-9B53-224DE2ED1FE6}' <# OneDrive #> -value 0 -type 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersionExplorer\HideDesktopIcons\NewStartPanel" -n '{59031a47-3f72-44a7-89c5-5595fe6b30ee}' <# home folder #> -v 0 -t 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersionExplorer\HideDesktopIcons\NewStartPanel" -n '{20D04FE0-3AEA-1069-A2D8-08002B30309D}' <# This PC #> -v 0 -t 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersionExplorer\HideDesktopIcons\NewStartPanel" -n '{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}' <# Network #> -v 0 -t 'DWord'
+		#SetRegistryEntry -p "$hkcuCurrentVersionExplorer\HideDesktopIcons\NewStartPanel" -n '{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}' <# Control Panel #> -v 0 -t 'DWord'
+		#SetRegistryEntry -p "$hkcuCurrentVersionExplorer\HideDesktopIcons\NewStartPanel" -n '{018D5C66-4533-4307-9B53-224DE2ED1FE6}' <# OneDrive #> -v 0 -t 'DWord'
 		# enable clipboard history:
-		SetRegistryEntry -path "$hkcuSoftwareMicrosoft\Clipboard" -name 'EnableClipboardHistory' -value 1 -type 'DWord'
+		SetRegistryEntry -p "$hkcuSoftwareMicrosoft\Clipboard" -n 'EnableClipboardHistory' -v 1 -t 'DWord'
 		# enable saving and restarting apps
-		SetRegistryEntry -Path "$hkcuCurrentVersionNT\Winlogon" -name 'RestartApps' -value 1 -type 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersionNT\Winlogon" -n 'RestartApps' -v 1 -t 'DWord'
 		# disable Cortana autostarting: 0 = default (?); 1 = disabled, 2 = enabled
-		SetRegistryEntry -Path "$hkcuClasses\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -name 'State' -value 1 -type 'DWord'
+		SetRegistryEntry -p "$hkcuClasses\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -n 'State' -v 1 -t 'DWord'
 		# enable long paths
-		SetRegistryEntry -path "$hklmCurrCtrlSet\Control\FileSystem" -name 'LongPathsEnabled' -value 1 -type 'DWord'
+		SetRegistryEntry -p "$hklmCurrCtrlSet\Control\FileSystem" -n 'LongPathsEnabled' -v 1 -t 'DWord'
 		# disable Connected Standby:
-		#SetRegistryEntry -path "$hklmCurrCtrlSet\Control\Power" -name 'CsEnabled' -value 0 -type 'DWord'
+		#SetRegistryEntry -p "$hklmCurrCtrlSet\Control\Power" -n 'CsEnabled' -v 0 -t 'DWord'
 		if ($osDetails.ReleaseVersion.Major -eq 10) {
 			# hide the People taskbar button
-			SetRegistryEntry -path "$hkcuCurrentVersionExplorer\Advanced\People" -name 'PeopleBand' -value 0 -type 'DWord'
+			SetRegistryEntry -p "$hkcuCurrentVersionExplorer\Advanced\People" -n 'PeopleBand' -v 0 -t 'DWord'
 		} elseif ($osDetails.ReleaseVersion.Major -eq 11) {
 			# turn on 'Compact view':
-			SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'UseCompactMode' -value 1 -type 'DWord'
+			SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'UseCompactMode' -v 1 -t 'DWord'
 			# taskbar alignment: 1 = Center, 0 = Left
-			SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'TaskbarAl' -value 1 -type 'DWord'
+			SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'TaskbarAl' -v 1 -t 'DWord'
 			# start menu layout: 0 = default; 1 = more pins, 2 = more recommendations
-			SetRegistryEntry -path $hkcuCurrentVersionExplorerAdv -name 'Start_Layout' -value 1 -type 'DWord'
+			SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'Start_Layout' -v 1 -t 'DWord'
 			# disable Teams autostarting: 0 = default (?); 1 = disabled, 2 = enabled
-			SetRegistryEntry -Path "$hkcuClasses\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask" -name 'State' -value 1 -type 'DWord'
+			SetRegistryEntry -p "$hkcuClasses\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask" -n 'State' -v 1 -t 'DWord'
 		}
 		#
 		# annoyances:
 		#
 		# disable Search Highlights:
-		SetRegistryEntry -path "$hkcuCurrentVersion\Feeds\DSB" -name 'ShowDynamicContent' -value 0 -type 'DWord'
-		SetRegistryEntry -path "$hkcuCurrentVersion\SearchSettings" -name 'IsDynamicSearchBoxEnabled' -value 0 -type 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersion\Feeds\DSB" -n 'ShowDynamicContent' -v 0 -t 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersion\SearchSettings" -n 'IsDynamicSearchBoxEnabled' -v 0 -t 'DWord'
 		# disable Search box on Taskbar
-		SetRegistryEntry -path "$hkcuCurrentVersion\Search" -name 'SearchboxTaskbarMode' -value 0 -type 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersion\Search" -n 'SearchboxTaskbarMode' -v 0 -t 'DWord'
 		# disable AdvertisingId ('The permission for apps to show me personalized ads by using my advertising ID')
-		SetRegistryEntry -path "$hkcuCurrentVersion\AdvertisingInfo" -name 'Enabled' -value 0 -type 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersion\AdvertisingInfo" -n 'Enabled' -v 0 -t 'DWord'
 		# disable Windows Welcome Experience ('The Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested')
-		SetRegistryEntry -path $hkcuCurrentVersionCntntDlvry -name 'SubscribedContent-310093Enabled' -value 0 -type 'DWord'
+		SetRegistryEntry -p $hkcuCurrentVersionCntntDlvry -n 'SubscribedContent-310093Enabled' -v 0 -t 'DWord'
 		# disable app suggestions in the Start menu
-		SetRegistryEntry -path $hkcuCurrentVersionCntntDlvry -name 'SubscribedContent-338388Enabled' -value 0 -type 'DWord'
+		SetRegistryEntry -p $hkcuCurrentVersionCntntDlvry -n 'SubscribedContent-338388Enabled' -v 0 -t 'DWord'
 		# disable Windows Tips ('getting tip and suggestions when I use Windows')
-		SetRegistryEntry -path $hkcuCurrentVersionCntntDlvry -name 'SubscribedContent-338389Enabled' -value 0 -type 'DWord'
+		SetRegistryEntry -p $hkcuCurrentVersionCntntDlvry -n 'SubscribedContent-338389Enabled' -v 0 -t 'DWord'
 		# disable SuggestedContent ('suggestion content in the Settings app')
-		SetRegistryEntry -path $hkcuCurrentVersionCntntDlvry -name 'SubscribedContent-338393Enabled' -value 0 -type 'DWord'
-		SetRegistryEntry -path $hkcuCurrentVersionCntntDlvry -name 'SubscribedContent-353694Enabled' -value 0 -type 'DWord'
-		SetRegistryEntry -path $hkcuCurrentVersionCntntDlvry -name 'SubscribedContent-353696Enabled' -value 0 -type 'DWord'
+		SetRegistryEntry -p $hkcuCurrentVersionCntntDlvry -n 'SubscribedContent-338393Enabled' -v 0 -t 'DWord'
+		SetRegistryEntry -p $hkcuCurrentVersionCntntDlvry -n 'SubscribedContent-353694Enabled' -v 0 -t 'DWord'
+		SetRegistryEntry -p $hkcuCurrentVersionCntntDlvry -n 'SubscribedContent-353696Enabled' -v 0 -t 'DWord'
 		# disable SilentInstalledAppsEnabled ('Automatic installing suggested apps')
-		SetRegistryEntry -path $hkcuCurrentVersionCntntDlvry -name 'SilentInstalledAppsEnabled' -value 0 -type 'DWord'
+		SetRegistryEntry -p $hkcuCurrentVersionCntntDlvry -n 'SilentInstalledAppsEnabled' -v 0 -t 'DWord'
 		# disable 'Ways to get the most out of Windows and finish setting up this device'
-		SetRegistryEntry -path "$hkcuCurrentVersion\UserProfileEngagement" -name 'ScoobeSystemSettingEnabled' -value 0 -type 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersion\UserProfileEngagement" -n 'ScoobeSystemSettingEnabled' -v 0 -t 'DWord'
 		# disable Tailored Experiences ('let Microsoft use your diagnostic data for personalized tips, ads, and recommendations')
-		SetRegistryEntry -path "$hkcuCurrentVersion\Privacy" -name 'TailoredExperiencesWithDiagnosticDataEnabled' -value 0 -type 'DWord'
+		SetRegistryEntry -p "$hkcuCurrentVersion\Privacy" -n 'TailoredExperiencesWithDiagnosticDataEnabled' -v 0 -t 'DWord'
 		# disable First Logon Animation
-		SetRegistryEntry -path "$hklmSoftware\Microsoft\Windows NT\CurrentVersion\Winlogon" -name 'EnableFirstLogonAnimation' -value 0 -type 'DWord'
+		SetRegistryEntry -p "$hklmSoftware\Microsoft\Windows NT\CurrentVersion\Winlogon" -n 'EnableFirstLogonAnimation' -v 0 -t 'DWord'
 		# Hide recently added apps in the Start menu
-		SetRegistryEntry -path "$hklmPoliciesMicrosoft\Windows\Explorer" -name 'HideRecentlyAddedApps' -value 1 -type 'DWord'
+		SetRegistryEntry -p "$hklmPoliciesMicrosoft\Windows\Explorer" -n 'HideRecentlyAddedApps' -v 1 -t 'DWord'
 		## disable XXXXXXXX ('zzzzzzzz')
-		#SetRegistryEntry -path 'XXXXXXX' -name 'ZZZZZZZZ' -value 0 -type 'DWord'
+		#SetRegistryEntry -p 'XXXXXXX' -n 'ZZZZZZZZ' -v 0 -t 'DWord'
 	}
 
 	# add Open With Notepad:
-	#SetRegistryEntry -path "$hkcuClasses\*\shell\Notepad" -name '(default)' -value 'Open with Notepad' -type 'String'
-	#SetRegistryEntry -path "$hkcuClasses\*\shell\Notepad" -name 'Icon' -value '%SystemRoot%\system32\notepad.exe' -type 'ExpandString'
-	#SetRegistryEntry -path "$hkcuClasses\*\shell\Notepad\Command" -name '(default)' -value '%SystemRoot%\system32\notepad.exe "%1"' -type 'ExpandString'
+	#SetRegistryEntry -p "$hkcuClasses\*\shell\Notepad" -n '(default)' -v 'Open with Notepad' -t 'String'
+	#SetRegistryEntry -p "$hkcuClasses\*\shell\Notepad" -n 'Icon' -v '%SystemRoot%\system32\notepad.exe' -t 'ExpandString'
+	#SetRegistryEntry -p "$hkcuClasses\*\shell\Notepad\Command" -n '(default)' -v '%SystemRoot%\system32\notepad.exe "%1"' -t 'ExpandString'
 	# disable ShutdownEventTracker
-	#SetRegistryEntry -path "$hklmPoliciesMicrosoft\Windows NT\Reliability" -name 'ShutdownReasonOn' -value 0 -type 'DWord'
+	#SetRegistryEntry -p "$hklmPoliciesMicrosoft\Windows NT\Reliability" -n 'ShutdownReasonOn' -v 0 -t 'DWord'
 
 	# disable Google crapware installs
 	$googleAds = "$hklmSoftware\Google\No Chrome Offer Until"; $googleAdsWow = "$hklmSoftware\Wow6432Node\Google\No Chrome Offer Until";
-	SetRegistryEntry -path $googleAds -name 'Irfan Skiljan' -value 0x01404cff -type 'DWord'
-	SetRegistryEntry -path $googleAds -name 'Piriform Ltd' -value 0x01404cff -type 'DWord'
-	SetRegistryEntry -path $googleAds -name 'Irfan Skiljan' -value 0x01404cff -type 'DWord'
-	SetRegistryEntry -path $googleAds -name 'Piriform Ltd' -value 0x01404cff -type 'DWord'
+	SetRegistryEntry -p $googleAds -n 'Irfan Skiljan' -v 0x01404cff -t 'DWord'
+	SetRegistryEntry -p $googleAds -n 'Piriform Ltd' -v 0x01404cff -t 'DWord'
+	SetRegistryEntry -p $googleAds -n 'Irfan Skiljan' -v 0x01404cff -t 'DWord'
+	SetRegistryEntry -p $googleAds -n 'Piriform Ltd' -v 0x01404cff -t 'DWord'
 	if ((Is64BitOs)) {
-		SetRegistryEntry -path $googleAdsWow -name 'Irfan Skiljan' -value 0x01404cff -type 'DWord'
-		SetRegistryEntry -path $googleAdsWow -name 'Piriform Ltd' -value 0x01404cff -type 'DWord'
-		SetRegistryEntry -path $googleAdsWow -name 'Irfan Skiljan' -value 0x01404cff -type 'DWord'
-		SetRegistryEntry -path $googleAdsWow -name 'Piriform Ltd' -value 0x01404cff -type 'DWord'
+		SetRegistryEntry -p $googleAdsWow -n 'Irfan Skiljan' -v 0x01404cff -t 'DWord'
+		SetRegistryEntry -p $googleAdsWow -n 'Piriform Ltd' -v 0x01404cff -t 'DWord'
+		SetRegistryEntry -p $googleAdsWow -n 'Irfan Skiljan' -v 0x01404cff -t 'DWord'
+		SetRegistryEntry -p $googleAdsWow -n 'Piriform Ltd' -v 0x01404cff -t 'DWord'
 	}
 }
 
@@ -351,13 +351,13 @@ function ConfigureEdge {
 		$hklmPoliciesMicrosoft = "HKLM:\Software\Policies\Microsoft"
 		$hkcuPoliciesMicrosoft = "HKCU:\Software\Policies\Microsoft"
 		# disable Edge adding icon to desktop
-		SetRegistryEntry -path "$hklmPoliciesMicrosoft\EdgeUpdate" -Name 'CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}' -Value 0 -type 'DWord'		# stable
-		SetRegistryEntry -path "$hklmPoliciesMicrosoft\EdgeUpdate" -Name 'CreateDesktopShortcut{2CD8A007-E189-409D-A2C8-9AF4EF3C72AA}' -Value 0 -type 'DWord'		# beta
-		SetRegistryEntry -path "$hklmPoliciesMicrosoft\EdgeUpdate" -Name 'CreateDesktopShortcut{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}' -Value 0 -type 'DWord'		# dev
-		SetRegistryEntry -path "$hklmPoliciesMicrosoft\EdgeUpdate" -Name 'CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}' -Value 0 -type 'DWord'		# canary
+		SetRegistryEntry -p "$hklmPoliciesMicrosoft\EdgeUpdate" -n 'CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}' -v 0 -t 'DWord'		# stable
+		SetRegistryEntry -p "$hklmPoliciesMicrosoft\EdgeUpdate" -n 'CreateDesktopShortcut{2CD8A007-E189-409D-A2C8-9AF4EF3C72AA}' -v 0 -t 'DWord'		# beta
+		SetRegistryEntry -p "$hklmPoliciesMicrosoft\EdgeUpdate" -n 'CreateDesktopShortcut{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}' -v 0 -t 'DWord'		# dev
+		SetRegistryEntry -p "$hklmPoliciesMicrosoft\EdgeUpdate" -n 'CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}' -v 0 -t 'DWord'		# canary
 		# (try to) disable Edge First Run Page (not sure if this really works but we'll try it):
-		SetRegistryEntry -path "$hklmPoliciesMicrosoft\MicrosoftEdge\Main" -Name 'PreventFirstRunPage' -Value 1 -type 'DWord'
-		SetRegistryEntry -path "$hkcuPoliciesMicrosoft\MicrosoftEdge\Main" -Name 'PreventFirstRunPage' -Value 1 -type 'DWord'
+		SetRegistryEntry -p "$hklmPoliciesMicrosoft\MicrosoftEdge\Main" -n 'PreventFirstRunPage' -v 1 -t 'DWord'
+		SetRegistryEntry -p "$hkcuPoliciesMicrosoft\MicrosoftEdge\Main" -n 'PreventFirstRunPage' -v 1 -t 'DWord'
 
 		# there's also a group policy to disable that stupid first-run page, so try setting that too:
 		$lgpoExe = LocateLgpoExe
@@ -367,8 +367,8 @@ function ConfigureEdge {
 			if (Test-Path -Path $policiesFile -PathType Leaf) { Remove-Item -Path $policiesFile -Force }
 
 			# "Prevent the First Run webpage from opening on Microsoft Edge"
-			AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path 'Software\Policies\Microsoft\MicrosoftEdge\Main' -valueType 'DWORD' -valueName 'PreventFirstRunPage' -value '1'
-			AddPolicySetting -policyFilepath $policiesFile -scope 'User' -path 'Software\Policies\Microsoft\MicrosoftEdge\Main' -valueType 'DWORD' -valueName 'PreventFirstRunPage' -value '1'
+			AddPolicySetting -f $policiesFile -s 'Computer' -p 'Software\Policies\Microsoft\MicrosoftEdge\Main' -t 'DWORD' -n 'PreventFirstRunPage' -v '1'
+			AddPolicySetting -f $policiesFile -s 'User' -p 'Software\Policies\Microsoft\MicrosoftEdge\Main' -t 'DWORD' -n 'PreventFirstRunPage' -v '1'
 
 			# run it:
 			$exitcode = RunLgpo -lgpoPath $lgpoExe -policiesFile $policiesFile
@@ -398,45 +398,45 @@ function ConfigureWindowsUpdate {
 	$windowsUpdatePath = 'Software\Policies\Microsoft\Windows\WindowsUpdate'
 	$windowsUpdateAuPath = "$windowsUpdatePath\AU"
 	# "No auto-restart with logged on users for scheduled automatic updates" - may not apply to >= Win 10 (??), but we'll set it anyway
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DWORD' -valueName 'NoAutoRebootWithLoggedOnUsers' -value '1'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DWORD' -n 'NoAutoRebootWithLoggedOnUsers' -v '1'
 	# notification level: # 0:NotConfigued, 1:Disabled, 2:NotifybeforeDownload, 3:NotifyBeforeInstallation, 4:ScheduledInstallation
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DWORD' -valueName 'AUOptions' -value '2'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DWORD' -n 'AUOptions' -v '2'
 	# ???
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DWORD' -valueName 'NoAutoUpdate' -value '0'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DWORD' -n 'NoAutoUpdate' -v '0'
 	# install during automatic maintenance (only used when AUOptions = 4)
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DELETE' -valueName 'AutomaticMaintenanceEnabled' -value $null
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DELETE' -n 'AutomaticMaintenanceEnabled' -v $null
 	# install updates on: 0 = Every day, 1 = Every Sunday, ..., 7 = Every Saturday
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DWORD' -valueName 'ScheduledInstallDay' -value '0'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DWORD' -n 'ScheduledInstallDay' -v '0'
 	# install update at hour: 0 thru 23 (there's an 'Automatic' option, too, not sure what value that is)
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DWORD' -valueName 'ScheduledInstallTime' -value '3'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DWORD' -n 'ScheduledInstallTime' -v '3'
 	# if AUOptions = 4 above, then can also "limit updating to a weekly, bi-weekly or monthly occurrence":
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DWORD' -valueName 'ScheduledInstallEveryWeek' -value '1'
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DELETE' -valueName 'ScheduledInstallFirstWeek' -value $null
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DELETE' -valueName 'ScheduledInstallSecondWeek' -value $null
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DELETE' -valueName 'ScheduledInstallThirdWeek' -value $null
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DELETE' -valueName 'ScheduledInstallFourthWeek' -value $null
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DWORD' -n 'ScheduledInstallEveryWeek' -v '1'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DELETE' -n 'ScheduledInstallFirstWeek' -v $null
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DELETE' -n 'ScheduledInstallSecondWeek' -v $null
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DELETE' -n 'ScheduledInstallThirdWeek' -v $null
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DELETE' -n 'ScheduledInstallFourthWeek' -v $null
 	# ???
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdateAuPath -valueType 'DELETE' -valueName 'AllowMUUpdateService' -value $null
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdateAuPath -t 'DELETE' -n 'AllowMUUpdateService' -v $null
 	# "Specifies whether the Windows Update will use the Windows Power Management features to automatically wake up the system from sleep, if there are updates scheduled for installation."
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'AUPowerManagement' -value '0'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'AUPowerManagement' -v '0'
 	<#
 	# => think setting these is causing Windows Update to ignore the AUOptions above
 	# "Specify the deadline before the PC will automatically restart to apply updates."
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'SetAutoRestartDeadline' -value '1'
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'AutoRestartDeadlinePeriodInDays' -value '30'
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'AutoRestartDeadlinePeriodInDaysForFeatureUpdates' -value '30'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'SetAutoRestartDeadline' -v '1'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'AutoRestartDeadlinePeriodInDays' -v '30'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'AutoRestartDeadlinePeriodInDaysForFeatureUpdates' -v '30'
 	# newer versions of one above ??
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'SetComplianceDeadline' -value '1'
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'ConfigureDeadlineForQualityUpdates' -value '30'
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'ConfigureDeadlineGracePeriod' -value '7'
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'ConfigureDeadlineForFeatureUpdates' -value '30'
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'ConfigureDeadlineGracePeriodForFeatureUpdates' -value '7'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'SetComplianceDeadline' -v '1'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'ConfigureDeadlineForQualityUpdates' -v '30'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'ConfigureDeadlineGracePeriod' -v '7'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'ConfigureDeadlineForFeatureUpdates' -v '30'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'ConfigureDeadlineGracePeriodForFeatureUpdates' -v '7'
 	#>
 	# "Turn off auto-restart for updates during active hours"
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'ConfigureDeadlineNoAutoReboot' -value '1'
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'SetActiveHours' -value '1'
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'ActiveHoursStart' -value '4'	# 4 a.m.
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $windowsUpdatePath -valueType 'DWORD' -valueName 'ActiveHoursEnd' -value '3'		# 3 a.m.
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'ConfigureDeadlineNoAutoReboot' -v '1'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'SetActiveHours' -v '1'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'ActiveHoursStart' -v '4'	# 4 a.m.
+	AddPolicySetting -f $policiesFile -s 'Computer' -p $windowsUpdatePath -t 'DWORD' -n 'ActiveHoursEnd' -v '3'		# 3 a.m.
 
 	# run it:
 	$exitcode = RunLgpo -lgpoPath $lgpoExe -policiesFile $policiesFile
@@ -468,7 +468,7 @@ function ConfigureDefenderExclusions {
 	$policiesFile = Join-Path $tmpFolder 'dfndrPolicies.txt'
 	if (Test-Path -Path $policiesFile -PathType Leaf) { Remove-Item -Path $policiesFile -Force }
 
-	AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path 'Software\Policies\Microsoft\Windows Defender\Exclusions' -valueType 'DWORD' -valueName 'Exclusions_Paths' -value '1'
+	AddPolicySetting -f $policiesFile -s 'Computer' -p 'Software\Policies\Microsoft\Windows Defender\Exclusions' -t 'DWORD' -n 'Exclusions_Paths' -v '1'
 	$path = 'Software\Policies\Microsoft\Windows Defender\Exclusions\Paths'
 	@(
 		"$env:UserProfile\Apps\Utils\NirSoft"
@@ -482,7 +482,7 @@ function ConfigureDefenderExclusions {
 		'\\wallach9\installs\system utils\NirSoft Utils'
 		'\\wallach9\windowsBackup'
 	) | ForEach-Object {
-		AddPolicySetting -policyFilepath $policiesFile -scope 'Computer' -path $path -valueType 'SZ' -valueName $_ -value '0'
+		AddPolicySetting -f $policiesFile -s 'Computer' -p $path -t 'SZ' -n $_ -v '0'
 	}
 
 	# run it:
@@ -590,10 +590,10 @@ function SetRegistryEntry {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	[OutputType([void])]
 	param (
-		[Parameter(Mandatory=$true)] [Alias('path')] [string]$registryPath,
-		[Parameter(Mandatory=$true)] [Alias('name')] [string]$propertyName,
-		[Parameter(Mandatory=$true)] [Alias('value')] [object]$propertyValue,
-		[Parameter(Mandatory=$false)] [Alias('type')] [string]$propertyType = 'String'
+		[Parameter(Mandatory=$true)] [Alias('p','path')] [string]$registryPath,
+		[Parameter(Mandatory=$true)] [Alias('n','name')] [string]$propertyName,
+		[Parameter(Mandatory=$true)] [Alias('v','value')] [object]$propertyValue,
+		[Parameter(Mandatory=$false)] [Alias('t','type')] [string]$propertyType = 'String'
 	)
 	Write-Verbose "$($MyInvocation.InvocationName): registry entry |$registryPath\@$propertyName| = |$propertyValue|"
 	VerifyRegKeyExists -registryPath $registryPath
@@ -687,12 +687,12 @@ function AddPolicySetting {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	[OutputType([void])]
 	param (
-		[Parameter(Mandatory=$true)] [string] $policyFilepath,
-		[Parameter(Mandatory=$true)] [ValidateSet('Computer', 'User')] [string] $scope,
-		[Parameter(Mandatory=$true)] [string] $path,
-		[Parameter(Mandatory=$true)] [ValidateSet('DWORD', 'SZ', 'EXSZ', 'CLEAR', 'DELETE')] [string] $valueType,
-		[Parameter(Mandatory=$true)] [string] $valueName,
-		[Parameter(Mandatory=$false)] [string] $value
+		[Parameter(Mandatory=$true)] [Alias('f')] [string] $policyFilepath,
+		[Parameter(Mandatory=$true)] [Alias('s')] [ValidateSet('Computer', 'User')] [string] $scope,
+		[Parameter(Mandatory=$true)] [Alias('p')] [string] $path,
+		[Parameter(Mandatory=$true)] [Alias('t')] [ValidateSet('DWORD', 'SZ', 'EXSZ', 'CLEAR', 'DELETE')] [string] $valueType,
+		[Parameter(Mandatory=$true)] [Alias('n')] [string] $valueName,
+		[Parameter(Mandatory=$false)] [Alias('v')] [string] $value
 	)
 	switch ($valueType) {
 		{ $_ -in @('CLEAR' <# this is what Sophia has #>, 'DELETE' <# but this is what i see when exporting/converting with lgpo.exe #>) } {
