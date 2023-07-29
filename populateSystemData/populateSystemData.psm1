@@ -6,12 +6,8 @@
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-# this script also gets symlinked as setUpSystem.00.SystemData for copying to other systems, so the ackPoshHelpers.ps1 might, too (ugh):
-if ([bool](Get-Module -Name "$PSScriptRoot/ackPoshHelpers.psd1" -ListAvailable)) {
-	Import-Module -Name "$PSScriptRoot/ackPoshHelpers"
-} elseif ([bool](Get-Module -Name "setUpSystem.00.Helpers.psd1" -ListAvailable)) {
-	Import-Module -Name "$PSScriptRoot/setUpSystem.00.Helpers"
-}
+# use full path in case we're not PSModulePath:
+Import-Module -Name "$PSScriptRoot/../ackPoshHelpers" -ErrorAction Stop
 
 class OSDetails {
 	[string] $Platform			# 'Windows' or 'Linux' or 'MacOS'
