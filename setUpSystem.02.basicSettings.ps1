@@ -232,6 +232,11 @@ function ConfigureWindowsAndExplorer {
 	# disable all AutoPlay handlers
 	SetRegistryEntry -Path "$hkcuCurrentVersionExplorer\AutoplayHandlers" -name 'DisableAutoplay' -value 1 -type 'DWord'
 
+	if ($osDetails.ReleaseVersion.Major -ge 6) {	# Vista and up
+		# make sure current account has user right to create symlinks:
+		[AckWare.LsaHelper]::AddUserRight($env:Username, 'SeCreateSymbolicLinkPrivilege')
+	}
+
 	if ($osDetails.ReleaseVersion.Major -in @(10, 11)) {	# TODO?: maybe could check based on build number, so it would for servers, too, and handle future version of Windows
 		# set default color mode to Dark:
 		SetRegistryEntry -path "$hkcuCurrentVersion\Themes\Personalize" -name 'SystemUsesLightTheme' -value 0 -type 'DWord'
@@ -245,7 +250,7 @@ function ConfigureWindowsAndExplorer {
 			if ($wp -like '*\img0.jpg')	{
 				$newWpPath = $wp -replace '\\img0\.jpg','\img19.jpg'
 				SetRegistryEntry -path $hkcuCtrlDesktop -name 'WallPaper' -value $newWpPath -type 'String'
-				[Wallpaper]::SetWallpaper($newWpPath)
+				[AckWare.WallpaperHelper]::SetWallpaper($newWpPath)
 			}
 		}
 		# show some icons on desktop
@@ -719,17 +724,164 @@ function RunLgpo {
 }
 
 Add-Type -TypeDefinition  @"
-using System.Runtime.InteropServices;
-public class Wallpaper {
-	public const int SetDesktopWallpaper = 20;
-	public const int UpdateIniFile = 0x01;
-	public const int SendWinIniChange = 0x02;
+namespace AckWare {
+	using System.Runtime.InteropServices;
 
-	[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-	private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+	internal class Natives {
+		//
+		// for setting wallpapaer:
+		internal const int SetDesktopWallpaper = 20;
+		internal const int UpdateIniFile = 0x01;
+		internal const int SendWinIniChange = 0x02;
 
-	public static void SetWallpaper(string path) {
-		SystemParametersInfo(SetDesktopWallpaper, 0, path, UpdateIniFile | SendWinIniChange);
+		[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+		internal static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+		//
+
+		//
+		// for setting user rights:
+		// from ntlsa.h:
+		internal const uint POLICY_ALL_ACCESS = 0x000f0fff;
+
+		internal const uint STATUS_SUCCESS = 0;
+		internal const uint STATUS_ACCESS_DENIED = 0xc0000022;
+		internal const uint STATUS_INSUFFICIENT_RESOURCES = 0xc000009a;
+		internal const uint STATUS_NO_MEMORY = 0xc0000017;
+
+		[StructLayout(LayoutKind.Sequential)]
+		internal struct LSA_OBJECT_ATTRIBUTES {
+			public int Length;
+			public IntPtr RootDirectory;
+			public IntPtr ObjectName;
+			public int Attributes;
+			public IntPtr SecurityDescriptor;
+			public IntPtr SecurityQualityOfService;
+		}
+
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+		internal struct LSA_UNICODE_STRING {
+			public ushort Length;
+			public ushort MaximumLength;
+			[MarshalAs(UnmanagedType.LPWStr)]
+			public string Buffer;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		internal struct LSA_TRANSLATED_SID2 {
+			public int Use;		// SID_NAME_USE; see winnt.h
+			public IntPtr Sid;
+			public int DomainIndex;
+			public uint Flags;
+		}
+
+		[DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
+		internal static extern uint LsaOpenPolicy(LSA_UNICODE_STRING[] systemName, ref LSA_OBJECT_ATTRIBUTES objectAttributes, uint desiredAccess, out SafeLsaPolicyHandle policyHandle);
+
+		[DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
+		internal static extern uint LsaAddAccountRights(SafeLsaPolicyHandle policyHandle, IntPtr pSid, LSA_UNICODE_STRING[] userRights, int countOfRights);
+
+		[DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)]
+		internal static extern uint LsaLookupNames2(SafeLsaPolicyHandle policyHandle, uint flags, uint count, LSA_UNICODE_STRING[] names, ref IntPtr referencedDomains, ref IntPtr sids);
+
+		[DllImport("advapi32")]
+		internal static extern /*u*/int LsaNtStatusToWinError(uint ntStatus);
+
+		[DllImport("advapi32")]
+		internal static extern uint LsaClose(IntPtr policyHandle);
+
+		[DllImport("advapi32")]
+		internal static extern int LsaFreeMemory(IntPtr buffer);
+	}
+
+	public class WallpaperHelper {
+		public static void SetWallpaper(string path) {
+			Natives.SystemParametersInfo(Natives.SetDesktopWallpaper, 0, path, Natives.UpdateIniFile | Natives.SendWinIniChange);
+		}
+	}
+
+	public class SafeLsaPolicyHandle : Microsoft.Win32.SafeHandles.SafeHandleZeroOrMinusOneIsInvalid {
+		internal SafeLsaPolicyHandle() : base(true) { }
+
+		protected override bool ReleaseHandle() {
+			return Natives.LsaClose(base.handle) == Natives.STATUS_SUCCESS;
+		}
+	}
+
+	public static class LsaHelper {
+		public static void AddUserRight(string accountName, string privilegeName) {    // for privilege names, see winnt.h, "NT Defined Privileges"
+			using (SafeLsaPolicyHandle policyHandle = GetPolicyHandle()) {
+				AddAccountRights(policyHandle, accountName, privilegeName);
+			}
+		}
+
+		private static SafeLsaPolicyHandle GetPolicyHandle() {
+			// https://learn.microsoft.com/en-us/windows/win32/secmgmt/opening-a-policy-object-handle
+			// https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-lsaopenpolicy
+			Natives.LSA_OBJECT_ATTRIBUTES objAttrs = new Natives.LSA_OBJECT_ATTRIBUTES();
+			objAttrs.RootDirectory = objAttrs.ObjectName = objAttrs.SecurityDescriptor = objAttrs.SecurityQualityOfService = IntPtr.Zero;
+			objAttrs.Attributes = 0;
+			objAttrs.Length = Marshal.SizeOf(typeof(Natives.LSA_OBJECT_ATTRIBUTES));
+			Natives.LSA_UNICODE_STRING[] systemName = null;
+			SafeLsaPolicyHandle policyHandle = null;
+
+			uint ntStatus = Natives.LsaOpenPolicy(systemName, ref objAttrs, Natives.POLICY_ALL_ACCESS, out policyHandle);
+			ValidateNtStatus(ntStatus);
+			return policyHandle;
+		}
+
+		private static void AddAccountRights(SafeLsaPolicyHandle policyHandle, string accountName, string privilegeName) {
+			// https://learn.microsoft.com/en-us/windows/win32/secmgmt/managing-account-permissions
+			// https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-lsaaddaccountrights
+			IntPtr accountSid = GetSidForName(policyHandle, accountName);
+			Natives.LSA_UNICODE_STRING[] lsaPrivileges = new Natives.LSA_UNICODE_STRING[1];
+			lsaPrivileges[0] = InitLsaString(privilegeName);
+
+			uint ntStatus = Natives.LsaAddAccountRights(policyHandle, accountSid, lsaPrivileges, lsaPrivileges.Length);
+			ValidateNtStatus(ntStatus);
+		}
+
+		private static IntPtr GetSidForName(SafeLsaPolicyHandle policyHandle, string accountName) {
+			// https://learn.microsoft.com/en-us/windows/win32/secmgmt/translating-between-names-and-sids
+			// but using LsaLookupNames2 here
+			// TODO?: could also get SID in powershell with
+			//    [System.Security.Principal.NTAccount]::new(`$env:UserName).Translate([System.Security.Principal.SecurityIdentifier]).Value
+			// but that's a string, has to be converted with ConvertStringSidToSid back to a PSID
+			Natives.LSA_UNICODE_STRING[] names = new Natives.LSA_UNICODE_STRING[1];
+			names[0] = InitLsaString(accountName);
+			IntPtr pSids = IntPtr.Zero;
+			IntPtr pDomains = IntPtr.Zero;
+
+			uint ntStatus = Natives.LsaLookupNames2(policyHandle, 0, 1, names, ref pDomains, ref pSids);
+			ValidateNtStatus(ntStatus);
+			Natives.LSA_TRANSLATED_SID2 lts = (Natives.LSA_TRANSLATED_SID2)Marshal.PtrToStructure(pSids, typeof(Natives.LSA_TRANSLATED_SID2));
+			Natives.LsaFreeMemory(pSids);
+			Natives.LsaFreeMemory(pDomains);
+			return lts.Sid;		// TODO: does this need to be freed? cuz we're just returning raw IntPtr and caller above is not freeing anything
+		}
+
+		private static Natives.LSA_UNICODE_STRING InitLsaString(string value) {
+			// https://learn.microsoft.com/en-us/windows/win32/secmgmt/using-lsa-unicode-strings
+			if (value.Length > 32766) throw new ArgumentException("value is too long");
+			Natives.LSA_UNICODE_STRING lus = new Natives.LSA_UNICODE_STRING();
+			lus.Buffer = value;
+			lus.Length = (ushort)(value.Length * sizeof(char));
+			lus.MaximumLength = (ushort)(lus.Length + sizeof(char));	// length including null term
+			return lus;
+		}
+
+		private static void ValidateNtStatus(uint ntStatus) {
+			switch (ntStatus) {
+				case Natives.STATUS_SUCCESS:
+					return;
+				case Natives.STATUS_ACCESS_DENIED:
+					throw new UnauthorizedAccessException("Access Denied: make sure you're running with elevated privs");
+				case Natives.STATUS_INSUFFICIENT_RESOURCES:
+				case Natives.STATUS_NO_MEMORY:
+					throw new OutOfMemoryException();
+				default:
+					throw new System.ComponentModel.Win32Exception(Natives.LsaNtStatusToWinError(ntStatus));
+			}
+		}
 	}
 }
 "@
