@@ -725,6 +725,7 @@ function RunLgpo {
 
 Add-Type -TypeDefinition  @"
 namespace AckWare {
+	using System;
 	using System.Runtime.InteropServices;
 
 	internal class Natives {
