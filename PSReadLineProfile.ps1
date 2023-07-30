@@ -3,10 +3,12 @@
 using namespace System.Management.Automation
 using namespace System.Management.Automation.Language
 
-Import-Module PSReadLine
+Import-Module -Name PSReadLine
 
 Set-PSReadLineOption -EditMode Windows
-Set-PSReadLineOption -PredictionViewStyle ListView
+if ((Get-Module -Name PSReadLine).Version -gt ([System.Version]'2.2')) {
+	Set-PSReadLineOption -PredictionViewStyle ListView
+}
 
 # Searching for commands with up/down arrow is really handy. The
 # option "moves to end" is useful if you want the cursor at the end
