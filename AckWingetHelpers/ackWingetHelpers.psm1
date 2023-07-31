@@ -660,5 +660,5 @@ Set-Alias -Name 'wgi' -Value 'Install-AckWingetPackage'
 Set-Alias -Name 'wgx' -Value 'Uninstall-AckWinGetPackage'
 Set-Alias -Name 'wgul' -Value 'Get-AckWingetOutdatedPackages'
 Set-Alias -Name 'wgu' -Value 'Update-AckWingetPackage'
-Set-Alias -Name 'wgr' -Value 'Show-AckWingetPackageRepository'
+Set-Alias -Name 'wgrepo' -Value 'Show-AckWingetPackageRepository'
 #endregion
