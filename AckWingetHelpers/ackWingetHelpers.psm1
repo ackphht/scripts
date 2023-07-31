@@ -28,7 +28,7 @@ function _checkWinGetClientModule {
 			[void] (Get-WinGetSource -Name 'winget' -ErrorAction Stop)
 			Write-Verbose "Get-WinGetSource looks okay, enabling module"
 			$versionOkay = $true
-		} catch [System.Reflection.TargetInvocationException],[System.TypeLoadException] {
+		} catch [System.Reflection.TargetInvocationException],[System.TypeLoadException],[System.TypeInitializationException] {
 			Write-Verbose "got exception trying to call Get-WinGetSource; disabling module"
 		} catch {
 			Write-Error "unexpected exception trying to call Get-WinGetSource:`n$($_.Exception)"
