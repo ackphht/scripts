@@ -24,14 +24,14 @@ function _checkWinGetClientModule {
 	if ($module) {
 		# test that it actually works (still alpha/beta, getting errors on some systems):
 		try {
-			Write-Verbose "testing Get-WinGetPackage to see if WinGet.Client module is usable"
-			[void] (Get-WinGetPackage -Query 'Zzzzzz' -ErrorAction Stop)	# if package doesn't exist it returns with no error
-			Write-Verbose "Get-WinGetPackage looks okay, enabling module"
+			Write-Verbose "testing Get-WinGetSource to see if WinGet.Client module is usable"
+			[void] (Get-WinGetSource -Name 'winget' -ErrorAction Stop)
+			Write-Verbose "Get-WinGetSource looks okay, enabling module"
 			$versionOkay = $true
 		} catch [System.Reflection.TargetInvocationException],[System.TypeLoadException] {
-			Write-Verbose "got exception trying to call Get-WinGetPackage; disabling module"
+			Write-Verbose "got exception trying to call Get-WinGetSource; disabling module"
 		} catch {
-			Write-Error "unexpected exception trying to call Get-WinGetPackage:`n$($_.Exception)"
+			Write-Error "unexpected exception trying to call Get-WinGetSource:`n$($_.Exception)"
 		}
 		if ($versionOkay) {
 			# make sure our updated formatting info is read before theirs:
