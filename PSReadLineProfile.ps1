@@ -3,10 +3,10 @@
 using namespace System.Management.Automation
 using namespace System.Management.Automation.Language
 
-Import-Module -Name PSReadLine
+$mod = Import-Module -Name PSReadLine -PassThru
 
 Set-PSReadLineOption -EditMode Windows
-if ((Get-Module -Name PSReadLine).Version -gt ([System.Version]'2.2')) {
+if ($mod.Version -gt ([System.Version]'2.2')) {
 	Set-PSReadLineOption -PredictionViewStyle ListView
 }
 
