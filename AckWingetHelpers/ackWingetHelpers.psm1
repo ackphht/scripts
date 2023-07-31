@@ -16,17 +16,13 @@ $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
 Set-StrictMode -Version 'Latest'
 
 #region check if Microsoft.WinGet.Client is available and usable
-function _checkForWinGetClient {
+function _checkWinGetClientModule {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([bool])]
-	param()
-	if (-not $PSBoundParameters.ContainsKey('Verbose')) { $VerbosePreference = $PSCmdlet.GetVariableValue('VerbosePreference') }
-	$moduleName = 'Microsoft.WinGet.Client'
-	$moduleAvailable = [bool](Get-Module -Name $moduleName -ListAvailable -ErrorAction SilentlyContinue)
-	if ($moduleAvailable) {
-		Import-Module -Name $moduleName
+	param([psmoduleinfo] $module)
+	$versionOkay = $false
+	if ($module) {
 		# test that it actually works (still alpha/beta, getting errors on some systems):
-		$versionOkay = $false
 		try {
 			Write-Verbose "testing Get-WinGetPackage to see if WinGet.Client module is usable"
 			[void] (Get-WinGetPackage -Query 'Zzzzzz' -ErrorAction Stop)	# if package doesn't exist it returns with no error
@@ -41,13 +37,17 @@ function _checkForWinGetClient {
 			# make sure our updated formatting info is read before theirs:
 			Update-FormatData -PrependPath (Join-Path -Path $PSScriptRoot -ChildPath 'Format.ps1xml')
 		} else {
-			Remove-Module -Name $moduleName
+			# this doesn't actually seem to be removing it, but we'll try:
+			Remove-Module -ModuleInfo $module -Force
 		}
 	}
-	return ($moduleAvailable -and $versionOkay)
+	return ($versionOkay)
 }
-$wgModuleAvailable = _checkForWinGetClient
+$wgClientModuleName = 'Microsoft.WinGet.Client'
+$wgClientModule = Import-Module -Name $wgClientModuleName -PassThru -ErrorAction SilentlyContinue
+$wgModuleAvailable = _checkWinGetClientModule -module $wgClientModule
 Write-Verbose "`$wgModuleAvailable = |$wgModuleAvailable|"
+Remove-Variable -Name 'wgClientModuleName','wgClientModule'
 #endregion
 
 <#
