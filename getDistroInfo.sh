@@ -41,6 +41,7 @@ else
 	echo "WARNING: hostnamectl not found"
 fi
 
+test -f $scriptRoot/showAppVersions.sh && bash $scriptRoot/showAppVersions.sh > showAppVersions.log
 test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > pythonProperties.log
 
 which pwsh >/dev/null 2>&1 && test -f $scriptRoot/getSystemInformation.ps1 && \
