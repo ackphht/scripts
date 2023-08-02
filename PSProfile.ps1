@@ -73,6 +73,8 @@ $scriptsDir = (Join-Path -Path $HOME -ChildPath 'scripts')
 if (Test-Path -Path $scriptsDir -PathType Container) {
 	AddPathValue -pathVarName 'Path' -value $scriptsDir -prepend
 	AddPathValue -pathVarName 'PSModulePath' -value $scriptsDir -prepend
+	function _updateScriptsFldr { Push-Location -Path (Join-Path -Path $HOME -ChildPath 'scripts')<#can't use var#>; git pull; Pop-Location; }
+	New-Alias -Name 'scup' -Value '_updateScriptsFldr'
 }
 Remove-Variable -Name 'scriptsDir'
 
@@ -173,3 +175,6 @@ if ((Get-Variable -Name 'PSStyle' -ErrorAction Ignore)) {
 	}
 }
 Remove-Variable -Name 'ackIsWindows'
+
+# some more aliases:
+New-Alias -Name 'll' -Value 'Get-ChildItem'
