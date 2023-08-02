@@ -17,14 +17,14 @@ if ($mod.Version -gt ([System.Version]'2.2')) {
 # when you used up arrow, which can be useful if you forget the exact
 # string you started the search on.
 Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
-Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+Set-PSReadLineKeyHandler -Key 'UpArrow' -Function HistorySearchBackward
+Set-PSReadLineKeyHandler -Key 'DownArrow' -Function HistorySearchForward
 
 # This key handler shows the entire or filtered history using Out-GridView. The
 # typed text is used as the substring pattern for filtering. A selected command
 # is inserted to the command line without invoking. Multiple command selection
 # is supported, e.g. selected by Ctrl + Click.
-Set-PSReadLineKeyHandler -Key F7 `
+Set-PSReadLineKeyHandler -Key 'F7' `
 						-BriefDescription History `
 						-LongDescription 'Show command history' `
 						-ScriptBlock {
@@ -278,7 +278,7 @@ Set-PSReadLineKeyHandler -Key 'Alt+%' `
 }
 
 # F1 for help on the command line - naturally
-Set-PSReadLineKeyHandler -Key F1 `
+Set-PSReadLineKeyHandler -Key 'F1' `
 						-BriefDescription CommandHelp `
 						-LongDescription 'Open the help window for the current command' `
 						-ScriptBlock {
