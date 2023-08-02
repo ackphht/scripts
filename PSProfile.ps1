@@ -52,10 +52,11 @@ function AddPathValue {
 	}
 }
 
+$ackIsWindows = ($PSEdition -ne 'Core' -or $IsWindows)
 #
 # fix up some paths:
 #
-if ($PSEdition -ne 'Core' -or $IsWindows) {
+if ($ackIsWindows) {
 	AddPathValue -pathVarName 'Path' -value $PSScriptRoot -prepend
 	$properModulesDir = "$env:LocalAppData\PowerShell\Modules"
 	$documentsModulesDI = Get-Item -Path (Join-Path (Split-Path -Path $PROFILE -Parent) 'Modules') -ErrorAction SilentlyContinue
@@ -94,7 +95,8 @@ if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 	}
 	Remove-Variable -Name 'maybeAckTheme'
 	Remove-Variable -Name 'themePaths'
-	Set-Alias -Name 'omp' -Value 'oh-my-posh.exe'
+	if ($ackIsWindows) { Set-Alias -Name 'omp' -Value 'oh-my-posh.exe'}
+	else { Set-Alias -Name 'omp' -Value 'oh-my-posh' }
 }
 #
 # import some modules:
@@ -131,6 +133,14 @@ if ((Get-Module -Name $moduleName -ListAvailable)) {
 #	Set-Alias -Name 'sudo' -Value 'Invoke-Elevated'
 }
 
+if ($ackIsWindows) {
+	$moduleName = 'AckWingetHelpers'
+	if ((Get-Module -Name $moduleName -ListAvailable)) {
+		Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
+		Import-Module -Name $moduleName
+	}
+}
+
 Remove-Variable -Name 'moduleName'
 #
 # misc:
@@ -162,3 +172,4 @@ if ((Get-Variable -Name 'PSStyle' -ErrorAction Ignore)) {
 		}
 	}
 }
+Remove-Variable -Name 'ackIsWindows'
