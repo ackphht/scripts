@@ -1,4 +1,7 @@
 # started from PSReadLine's SamplePSReadLineProfile.ps1; more stuff in there...
+# https://github.com/PowerShell/PSReadLine
+# https://learn.microsoft.com/en-us/powershell/module/psreadline/about/about_psreadline
+# https://learn.microsoft.com/en-us/powershell/module/psreadline/about/about_psreadline_functions
 
 using namespace System.Management.Automation
 using namespace System.Management.Automation.Language
@@ -7,9 +10,9 @@ $mod = Import-Module -Name PSReadLine -PassThru
 
 $_isWindows = ($PSEdition -ne 'Core' -or $IsWindows)
 
-Set-PSReadLineOption -EditMode Windows
-if ($mod.Version -gt ([System.Version]'2.2')) {
-	Set-PSReadLineOption -PredictionViewStyle ListView
+Set-PSReadLineOption -EditMode 'Windows'
+if ($mod.Version -gt ([System.Version]'2.2.2')) {
+	Set-PSReadLineOption -PredictionViewStyle 'ListView'
 }
 
 # Searching for commands with up/down arrow is really handy. The
@@ -19,15 +22,39 @@ if ($mod.Version -gt ([System.Version]'2.2')) {
 # when you used up arrow, which can be useful if you forget the exact
 # string you started the search on.
 Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-Set-PSReadLineKeyHandler -Key 'UpArrow' -Function HistorySearchBackward
-Set-PSReadLineKeyHandler -Key 'DownArrow' -Function HistorySearchForward
+Set-PSReadLineKeyHandler -Chord 'UpArrow' -Function 'HistorySearchBackward'
+Set-PSReadLineKeyHandler -Chord 'DownArrow' -Function 'HistorySearchForward'
+#
+# try to make different OSes behave the same:
+#
+$kh = Get-PSReadLineKeyHandler -Chord 'Ctrl+h'
+if ($kh -and $kh.Function -eq 'BackwardDeleteChar') {
+	# windows has Ctrl+h bound to Backspace, so remove that; probably don't have to do this since we're rebinding below, but...
+	Remove-PSReadLineKeyHandler -Chord 'Ctrl+h'
+}
+$kh = Get-PSReadLineKeyHandler -Chord 'Alt+F7'
+if ($kh -and $kh.Function -eq 'ClearHistory') {
+	# not really sure what this does, don't want to hit by accident:
+	Remove-PSReadLineKeyHandler -Chord 'Alt+F7'
+}
+Set-PSReadLineKeyHandler -Chord 'Ctrl+h' -Function 'BackwardKillWord'				# in *nix shells, this is same as Ctrl+Backspace, so bind it to this too
+Set-PSReadLineKeyHandler -Chord 'Ctrl+u' -Function 'RevertLine'						# used in *nix shells, so add it; Escape also bound by default
+Set-PSReadLineKeyHandler -Chord 'Ctrl+a' -Function 'BeginningOfLine'				# used in *nix shells, so keep it for consistency; Home also bound by default
+Set-PSReadLineKeyHandler -Chord 'Ctrl+e' -Function 'EndOfLine'						# used in *nix shells, so keep it for consistency; End also bound by default
+Set-PSReadLineKeyHandler -Chord 'Ctrl+End' -Function 'ForwardDeleteInput'			# on by default for Win but not others
+Set-PSReadLineKeyHandler -Chord 'Ctrl+Delete' -Function 'KillWord'					# on by default for Win but not others
+Set-PSReadLineKeyHandler -Chord 'Ctrl+Spacebar' -Function 'MenuComplete'			# on by default for Win but not others
+Set-PSReadLineKeyHandler -Chord 'PageDown' -Function 'ScrollDisplayDown'			# on by default for Win but not others
+Set-PSReadLineKeyHandler -Chord 'Ctrl+PageDown' -Function 'ScrollDisplayDownLine'	# on by default for Win but not others
+Set-PSReadLineKeyHandler -Chord 'PageUp' -Function 'ScrollDisplayUp'				# on by default for Win but not others
+Set-PSReadLineKeyHandler -Chord 'Ctrl+PageUp' -Function 'ScrollDisplayUpLine'		# on by default for Win but not others
+Set-PSReadLineKeyHandler -Chord 'Ctrl+Alt+A' -Function 'SelectAll'					# by default this is Ctrl+a, but rebound that above; and Ctrl+Shift+A is used by MS Terminal
 
 # CaptureScreen is good for blog posts or email showing a transaction
 # of what you did when asking for help or demonstrating a technique.
-Set-PSReadLineKeyHandler -Chord 'Ctrl+d,Ctrl+c' -Function CaptureScreen
+Set-PSReadLineKeyHandler -Chord 'Ctrl+d,Ctrl+c' -Function 'CaptureScreen'
 
 if ($_isWindows) {
-
 	# This key handler shows the entire or filtered history using Out-GridView. The
 	# typed text is used as the substring pattern for filtering. A selected command
 	# is inserted to the command line without invoking. Multiple command selection
