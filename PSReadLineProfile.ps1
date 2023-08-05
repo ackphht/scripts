@@ -41,6 +41,7 @@ Set-PSReadLineKeyHandler -Chord 'Ctrl+h' -Function 'BackwardKillWord'				# in *n
 Set-PSReadLineKeyHandler -Chord 'Ctrl+u' -Function 'RevertLine'						# used in *nix shells, so add it; Escape also bound by default
 Set-PSReadLineKeyHandler -Chord 'Ctrl+a' -Function 'BeginningOfLine'				# used in *nix shells, so keep it for consistency; Home also bound by default
 Set-PSReadLineKeyHandler -Chord 'Ctrl+e' -Function 'EndOfLine'						# used in *nix shells, so keep it for consistency; End also bound by default
+Set-PSReadLineKeyHandler -Chord 'Ctrl+k' -Function 'ForwardDeleteInput'				# used in *nix shells, so keep it for consistency; Ctrl+End also bound
 Set-PSReadLineKeyHandler -Chord 'Ctrl+End' -Function 'ForwardDeleteInput'			# on by default for Win but not others
 Set-PSReadLineKeyHandler -Chord 'Ctrl+Delete' -Function 'KillWord'					# on by default for Win but not others
 Set-PSReadLineKeyHandler -Chord 'Ctrl+Spacebar' -Function 'MenuComplete'			# on by default for Win but not others
