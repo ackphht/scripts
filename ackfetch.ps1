@@ -11,7 +11,7 @@ Set-StrictMode -Version 'Latest'
 if ($showAllProps) {
 	$propList = @('*')
 } else {
-	$propList = @('Id','Distributor','Description','Codename','Release','KernelVersion')
+	$propList = @('Description','Id','Distributor','Codename','Release','KernelVersion')
 }
 
 Import-Module -Name $PSScriptRoot/populateSystemData
