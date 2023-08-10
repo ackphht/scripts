@@ -1,5 +1,6 @@
-#! /usr/bin/sh
+#!env bash
 if [[ -n "${theScript:=${ZSH_SCRIPT:-$BASH_SOURCE[0]}}" ]]; then
+	if [[ "${theScript: -3}" == "[0]" ]]; then theScript=${theScript:0:-3}; fi	# freaking macpOS
 	scriptRoot=$(dirname $(realpath $theScript))
 	unset theScript
 fi
@@ -10,7 +11,7 @@ echo
 echo "\$0 = |$0|"
 echo "\$SHELL = |$SHELL|"
 has readlink && echo "\"readlink /proc/\$\$/exe\" = |$(readlink -f /proc/$$/exe)|" || echo '"readlink /proc/$$/exe" = |<n/a>|'
-has realpath && test -f /usr/bin/sh && echo "/usr/bin/sh = |$(realpath /usr/bin/sh)|" || echo '/usr/bin/sh = |<n/a>|'
+has sh && has realpath && echo "$(which sh) = |$(realpath $(which sh))|" || echo 'sh = |<n/a>|'
 
 echo
 echo "\$TERM = |$TERM|"
