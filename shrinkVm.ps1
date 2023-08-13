@@ -61,7 +61,9 @@ function _optimizeVhd {
 	$preSize = Format-Bytes -value (Get-Item -LiteralPath $vhd).Length
 	Optimize-VHD -Mode Full -Path $vhd
 	$postSize = Format-Bytes -value (Get-Item -LiteralPath $vhd).Length
-	Write-Host "optimized VHD file `"$vhd`"`n    size before optimizing: $preSize, size after: $postSize" -ForegroundColor Cyan
+	Write-Host "optimized VHD file `"$vhd`"" -ForegroundColor Cyan
+	Write-Host "    before: $preSize" -ForegroundColor Cyan
+	Write-Host "     after: $postSize" -ForegroundColor Cyan
 }
 
 #==============================
