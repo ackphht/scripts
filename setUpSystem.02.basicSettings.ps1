@@ -231,6 +231,12 @@ function ConfigureWindowsAndExplorer {
 	SetRegistryEntry -p 'Registry::HKEY_USERS\.DEFAULT\Control Panel\Keyboard' -n 'InitialKeyboardIndicators' -v '2147483650' -t 'String'	# the '.DEFAULT' one has the upper bit set, too ??
 	# disable all AutoPlay handlers
 	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\AutoplayHandlers" -n 'DisableAutoplay' -v 1 -t 'DWord'
+	# add regedit favorites:
+	SetRegistryEntry -p "$hkcuCurrentVersion\Applets\Regedit\Favorites" -n 'HKCU > CurrentVersion' -v 'Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion' -t 'String'
+	SetRegistryEntry -p "$hkcuCurrentVersion\Applets\Regedit\Favorites" -n 'HKCU > FileExts' -v 'Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts' -t 'String'
+	SetRegistryEntry -p "$hkcuCurrentVersion\Applets\Regedit\Favorites" -n 'HKLM > CurrentControlSet' -v 'Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet' -t 'String'
+	SetRegistryEntry -p "$hkcuCurrentVersion\Applets\Regedit\Favorites" -n 'HKLM > CurrentVersion' -v 'Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion' -t 'String'
+	SetRegistryEntry -p "$hkcuCurrentVersion\Applets\Regedit\Favorites" -n 'HKLM > WinNT > CurrentVersion' -v 'Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -t 'String'
 
 	if ($osDetails.ReleaseVersion.Major -ge 6) {	# Vista and up
 		# make sure current account has user right to create symlinks:
