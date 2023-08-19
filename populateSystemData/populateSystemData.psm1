@@ -283,11 +283,19 @@ function _getWindowsRelease {
 	switch ($type) {
 		1 {
 			switch ($build) {
+				# ??? haven't really found anything better than build number for canary/dev/beta flights:
+				#		in registry under HKLM\WindowsNT\CurrentVersion, there's a BuildBranch that's different
+				#		from release for cancary and dev, but not for beta, so not sure that's helpful ???
+				{ $_ -ge 25000 } { $result = '11.canary.{0}' -f $build; break; }
+				{ $_ -ge 23000 } { $result = '11.dev.{0}' -f $build; break; }
+				{ $_ -ge 22631 } { $result = '11.beta.{0}' -f $build; break; }
 				{ $_ -ge 22000 } {
 					if ($build -ge 22621) { $result = '11.{0}' -f (_getWinReleaseFromReg) }
+					if ($build -ge 22449) { $result = '11.dev.{0}' -f $build }	# Win11 22H2 dev builds
 					else { $result = '11' }
 					break
 				}
+				{ $_ -ge 19500 } { $result = '11.dev.{0}' -f $build; break; }	# Win 11 dev builds (or beta ??)
 				{ $_ -ge 10240 } {
 					if ($build -ge 10586) { $result = '10.{0}' -f (_getWinReleaseFromReg) }
 					elseif ($build -ge 10240) { $result = '10' }
