@@ -107,7 +107,16 @@ class FontDetails:
 			self._blockCounts[blockName] = 1
 
 	def populateDetails(self):
-		ttfFile : ttLib.TTFont = ttLib.TTFont(self._filepath)
+		ttfFile : ttLib.TTFont = None
+		if self._filepath.suffix == ".ttc":
+			ttc : ttLib.TTCollection = ttLib.TTCollection(self._filepath)
+			if len(ttc.fonts) > 0:
+				# just use first one, assume they all have same codepoint counts (???)
+				ttfFile : ttLib.TTFont = ttc.fonts[0]
+		else:
+			ttfFile : ttLib.TTFont = ttLib.TTFont(self._filepath)
+		if ttfFile is None:
+			return
 		self._fontNames : FontDetails._fontNames = FontDetails._fontNames(ttfFile)
 		cmap = ttfFile.getBestCmap()#['cmap']
 		for cp in cmap:
