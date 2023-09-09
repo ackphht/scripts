@@ -109,8 +109,8 @@ bindkey '^[[F'		end-of-line						# end
 bindkey '^[' 		kill-whole-line					# esc
 bindkey '^H' 		backward-delete-word			# Ctrl-Backspace
 bindkey '^[[3;5~'	delete-word						# ctrl-delete
-bindkey '^[[A'		history-search-backward			# up-arrow
-bindkey '^[[B'		history-search-forward			# down-arrow
+bindkey '^[[19~'	history-search-backward			# F8
+bindkey '^[[19;2~'	history-search-forward			# Shift-F8
 
 
 test -r ~/scripts/ackShellStuff.sh && source ~/scripts/ackShellStuff.sh || true
