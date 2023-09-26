@@ -288,10 +288,10 @@ function _getWindowsRelease {
 				#		from release for cancary and dev, but not for beta, so not sure that's helpful ???
 				{ $_ -ge 25000 } { $result = '11.canary.{0}' -f (_getWindowsBuildLab); break; }
 				{ $_ -ge 23000 } { $result = '11.dev.{0}' -f (_getWindowsBuildLab); break; }
-				{ $_ -ge 22631 } { $result = '11.beta.{0}' -f $build; break; }	# think this is going to be the build# for 23H2, so might need some changes here soon
+				{ $_ -gt 22631 } { $result = '11.beta.{0}' -f $build; break; }	# ???
 				{ $_ -ge 22000 } {
 					if ($build -ge 22621) { $result = '11.{0}' -f (_getWinReleaseFromReg) }
-					if ($build -ge 22449) { $result = '11.dev.{0}' -f $build }	# Win11 22H2 dev builds
+					elseif ($build -ge 22449) { $result = '11.dev.{0}' -f $build }	# Win11 22H2 dev builds
 					else { $result = '11' }
 					break
 				}
