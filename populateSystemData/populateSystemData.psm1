@@ -613,6 +613,7 @@ function _getMacCodename {
 	param([System.Version] $osVersion)
 	$result = ''
 	switch ($osVersion.Major) {
+		14 { $result = 'Sonoma'; break; }
 		13 { $result = 'Ventura'; break; }
 		12 { $result = 'Monterey'; break; }
 		11 { $result = 'Big Sur'; break; }
