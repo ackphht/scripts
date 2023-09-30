@@ -12,6 +12,10 @@ outfile=$binFldr/oh-my-posh
 wget --output-document $outfile https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64
 chmod +x $outfile
 
+# make sure update notification is disabled:
+$outfile disable notice
+
+
 # use installNerdFonts.sh to install the NerdFonts i like
 # probably have to restart console for it to see new fonts
 # set console to use one of them
