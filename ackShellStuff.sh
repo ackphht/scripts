@@ -147,7 +147,11 @@ esac
 if has oh-my-posh && test -n $currShell ; then
 	eval "$(oh-my-posh init $currShell --config ~/scripts/ack.omp.linux.json)"
 	alias omp='oh-my-posh'
-	alias ompu='bash ~/scripts/installOhMyPosh.sh'
+	if has python3; then
+		alias ompu='python3 ~/scripts/installOhMyPosh.py'
+	else
+		alias ompu='bash ~/scripts/installOhMyPosh.sh'
+	fi
 fi
 
 case $currShell in
