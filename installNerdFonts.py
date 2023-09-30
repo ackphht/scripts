@@ -7,6 +7,7 @@ import os, re, pathlib, shutil, subprocess, urllib.request, json, argparse, tarf
 from typing import Iterator#, Self#, List, Dict#, Any, Pattern, Tuple
 from io import BytesIO
 from loghelper import LogHelper
+from githubHelper import GithubRelease
 if sys.platform == "win32":
 	import fontTools.ttLib
 	import ctypes
@@ -32,7 +33,7 @@ def main() -> int:
 	if not checkPrereqs(osHelper): return 1
 
 	# get latest release info for NerdFonts on GitHub:
-	ghRelease : GithubRelease = GithubRelease.CreateReleaseInfo("https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest")
+	ghRelease : GithubRelease = GithubRelease.GetLatestRelease("ryanoasis", "nerd-fonts")
 	# get version string, and compare that to version file in the NerdFonts folders:
 	currVerStr = getNerdFontsVerStr(ghRelease)
 	if not forceInstall:
@@ -177,80 +178,6 @@ if sys.platform == "win32":
 				try: winreg.DeleteValue(key, fontname)
 				except FileNotFoundError: pass
 
-class GithubReleaseAsset:
-	def __init__(self, assetDict : dict):
-		self._id : int = assetDict['id']
-		self._name : str = assetDict['name']
-		self._label : str = assetDict['label']
-		self._contentType : str = assetDict['content_type']
-		self._size : int = assetDict['size']
-		self._downloadUrl : str = assetDict['browser_download_url']
-
-	@property
-	def id(self) -> int:
-		return self._id
-
-	@property
-	def name(self) -> str:
-		return self._name
-
-	@property
-	def label(self) -> str:
-		return self._labbel
-
-	@property
-	def contentType(self) -> str:
-		return self._contentType
-
-	@property
-	def size(self) -> int:
-		return self._size
-
-	@property
-	def downloadUrl(self) -> str:
-		return self._downloadUrl
-
-class GithubRelease:
-	def __init__(self, releaseJson : str):
-		j = json.loads(releaseJson)
-		self._id : int = j['id']
-		self._releaseUrl : str = j['html_url']
-		self._tag : str = j['tag_name']
-		self._name : str = j['name']
-		self._publishedAt : str = j['published_at']
-		self._assets = []
-		for a in j['assets']:
-			self._assets.append(GithubReleaseAsset(a))
-
-	@staticmethod
-	def CreateReleaseInfo(url : str):# -> Self:	#only for 3.11+ ?? so not yet...
-		with urllib.request.urlopen(url) as resp:
-			return GithubRelease(resp.read())
-
-	@property
-	def id(self) -> int:
-		return self._id
-
-	@property
-	def releaseUrl(self) -> str:
-		return self._releaseUrl
-
-	@property
-	def tag(self) -> str:
-		return self._tag
-
-	@property
-	def name(self) -> str:
-		return self._name
-
-	@property
-	def publishedAt(self) -> str:
-		return self._publishedAt
-
-	@property
-	def assets(self) -> list[GithubReleaseAsset]:
-		return self._assets
-
 class NerdFontDefn:
 	DownloadTypeTarXz = "tarxz"
 	DownloadTypeZip = "zip"
@@ -305,7 +232,7 @@ class NerdFontCollection:
 				patternsToExtract.append(f"{f}-.+\.(?:t|o)tf")
 			self._fonts[fontName] = NerdFontDefn(fontName, patternsToExtract)
 
-	def processAsset(self, asset : GithubReleaseAsset):
+	def processAsset(self, asset : GithubRelease.GithubReleaseAsset):
 		# currently, at least, none of the font names have dots, so split at first dot into font name and extension
 		dotPos = asset.name.find(".")
 		if (dotPos >= 0):
