@@ -1,7 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import os, urllib.request, json
+import os, urllib.request, json, logging
 
 PyScript = os.path.abspath(__file__)
 PyScriptRoot = os.path.dirname(os.path.abspath(__file__))
@@ -100,7 +100,7 @@ class GithubRelease:
 	def GetLatestRelease(owner : str, repo : str):# -> Self:	#only for 3.11+ ?? so not yet...
 		"retrieves the latest release information for the specified owner and repository"
 		url = GithubRelease._latestReleaseUrlTemplate.format(owner, repo)
-		print(f"getting url |{url}|")
+		logging.debug(f"getting url |{url}|")
 		with urllib.request.urlopen(url) as resp:
 			return GithubRelease(resp.read())
 
@@ -108,7 +108,7 @@ class GithubRelease:
 	def GetReleaseForTag(owner : str, repo : str, tag : str):# -> Self:	#only for 3.11+ ?? so not yet...
 		"retrieves the release information for the specified owner, repository and tag"
 		url = GithubRelease._releaseUrlTemplate.format(owner, repo, tag)
-		print(f"getting url |{url}|")
+		logging.debug(f"getting url |{url}|")
 		with urllib.request.urlopen(url) as resp:
 			return GithubRelease(resp.read())
 
