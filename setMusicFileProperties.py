@@ -177,15 +177,15 @@ class ApprovedTagsList:
 			yield v
 
 class MusicFolderHandler:
-	_commentsProducerRegex = re.compile("produce(r|d)", re.IGNORECASE)
-	_composerRegex = re.compile("\s*(;|/)\s*")
-	_badCharsRegex = re.compile("[‘’“”\u2014\u2013\u2010]")
-	#_fancySingleQuotesRegex = re.compile("[‘’]")
-	#_fancyDoubleQuotesRegex = re.compile("[“”]")
-	_badQuotesRegex = re.compile("[‘’“”]")
-	#_badDashesRegex = re.compile("[\—\–\‐]")	# m-dash, n-dash, hyphen
-	_badDashesRegex = re.compile("[\u2014\u2013\u2010]")	# m-dash, n-dash, hyphen
-	_badFilenameCharsRegex = re.compile("[<>\\/\|\*\?:\"]")
+	_commentsProducerRegex = re.compile(r"produce(r|d)", re.IGNORECASE)
+	_composerRegex = re.compile(r"\s*(;|/)\s*")
+	_badCharsRegex = re.compile(r"[‘’“”\u2014\u2013\u2010]")
+	#_fancySingleQuotesRegex = re.compile(r"[‘’]")
+	#_fancyDoubleQuotesRegex = re.compile(r"[“”]")
+	_badQuotesRegex = re.compile(r"[‘’“”]")
+	#_badDashesRegex = re.compile(r"[\—\–\‐]")	# m-dash, n-dash, hyphen
+	_badDashesRegex = re.compile(r"[\u2014\u2013\u2010]")	# m-dash, n-dash, hyphen
+	_badFilenameCharsRegex = re.compile(r"[<>\\/\|\*\?:\"]")
 	_approvedTags = ApprovedTagsList()
 
 	def __init__(self, folderPath : pathlib.Path = None, targetFolderPath : pathlib.Path = None, sourceFolderPath : pathlib.Path = None,
@@ -272,9 +272,9 @@ class MusicFolderHandler:
 		targetMusicFile.TotalDiscs = sourceMusicFile.TotalDiscs
 
 		if self._whatIf:
-			LogHelper.WhatIf(f"saving changes to file '{targetMusicFile.FilePath.name}'")
+			LogHelper.WhatIf(f'saving changes to file "{targetMusicFile.FilePath.name}"')
 		else:
-			LogHelper.Message(f"saving change to file '{targetMusicFile.FilePath.name}'")
+			LogHelper.Message(f'saving change to file "{targetMusicFile.FilePath.name}"')
 			os.chmod(targetMusicFile.FilePath, stat.S_IWRITE)
 			targetMusicFile.save(True)
 			os.utime(targetMusicFile.FilePath, (currLastAccessTime, lastModTime))
@@ -737,7 +737,7 @@ def cleanFilesCommand(args):
 	elif p.is_file():
 		MusicFolderHandler(whatIf = args.whatIf, verbose = args.verbose).CleanFile(p)
 	else:
-		print(f'path "{args.folderPath}" does not exist, is not a folder or could not be accessed')
+		print(f'path "{args.path}" does not exist, is not a folder or could not be accessed')
 
 def showFolderPropertiesCommand(args : argparse.Namespace):
 	folder = pathlib.Path(args.folderPath)#.resolve()
