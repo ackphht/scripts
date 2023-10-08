@@ -1,19 +1,12 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import sys
-import os
-import datetime
-import re
-import argparse
-import stat
-import sqlite3
-import pathlib
+import os, pathlib, datetime, re, argparse, stat, sqlite3
 from typing import Any, List, Iterator
 from tabulate import tabulate	# https://pypi.org/project/tabulate/
-from loghelper import LogHelper
 from operator import attrgetter
 
+from loghelper import LogHelper
 from musicFileProperties import MusicFileProperties
 
 LogHelper.Init()
