@@ -9,8 +9,6 @@ from operator import attrgetter
 from loghelper import LogHelper
 from musicFileProperties import MusicFileProperties
 
-LogHelper.Init()
-
 _musicAttributesDbPath = pathlib.Path(os.path.expandvars("%UserProfile%/Music/MyMusic/musicAttributes.sqlite"))#.resolve()
 _defaultTableFormat = "presto"#"simple"
 
@@ -183,7 +181,7 @@ class MusicFolderHandler:
 
 	def __init__(self, folderPath : pathlib.Path = None, targetFolderPath : pathlib.Path = None, sourceFolderPath : pathlib.Path = None,
 				createPlaylist : bool = False, onlyPlaylist : bool = False, playlistName : str = None, onlyTimestamp : bool = False, enableSimpleLookup : bool = False,
-				whatIf : bool = False, verbose : bool = False):
+				whatIf : bool = False):
 		self._folderPath = folderPath
 		self._targetFolderPath = targetFolderPath
 		self._sourceFolderPath = sourceFolderPath
@@ -193,7 +191,6 @@ class MusicFolderHandler:
 		self._onlyTimestamp = onlyTimestamp
 		self._enableSimpleLookup = enableSimpleLookup
 		self._whatIf = whatIf
-		self._verbose = verbose
 
 	def SetFolderFilesFromDb(self):
 		renamedFolder = self._cleanUpFolderName(self._folderPath)
@@ -283,14 +280,12 @@ class MusicFolderHandler:
 		resultRows = []
 		resultsCount = 0
 		with sqliteCursorHelper(sqliteConn) as curs:
-			if self._verbose:
-				LogHelper.Verbose(f"doing db query: AlbumArtist: '{musicFile.AlbumArtist}' / AlbumTitle: '{musicFile.AlbumTitle}' / TrackArtist: '{musicFile.TrackArtist}' / TrackTitle: '{musicFile.TrackTitle}'")
+			LogHelper.Verbose(f"doing db query: AlbumArtist: '{musicFile.AlbumArtist}' / AlbumTitle: '{musicFile.AlbumTitle}' / TrackArtist: '{musicFile.TrackArtist}' / TrackTitle: '{musicFile.TrackTitle}'")
 			queryHelper().doMusicFileDbQuery(curs, musicFile.TrackArtist, musicFile.AlbumArtist, musicFile.TrackTitle, musicFile.AlbumTitle)
 			resultRows = curs.fetchall()
 			resultsCount = len(resultRows)
 			if resultsCount == 0 and self._enableSimpleLookup:
-				if self._verbose:
-					LogHelper.Verbose(f"doing alt db query: TrackArtist: '{musicFile.TrackArtist}' / TrackTitle: '{musicFile.TrackTitle}'")
+				LogHelper.Verbose(f"doing alt db query: TrackArtist: '{musicFile.TrackArtist}' / TrackTitle: '{musicFile.TrackTitle}'")
 				queryHelper().doMusicFileDbQueryAlt(curs, musicFile.TrackArtist, musicFile.TrackTitle)
 				resultRows = curs.fetchall()
 				resultsCount = len(resultRows)
@@ -325,80 +320,80 @@ class MusicFolderHandler:
 			os.chmod(musicFile.FilePath, stat.S_IREAD)
 
 	def _setFileProperties(self, musicFile : MusicFileProperties, dbRow : DbRowHelper):
-		if self._verbose: LogHelper.Verbose(f"setting properties on file '{musicFile.FilePath.stem}'")
+		LogHelper.Verbose(f"setting properties on file '{musicFile.FilePath.stem}'")
 		if dbRow.AlbumTitle:
 			at = MusicFolderHandler._addFancyChars(dbRow.AlbumTitle)
-			if self._verbose:  self._verboseSet("AlbumTitle", at)
+			self._logSetProperty("AlbumTitle", at)
 			musicFile.AlbumTitle = at
 		if dbRow.TrackTitle:
 			tt = MusicFolderHandler._addFancyChars(dbRow.TrackTitle)
-			if self._verbose:  self._verboseSet("TrackTitle", tt)
+			self._logSetProperty("TrackTitle", tt)
 			musicFile.TrackTitle = tt
 		albumArtist = dbRow.AlbumArtist if dbRow.AlbumArtist else dbRow.TrackArtist
 		if albumArtist:
 			aa = MusicFolderHandler._addFancyChars(albumArtist)
-			if self._verbose:  self._verboseSet("AlbumArtist", aa)
+			self._logSetProperty("AlbumArtist", aa)
 			musicFile.AlbumArtist = aa
 		trackArtist = dbRow.TrackArtist if dbRow.TrackArtist else dbRow.AlbumArtist
 		if trackArtist:
 			ta = MusicFolderHandler._addFancyChars(trackArtist)
-			if self._verbose:  self._verboseSet("TrackArtist", ta)
+			self._logSetProperty("TrackArtist", ta)
 			musicFile.TrackArtist = ta
 		if dbRow.Year:
 			year = int(dbRow.Year)
 			if year > 0:
-				if self._verbose:  self._verboseSet("Year", dbRow.Year)
+				self._logSetProperty("Year", dbRow.Year)
 				musicFile.Year = str(year)
 		if dbRow.Conductor:
-			if self._verbose:  self._verboseSet("Conductor", dbRow.Conductor)
+			self._logSetProperty("Conductor", dbRow.Conductor)
 			musicFile.Conductor = dbRow.Conductor
 		copyright = dbRow.Copyright
 		if copyright:
 			copyright = copyright.replace("(c)", "©").replace("(C)", "©").replace("(p)", "℗").replace("(P)", "℗")
-			if self._verbose:  self._verboseSet("Copyright", copyright)
+			self._logSetProperty("Copyright", copyright)
 			musicFile.Copyright = copyright
 		if dbRow.Publisher:
-			if self._verbose:  self._verboseSet("Publisher", dbRow.Publisher)
+			self._logSetProperty("Publisher", dbRow.Publisher)
 			musicFile.Publisher = dbRow.Publisher
 		if dbRow.OriginalArtist:
-			if self._verbose:  self._verboseSet("OriginalArtist", dbRow.OriginalArtist)
+			self._logSetProperty("OriginalArtist", dbRow.OriginalArtist)
 			musicFile.OriginalArtist = dbRow.OriginalArtist
 		if dbRow.OriginalAlbum:
-			if self._verbose:  self._verboseSet("OriginalAlbum", dbRow.OriginalAlbum)
+			self._logSetProperty("OriginalAlbum", dbRow.OriginalAlbum)
 			musicFile.OriginalAlbum = dbRow.OriginalAlbum
 		if dbRow.OriginalYear:
-			if self._verbose:  self._verboseSet("OriginalYear", dbRow.OriginalYear)
+			self._logSetProperty("OriginalYear", dbRow.OriginalYear)
 			musicFile.OriginalYear = dbRow.OriginalYear
 		# for lyrics & comments, i normalized the line endins to *nix style in DB, so maybe need to put that back?
 		# nothing in db has "\r\n", so can do simple replace:
 		lyrics = dbRow.Lyrics
 		if lyrics:
 			lyrics = lyrics.replace("\\n", "\r\n")
-			if self._verbose:  self._verboseSet("Lyrics", lyrics)
+			self._logSetProperty("Lyrics", lyrics)
 			musicFile.Lyrics = lyrics
 		# normalize Composer, Producer, any other multi-value lists: replace '\s*/\s*', '\s*;\s*', '\s*&\s*', '\s*and\s*', '\s*,\s*' (except what about e.g.', Jr.' ??), etc(?) with just '/'
 		#    --> on second thought, just leave these alone; there's too much variability and the way they're formatted usually matches what the albums say, so should just keep that
 		composer = dbRow.Composer
 		if composer:
 			#composer = MusicFolderHandler._composerRegex.sub("/", composer)	# don't think i need to do this; already did it for db??
-			if self._verbose:  self._verboseSet("Composer", composer)
+			self._logSetProperty("Composer", composer)
 			musicFile.Composer = composer
 		producer = dbRow.Producer
 		if producer:
-			if self._verbose:  self._verboseSet("Producer", producer)
+			self._logSetProperty("Producer", producer)
 			musicFile.Producer = producer
 		# handle Producer: if we got one from source file/DB, in addition to setting tag, add it to Comments if not already in there (search for 'Producer' or 'Produced' ??)
 		comments = dbRow.Comments
 		if comments:
 			comments = comments.replace("\\n", "\r\n")
 			if producer and not MusicFolderHandler._commentsProducerRegex.search(comments):
-				if self._verbose:  LogHelper.Verbose(f"adding producer '{producer}' to comments")
+				LogHelper.Verbose(f"adding producer '{producer}' to comments")
 				comments = f"Produced by: {producer}\r\n\r\n{comments}"
-			if self._verbose:  self._verboseSet("Comments", comments)
+			self._logSetProperty("Comments", comments)
 			musicFile.Comments = comments
 		elif producer:
 			comments = f"Produced by: {producer}"
-			if self._verbose:  self._verboseSet("Comments", comments)
+			self._logSetProperty("Comments", comments)
 			musicFile.Comments = comments
 		# if target file already has track number, leave it alone (?); same for disc number; and if we don't have a TotalDiscs in target file, set to '1'(?)
 		# also, some of the track numbers in the DB are like '2/8', so have to parse those; but with those, i have the TotalTracks, so...
@@ -409,18 +404,18 @@ class MusicFolderHandler:
 			ttlTracks = int(trackPieces[2]) if trackPieces[2] and trackPieces[2].strip() else 0
 			#if not musicFile.TrackNumber and trackNum > 0:
 			if trackNum > 0:
-				if self._verbose:  self._verboseSet("TrackNumber", str(trackNum))
+				self._logSetProperty("TrackNumber", str(trackNum))
 				musicFile.TrackNumber = trackNum
 			#if not musicFile.TotalTracks and ttlTracks > 0:
 			if ttlTracks > 0:
-				if self._verbose:  self._verboseSet("TotalTracks", str(ttlTracks))
+				self._logSetProperty("TotalTracks", str(ttlTracks))
 				musicFile.TotalTracks = ttlTracks
 		## no Disc info in db (oversight?), so just default them to 1 if not already set:
 		#if not musicFile.DiscNumber:
-		#	if self._verbose:  self._verboseSet("DiscNumber", "1")
+		#	self._logSetProperty("DiscNumber", "1")
 		#	musicFile.DiscNumber = 1
 		#if not musicFile.TotalDiscs:
-		#	if self._verbose:  self._verboseSet("TotalDiscs", "1")
+		#	self._logSetProperty("TotalDiscs", "1")
 		#	musicFile.TotalDiscs = 1
 
 	def _cleanFile(self, musicFile : MusicFileProperties):
@@ -532,10 +527,14 @@ class MusicFolderHandler:
 					pl.write(f"{e.filename}\n")
 			os.chmod(playlist, stat.S_IREAD)
 
-	def _verboseSet(self, propertyName : str, value : str):
+	def _logSetProperty(self, propertyName : str, value : str):
+		LogHelper.Verbose('    setting "{propertyName}" to "{value}"', propertyName = propertyName, value = lambda: MusicFolderHandler._ellipsify(value))
+
+	@staticmethod
+	def _ellipsify(value : str):
 		if value and len(value) > 64:
 			value = value[:61] + "..."
-		LogHelper.Verbose(f"    setting '{propertyName}' to '{value}'")
+		return value
 
 	@staticmethod
 	def _dbModifyTimeToTimestamp(value : str):
@@ -694,6 +693,7 @@ class queryHelper:
 		sqliteCursor.execute(query, params)
 
 def queryDbCommand(args : argparse.Namespace):
+	LogHelper.Init()
 	headers = ["Id", "Filename"]
 	results = []
 	with sqliteConnHelper(_musicAttributesDbPath) as conn, sqliteCursorHelper(conn) as curs:
@@ -703,15 +703,18 @@ def queryDbCommand(args : argparse.Namespace):
 	print(tabulate(results, headers=headers, tablefmt=_defaultTableFormat))
 
 def setFolderPropertiesFromDbCommand(args):
+	LogHelper.Init(verbose=args.verbose)
 	folder = pathlib.Path(args.folderPath)#.resolve()
 	if not folder.is_dir():
 		print(f'folder "{args.folderPath}" does not exist, is not a folder or could not be accessed')
 		return
 
 	MusicFolderHandler(folderPath = folder, createPlaylist = args.playlist, onlyPlaylist = args.onlyPlaylist, playlistName = args.playlistName,
-						onlyTimestamp = args.timestamp, enableSimpleLookup = args.simpleLookup, whatIf = args.whatIf, verbose = args.verbose).SetFolderFilesFromDb()
+						onlyTimestamp = args.timestamp, enableSimpleLookup = args.simpleLookup, whatIf = args.whatIf)\
+		.SetFolderFilesFromDb()
 
 def copyFolderPropertiesCommand(args):
+	LogHelper.Init(verbose=args.verbose)
 	targetFolder = pathlib.Path(args.targetFolderPath)#.resolve()
 	if not targetFolder.is_dir():
 		print(f'folder "{args.targetFolderPath}" does not exist, is not a folder or could not be accessed')
@@ -721,18 +724,21 @@ def copyFolderPropertiesCommand(args):
 		print(f'folder "{args.sourceFolderPath}" does not exist, is not a folder or could not be accessed')
 		return
 
-	MusicFolderHandler(targetFolderPath = targetFolder, sourceFolderPath = sourceFolder, whatIf = args.whatIf, verbose = args.verbose).CopyFolderProperties()
+	MusicFolderHandler(targetFolderPath = targetFolder, sourceFolderPath = sourceFolder, whatIf = args.whatIf)\
+		.CopyFolderProperties()
 
 def cleanFilesCommand(args):
+	LogHelper.Init(verbose=args.verbose)
 	p = pathlib.Path(args.path)#.resolve()
 	if p.is_dir():
-		MusicFolderHandler(folderPath = p, whatIf = args.whatIf, verbose = args.verbose).CleanFolderFiles()
+		MusicFolderHandler(folderPath = p, whatIf = args.whatIf).CleanFolderFiles()
 	elif p.is_file():
-		MusicFolderHandler(whatIf = args.whatIf, verbose = args.verbose).CleanFile(p)
+		MusicFolderHandler(whatIf = args.whatIf).CleanFile(p)
 	else:
 		print(f'path "{args.path}" does not exist, is not a folder or could not be accessed')
 
 def showFolderPropertiesCommand(args : argparse.Namespace):
+	LogHelper.Init()
 	folder = pathlib.Path(args.folderPath)#.resolve()
 	if not folder.is_dir():
 		print(f'folder "{args.folderPath}" does not exist, is not a folder or could not be accessed')
@@ -750,6 +756,7 @@ def showFolderPropertiesCommand(args : argparse.Namespace):
 	print(tabulate(results, headers=headers, tablefmt=_defaultTableFormat))
 
 def showFilePropertiesCommand(args : argparse.Namespace):
+	LogHelper.Init()
 	file = pathlib.Path(args.filePath)#.resolve()
 	if not file.is_file():
 		print(f'file "{args.filePath}" does not exist, is not a folder or could not be accessed')
