@@ -1,14 +1,14 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import sys, os, re, pathlib, shutil, subprocess, tempfile, argparse, hashlib, time
+import sys, os, re, pathlib, shutil, tempfile, argparse, time
 from datetime import datetime, timezone
 from typing import Any, List, Pattern, Tuple, Iterator, Dict
 #from tabulate import tabulate	# https://pypi.org/project/tabulate/
 from operator import attrgetter, itemgetter
 import hashlib
 
-from loghelper import LogHelper
+from ackPyHelpers import LogHelper, FileHelpers, RunProcessHelper
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -43,6 +43,7 @@ def main():
 
 def processCreateIconsCommand(args : argparse.Namespace):
 	Helpers.LogVerbose('processing createIcons command')
+	FileHelpers.Init(whatIf=args.whatIf)
 	Helpers.EnableWhatIf = args.whatIf
 	Helpers.EnableBackup = args.backup
 	Helpers.OptimizePngs = not args.noOptimize
@@ -52,6 +53,7 @@ def processCreateIconsCommand(args : argparse.Namespace):
 
 def processRenameBackupsCommand(args : argparse.Namespace):
 	Helpers.LogVerbose('processing renameBackups command')
+	FileHelpers.Init(whatIf=args.whatIf)
 	Helpers.EnableWhatIf = args.whatIf
 	Helpers.EnableBackup = False	# does any of this get reused if we run script multiple times ??
 	BackupsHelper.RenameBackupFiles(args.fromAt, args.renameIcosOnly, args.renamePngsOnly)
@@ -65,39 +67,6 @@ class Helpers:
 	IconsBasePath = None
 	TempPath = None
 	_hashBufferSize = 256*1024
-
-	class RunProcessResults:
-		def __init__(self):
-			self._exitCode = 0
-			self._stdout = ''
-			self._stderr = ''
-
-		def setResult(self, result : subprocess.CompletedProcess):
-			self._exitCode = result.returncode
-			self._stdout = result.stdout
-			self._stderr = result.stderr
-
-		@property
-		def exitCode(self):
-			return self._exitCode
-
-		@property
-		def stdout(self):
-			return self._stdout
-
-		@property
-		def stderr(self):
-			return self._stderr
-
-		def getCombinedStdoutStderr(self):
-			result = ''
-			if self._stdout and self._stderr:
-				result = f"{self._stdout}{os.linesep}{self._stderr}"
-			elif self._stdout:
-				result = self._stdout
-			elif self._stderr:
-				result = self._stderr
-			return result
 
 	class _TempFile:
 		def __init__(self, prefix : str, ext : str):
@@ -132,24 +101,20 @@ class Helpers:
 
 	@staticmethod
 	def VerifyFolderExists(folder : pathlib.Path):
-		if not folder.exists():
-			if not Helpers.EnableWhatIf:
-				folder.mkdir(parents=True)
-			else:
-				LogHelper.WhatIf(f"creating folder '{folder}'")
+		FileHelpers.VerifyFolderExists(folder)
 
 	@staticmethod
 	def RunProcess(args : List, description : str, ignoreWhatIf : bool = False) :#-> Helpers.RunProcessResults:
-		result = Helpers.RunProcessResults()
 		if not Helpers.EnableWhatIf or ignoreWhatIf:
-			process = subprocess.run(args, capture_output=True, text=True)
-			result.setResult(process)
+			result = RunProcessHelper.runProcess(args)
 		else:
 			LogHelper.WhatIf(f"{description}:{os.linesep}  command line = |{' '.join(str(a) for a in args)}|")
+			result = RunProcessHelper.RunProcessResults()
 		return result
 
 	@staticmethod
 	def CopyFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, description : str, ignoreWhatIf : bool = False):
+		# TODO: migrate to FileHelpers, but need to add support for ignoreWhatIf (or some thing else)
 		if not Helpers.EnableWhatIf or ignoreWhatIf:
 			shutil.copyfile(sourceFile, targetFile)
 		else:
@@ -157,6 +122,7 @@ class Helpers:
 
 	@staticmethod
 	def MoveFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, whatifDescription : str):
+		# TODO: migrate to FileHelpers, but need to add support for ignoreWhatIf (or some thing else)
 		Helpers.LogVerbose(f"moving file '{Helpers.GetRelativePath(sourceFile)}' to '{Helpers.GetRelativePath(targetFile)}'")
 		if Helpers.EnableBackup and targetFile.exists():
 			backupFile = BackupsHelper.GetBackupName(targetFile)
@@ -176,14 +142,7 @@ class Helpers:
 
 	@staticmethod
 	def GetSha1(file : pathlib.Path) -> bytes:
-		#Helpers.LogVerbose(f"getting SHA1 for file '{file}'")
-		if not file.exists() and Helpers.EnableWhatIf:
-			return hashlib.sha1("").digest()
-		hSha1 = hashlib.sha1()
-		with open(file, 'rb', buffering=0) as f:
-			for chunk in iter(lambda : f.read(Helpers._hashBufferSize), b''):
-				hSha1.update(chunk)
-		return hSha1.digest()
+		return FileHelpers.GetSha1(file)
 
 	@staticmethod
 	def GetTempFile(prefix : str = None, fileExtension : str = None) -> _TempFile:
@@ -283,7 +242,7 @@ class Constants:
 
 class Executables:
 	@staticmethod
-	def ConvertFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, targetSize : int = None, ignoreWhatIf : bool = False) -> Helpers.RunProcessResults:
+	def ConvertFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, targetSize : int = None, ignoreWhatIf : bool = False) -> RunProcessHelper.RunProcessResults:
 		# using Inkscape to do these conversions and resizings; should be able to use ImageMagick, which we're using to create the ICO files below, but am getting really crappy results:
 		args = [Constants.PathToInkscape, "--without-gui", sourceFile, "--export-filename", targetFile]
 		if targetSize is not None and targetSize > 0:
@@ -291,7 +250,7 @@ class Executables:
 		return Helpers.RunProcess(args, f"converting '{Helpers.GetRelativePath(sourceFile)}' to '{targetFile}'", ignoreWhatIf)
 
 	@staticmethod
-	def CreateIcoFile(sourceImgs : Iterator[pathlib.Path], icoOutputFile : pathlib.Path, ignoreWhatIf : bool = False) -> Helpers.RunProcessResults:
+	def CreateIcoFile(sourceImgs : Iterator[pathlib.Path], icoOutputFile : pathlib.Path, ignoreWhatIf : bool = False) -> RunProcessHelper.RunProcessResults:
 		args = [Constants.PathToImageMagick, "convert"]
 		for img in sourceImgs:
 			args.append(img)
@@ -299,7 +258,7 @@ class Executables:
 		return Helpers.RunProcess(args, f"creating ICO file '{Helpers.GetRelativePath(icoOutputFile)}'", ignoreWhatIf)
 
 	@staticmethod
-	def OptimizePng(pngFilepath : pathlib.Path, ignoreWhatIf : bool = False) -> Helpers.RunProcessResults:
+	def OptimizePng(pngFilepath : pathlib.Path, ignoreWhatIf : bool = False) -> RunProcessHelper.RunProcessResults:
 		args = [Constants.PathToOptipng, "-o7", "-nx", "-strip", "all"]
 		#if not Helpers.EnableVerbose:
 		#args.append("-quiet")

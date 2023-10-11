@@ -6,7 +6,7 @@ from typing import Any, List, Iterator
 from tabulate import tabulate	# https://pypi.org/project/tabulate/
 from operator import attrgetter
 
-from loghelper import LogHelper
+from ackPyHelpers import LogHelper
 from musicFileProperties import MusicFileProperties
 
 _musicAttributesDbPath = pathlib.Path(os.path.expandvars("%UserProfile%/Music/MyMusic/musicAttributes.sqlite"))#.resolve()

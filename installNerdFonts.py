@@ -3,16 +3,16 @@
 import sys
 if sys.version_info < (3, 9):
 	sys.exit("python version 3.9 or higher if required")
-import os, re, pathlib, shutil, subprocess, urllib.request, json, argparse, tarfile, zipfile
+import os, re, pathlib, urllib.request, json, argparse, tarfile, zipfile
 from typing import Iterator#, Self#, List, Dict#, Any, Pattern, Tuple
 from io import BytesIO
-from loghelper import LogHelper
-from githubHelper import GithubRelease
 if sys.platform == "win32":
 	import fontTools.ttLib
 	import ctypes
 	from ctypes import wintypes
 	import winreg
+
+from ackPyHelpers import LogHelper, GithubRelease, RunProcessHelper
 
 def main() -> int:
 	# https://www.nerdfonts.com/font-downloads
@@ -330,10 +330,10 @@ def installFontFromZip(fontDfn : NerdFontDefn, osHelper : OSHelper) -> None:
 			LogHelper.Verbose(f"skipping font file |{f}|")
 
 def runApp(appAndArgs : list[str]) -> int:
-	process = subprocess.run(appAndArgs)
-	if process.returncode != 0:
-		LogHelper.Error(f'app {appAndArgs[0]} returned non-zero exit code: {process.returncode}')
-	return process.returncode
+	results = RunProcessHelper.runProcess(appAndArgs)
+	if results.exitCode != 0:
+		LogHelper.Error(f'app {appAndArgs[0]} returned non-zero exit code = {results.exitCode}{os.linesep}{results.getCombinedStdoutStderr()}')
+	return results.exitCode
 
 def rebuildFontCache(osHelper : OSHelper) -> None:
 	if osHelper.testMode or sys.platform == "win32":
