@@ -1,5 +1,6 @@
 #!python3
 # -*- coding: utf-8 -*-
+
 import sys
 if sys.platform == "win32":
 	import ctypes
