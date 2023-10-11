@@ -1,7 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import sys, os, subprocess
+import os, subprocess
 
 class RunProcessHelper:
 	"""

@@ -1,10 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import sys, urllib.request, json
-if sys.platform == "win32":
-	import ctypes
-	from ctypes import wintypes, byref, POINTER
+import urllib.request, json, logging
 
 class GithubRelease:
 	"""
