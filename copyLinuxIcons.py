@@ -43,7 +43,6 @@ def main():
 
 def processCreateIconsCommand(args : argparse.Namespace):
 	Helpers.LogVerbose('processing createIcons command')
-	FileHelpers.Init(whatIf=args.whatIf)
 	Helpers.EnableWhatIf = args.whatIf
 	Helpers.EnableBackup = args.backup
 	Helpers.OptimizePngs = not args.noOptimize
@@ -53,7 +52,6 @@ def processCreateIconsCommand(args : argparse.Namespace):
 
 def processRenameBackupsCommand(args : argparse.Namespace):
 	Helpers.LogVerbose('processing renameBackups command')
-	FileHelpers.Init(whatIf=args.whatIf)
 	Helpers.EnableWhatIf = args.whatIf
 	Helpers.EnableBackup = False	# does any of this get reused if we run script multiple times ??
 	BackupsHelper.RenameBackupFiles(args.fromAt, args.renameIcosOnly, args.renamePngsOnly)
@@ -101,7 +99,7 @@ class Helpers:
 
 	@staticmethod
 	def VerifyFolderExists(folder : pathlib.Path):
-		FileHelpers.VerifyFolderExists(folder)
+		FileHelpers.VerifyFolderExists(folder, whatIf=Helpers.EnableWhatIf)
 
 	@staticmethod
 	def RunProcess(args : List, description : str, ignoreWhatIf : bool = False) :#-> Helpers.RunProcessResults:
@@ -114,31 +112,17 @@ class Helpers:
 
 	@staticmethod
 	def CopyFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, description : str, ignoreWhatIf : bool = False):
-		# TODO: migrate to FileHelpers, but need to add support for ignoreWhatIf (or some thing else)
-		if not Helpers.EnableWhatIf or ignoreWhatIf:
-			shutil.copyfile(sourceFile, targetFile)
-		else:
-			LogHelper.WhatIf(description)
+		FileHelpers.CopyFile(sourceFile, targetFile, whatIf=(Helpers.EnableWhatIf or ignoreWhatIf), whatifDescription=description)
 
 	@staticmethod
 	def MoveFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, whatifDescription : str):
-		# TODO: migrate to FileHelpers, but need to add support for ignoreWhatIf (or some thing else)
-		Helpers.LogVerbose(f"moving file '{Helpers.GetRelativePath(sourceFile)}' to '{Helpers.GetRelativePath(targetFile)}'")
 		if Helpers.EnableBackup and targetFile.exists():
 			backupFile = BackupsHelper.GetBackupName(targetFile)
 			if backupFile != None and not backupFile.exists():
 				msg = f"creating backup file '{backupFile}'"
 				LogHelper.Message3(msg)
-				Helpers.MoveFile(targetFile, backupFile, msg)
-		if not Helpers.EnableWhatIf:
-			#shutil.move(sourceFile, targetFile)	# will throw on Windows if target exists
-			#sourceFile.rename(targetFile)			# will throw on Windows if target exists
-			#os.replace(sourceFile, targetFile)
-			if targetFile.exists():
-				targetFile.unlink()
-			shutil.move(sourceFile, targetFile)
-		else:
-			LogHelper.WhatIf(whatifDescription)
+				FileHelpers.MoveFile(targetFile, backupFile, Helpers.EnableWhatIf, msg)
+		FileHelpers.MoveFile(sourceFile, targetFile, Helpers.EnableWhatIf, whatifDescription)
 
 	@staticmethod
 	def GetSha1(file : pathlib.Path) -> bytes:
@@ -206,10 +190,7 @@ class Helpers:
 
 	@staticmethod
 	def FindOnPath(exe : str) -> pathlib.Path:
-		exepath = shutil.which(exe)
-		if exepath:
-			return pathlib.Path(exepath)
-		return None
+		return FileHelpers.FindOnPath(exe)
 
 class Constants:
 	FldrScheme_SizeType = 0

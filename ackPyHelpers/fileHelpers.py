@@ -13,36 +13,27 @@ class FileHelpers:
 	_hashBufferSize = 256*1024
 
 	@staticmethod
-	def Init(whatIf: bool = False):
-		FileHelpers._enableWhatIf = whatIf
-
-	@staticmethod
-	def VerifyFolderExists(folder: pathlib.Path):
+	def VerifyFolderExists(folder: pathlib.Path, whatIf: bool = False, whatifDescription: str = None) -> None:
 		if not folder.exists():
-			if not FileHelpers._enableWhatIf:
+			if FileHelpers._shouldProcess(whatIf, (whatifDescription if whatifDescription else f'creating folder "{folder}"')):
 				folder.mkdir(parents=True)
-			else:
-				LogHelper.WhatIf(f"creating folder '{folder}'")
 
 	@staticmethod
-	def CopyFile(sourceFile: pathlib.Path, targetFile: pathlib.Path, description: str, ignoreWhatIf: bool = False):
-		if not FileHelpers._enableWhatIf or ignoreWhatIf:
+	def CopyFile(sourceFile: pathlib.Path, targetFile: pathlib.Path, whatIf: bool = False, whatifDescription: str = None) -> None:
+		if FileHelpers._shouldProcess(whatIf, (whatifDescription if whatifDescription else f'copying "{sourceFile}" to "{targetFile}"')):
 			shutil.copyfile(sourceFile, targetFile)
-		else:
-			LogHelper.WhatIf(description)
 
 	@staticmethod
-	def MoveFile(sourceFile: pathlib.Path, targetFile: pathlib.Path, whatifDescription: str):
-		LogHelper.Verbose(f'moving file "{sourceFile}" to "{targetFile}"')
-		if not FileHelpers._enableWhatIf:
+	def MoveFile(sourceFile: pathlib.Path, targetFile: pathlib.Path, whatIf: bool = False, whatifDescription: str = None) -> None:
+		desc = f'moving file "{sourceFile}" to "{targetFile}"'
+		LogHelper.Verbose(desc)
+		if FileHelpers._shouldProcess(whatIf, (whatifDescription if whatifDescription else desc)):
 			#shutil.move(sourceFile, targetFile)	# will throw on Windows if target exists
 			#sourceFile.rename(targetFile)			# will throw on Windows if target exists
 			#os.replace(sourceFile, targetFile)
 			if targetFile.exists():
 				targetFile.unlink()
 			shutil.move(sourceFile, targetFile)
-		else:
-			LogHelper.WhatIf(whatifDescription)
 
 	@staticmethod
 	def GetSha1(file: pathlib.Path) -> bytes:
@@ -60,3 +51,9 @@ class FileHelpers:
 		if exepath:
 			return pathlib.Path(exepath)
 		return None
+
+	@staticmethod
+	def _shouldProcess(self, whatIf : bool, whatIfDesc : str) -> bool:
+		if whatIf:
+			LogHelper.WhatIf(whatIfDesc)
+		return not whatIf
