@@ -541,7 +541,7 @@ function _getLinuxKernelVersion {
 	$result = (uname --kernel-release)
 	# Debian, Kali, maybe others, are now apparently using a 'display' version that's above, but then the real version has to be parsed out of below (haven't found a better way yet...)
 	$version = (uname --kernel-version | awk '{print $5}') | Select-String -Pattern '\d+\.\d+\.\d+[\S]*' -Raw
-	if ($version) {
+	if ($version -and $version -ne $result) {
 		$result = "$result [$version]"
 	}
 	return $result
