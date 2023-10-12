@@ -30,7 +30,7 @@ class OSDetails {
 	OSDetails() {
 		$this.Platform = $this.Id = $this.Description = $this.Release = $this.Distributor = $this.Codename = $this.Type = $this.Edition = [System.String]::Empty
 		$this.BuildNumber = '0'
-		$this.KernelVersion = '0.0' #[System.Version]::new(0, 0)
+		$this.KernelVersion = '0.0.0' #[System.Version]::new(0, 0)
 		$this.UpdateRevision = [UInt32]0
 		#$this.OSInstallTime = $this.OSStartTime = [System.DateTime]::MinValue
 
@@ -121,7 +121,7 @@ function _populateLinuxInfo {
 	} else {
 		$osDetails.Id = 'linux.{0}' -f $distId.ToLower()
 	}
-	$osDetails.KernelVersion = (uname --kernel-release)
+	$osDetails.KernelVersion = _getLinuxKernelVersion #(uname --kernel-release)
 	<#
 	$osDetails.OSInstallTime = _getLinuxInstallDatetime
 	# try to get last boot time:
@@ -530,6 +530,19 @@ function _getLinuxInstallDatetime {
 	}
 	if ($createSecs -ne 0) {
 		$result = [System.DateTimeOffset]::FromUnixTimeSeconds($createSecs).LocalDateTime
+	}
+	return $result
+}
+
+function _getLinuxKernelVersion {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string[]])]
+	param()
+	$result = (uname --kernel-release)
+	# Debian, Kali, maybe others, are now apparently using a 'display' version that's above, but then the real version has to be parsed out of below (haven't found a better way yet...)
+	$version = (uname --kernel-version | awk '{print $5}') | Select-String -Pattern '\d+\.\d+\.\d+[\S]*' -Raw
+	if ($version) {
+		$result = "$result [$version]"
 	}
 	return $result
 }
