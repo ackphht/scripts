@@ -21,7 +21,7 @@ class GithubRelease:
 	class GithubReleaseAsset:
 		"contains information about a release asset (i.e. a file)"
 
-		def __init__(self, assetDict: dict):
+		def __init__(self, assetDict: dict) -> None:
 			if not assetDict:
 				raise ValueError("must provide some asset data retrieved from a Github release")
 			self._id: int = assetDict['id']
@@ -33,7 +33,7 @@ class GithubRelease:
 			self._updatedAt: str = assetDict['updated_at']
 			self._downloadUrl: str = assetDict['browser_download_url']
 
-		def __repr__(self):
+		def __repr__(self) -> str:
 			return f'<GithubReleaseAsset: name="{self.name}", label="{self.label}", download="{self.downloadUrl}">'
 
 		@property
@@ -76,7 +76,7 @@ class GithubRelease:
 			"returns the download URL for this asset"
 			return self._downloadUrl if self._downloadUrl else ""
 
-	def __init__(self, releaseJson: str):
+	def __init__(self, releaseJson: str) -> None:
 		if not releaseJson:
 			raise ValueError("must provide some json retrieved from a Github release")
 		j = json.loads(releaseJson)
@@ -90,11 +90,11 @@ class GithubRelease:
 		for asset in j['assets']:
 			self._assets.append(GithubRelease.GithubReleaseAsset(asset))
 
-	def __repr__(self):
+	def __repr__(self) -> str:
 		return f'<GithubRelease: tag="{self.tag}", name="{self.name}", asset count={len(self.assets)}, url="{self.url}">'
 
 	@staticmethod
-	def GetLatestRelease(owner: str, repo: str):# -> Self:	#only for 3.11+ ?? so not yet...
+	def GetLatestRelease(owner: str, repo: str) -> "GithubRelease":# -> Self:	#only for 3.11+ ?? so not yet...
 		"retrieves the latest release information for the specified owner and repository"
 		url = GithubRelease._latestReleaseUrlTemplate.format(owner, repo)
 		logging.debug(f"getting url |{url}|")
@@ -102,7 +102,7 @@ class GithubRelease:
 			return GithubRelease(resp.read())
 
 	@staticmethod
-	def GetReleaseForTag(owner: str, repo: str, tag: str):# -> Self:	#only for 3.11+ ?? so not yet...
+	def GetReleaseForTag(owner: str, repo: str, tag: str) -> "GithubRelease":# -> Self:	#only for 3.11+ ?? so not yet...
 		"retrieves the release information for the specified owner, repository and tag"
 		url = GithubRelease._releaseUrlTemplate.format(owner, repo, tag)
 		logging.debug(f"getting url |{url}|")

@@ -83,7 +83,7 @@ class LogHelper:
 	_verboseEnabled = False
 
 	@staticmethod
-	def Init(verbose : bool = False):
+	def Init(verbose : bool = False) -> None:
 		LogHelper._verboseEnabled = verbose
 		if not LogHelper._isAnsiSupported():
 			# if ansi escapes not supported:
@@ -93,74 +93,74 @@ class LogHelper:
 			LogHelper.Style = LogHelper.NoAnsiStyle()
 
 	@staticmethod
-	def Log(message : str, /, *posargs, **kwargs):
+	def Log(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a message to the console in light gray"""
 		LogHelper._writeMessage(message, LogHelper.Style.Dim, LogHelper.Fore.White, "", *posargs, **kwargs)
 
 	@staticmethod
-	def Verbose(message : str, /, *posargs, **kwargs):
+	def Verbose(message : str, /, *posargs, **kwargs) -> None:
 		"""if verbose logging is enbled, prints a VERBOSE message to the console in yellow"""
 		if not LogHelper._verboseEnabled:
 			return
 		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.Yellow, "VERBOSE", *posargs, **kwargs)
 
 	@staticmethod
-	def Warning(message : str, /, *posargs, **kwargs):
+	def Warning(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a WARNING message to the console in bright yellow"""
 		LogHelper._writeMessage(message, LogHelper.Style.Bright, LogHelper.Fore.LightYellowEx, "WARNING", *posargs, **kwargs)
 
 	@staticmethod
-	def Warning2(message : str, /, *posargs, **kwargs):
+	def Warning2(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a WARNING message to the console in bright red; for more serious warnings (like, an error but not an error-error :|)"""
 		LogHelper._writeMessage(message, LogHelper.Style.Bright, LogHelper.Fore.LightRedEx, "WARNING", *posargs, **kwargs)
 
 	@staticmethod
-	def Error(message : str, /, *posargs, **kwargs):
+	def Error(message : str, /, *posargs, **kwargs) -> None:
 		"""prints an ERROR message to the console in red"""
 		LogHelper._writeMessage(message, LogHelper.Style.Bright, LogHelper.Fore.Red, "ERROR", *posargs, **kwargs)
 
 	@staticmethod
-	def Message(message : str, /, *posargs, **kwargs):
+	def Message(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a regular message to the console in cyan"""
 		LogHelper.MessageCyan(message, *posargs, **kwargs)
 
 	@staticmethod
-	def Message2(message : str, /, *posargs, **kwargs):
+	def Message2(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a regular message to the console in magenta, like maybe for headers [OBSOLETE; use MessageMagenta()]"""
 		LogHelper.MessageMagenta(message, *posargs, **kwargs)
 
 	@staticmethod
-	def Message3(message : str, /, *posargs, **kwargs):
+	def Message3(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a regular message to the console in yellow [OBSOLETE; use MessageYellow()]"""
 		LogHelper.MessageYellow(message, *posargs, **kwargs)
 
 	@staticmethod
-	def MessageCyan(message : str, /, *posargs, **kwargs):
+	def MessageCyan(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a regular message to the console in cyan"""
 		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.Cyan, "", *posargs, **kwargs)
 
 	@staticmethod
-	def MessageMagenta(message : str, /, *posargs, **kwargs):
+	def MessageMagenta(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a regular message to the console in magenta, like maybe for headers"""
 		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.Magenta, "", *posargs, **kwargs)
 
 	@staticmethod
-	def MessageYellow(message : str, /, *posargs, **kwargs):
+	def MessageYellow(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a regular message to the console in yellow"""
 		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.Yellow, "", *posargs, **kwargs)
 
 	@staticmethod
-	def MessageGreen(message : str, /, *posargs, **kwargs):
+	def MessageGreen(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a regular message to the console in green"""
 		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.Green, "", *posargs, **kwargs)
 
 	@staticmethod
-	def MessageGray(message : str, /, *posargs, **kwargs):
+	def MessageGray(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a regular message to the console in gray"""
 		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.LightBlackEx, "", *posargs, **kwargs)
 
 	@staticmethod
-	def WhatIf(message : str, /, *posargs, **kwargs):
+	def WhatIf(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a test mode type message to the console, prefixed with 'WhatIf: ', in  white"""
 		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.White, "WhatIf", *posargs, **kwargs)
 
@@ -187,7 +187,7 @@ class LogHelper:
 		return bool(mode.value & 0x0004)
 
 	@staticmethod
-	def _writeMessage(message : str, style : str, color : str, prefix : str, /, *posargs, **kwargs):
+	def _writeMessage(message : str, style : str, color : str, prefix : str, /, *posargs, **kwargs) -> None:
 		newPosArgs = [] if posargs else posargs
 		for a in posargs:
 			newPosArgs.append(a() if callable(a) else a)

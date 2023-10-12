@@ -14,13 +14,13 @@ class RunProcessHelper:
 	"""
 
 	class RunProcessResults:
-		def __init__(self):
+		def __init__(self) -> None:
 			self._exitCode = 0
 			self._stdout = ''
 			self._stderr = ''
 
 		@staticmethod
-		def _parseResult(processResult: subprocess.CompletedProcess):	# -> Self:
+		def _parseResult(processResult: subprocess.CompletedProcess) -> "RunProcessHelper.RunProcessResults":	# -> Self:
 			result = RunProcessHelper.RunProcessResults()
 			result._exitCode = processResult.returncode
 			result._stdout = processResult.stdout
@@ -28,18 +28,18 @@ class RunProcessHelper:
 			return result
 
 		@property
-		def exitCode(self):
+		def exitCode(self) -> int:
 			return self._exitCode
 
 		@property
-		def stdout(self):
+		def stdout(self) -> str:
 			return self._stdout
 
 		@property
-		def stderr(self):
+		def stderr(self) -> str:
 			return self._stderr
 
-		def getCombinedStdoutStderr(self):
+		def getCombinedStdoutStderr(self) -> str:
 			result = ''
 			if self._stdout and self._stderr:
 				result = f"{self._stdout}{os.linesep}{self._stderr}"
@@ -50,6 +50,6 @@ class RunProcessHelper:
 			return result
 
 	@staticmethod
-	def runProcess(args: list[str]):
+	def runProcess(args: list[str]) -> "RunProcessHelper.RunProcessResults":
 		proc = subprocess.run(["oh-my-posh", "--version"], capture_output=True, text=True)
 		return RunProcessHelper.RunProcessResults._parseResult(proc)
