@@ -38,6 +38,7 @@ def main():
 	print(f'sys.version = |{sys.version}|')
 	print(f'sys.version_info = |{sys.version_info}|')
 	print(f'sys.winver = |{sys.winver if sys.platform == "win32" else "<N/A>"}|')
+
 	print('=' * 40)
 	print('values from os module:')
 	print('=' * 40)
@@ -81,6 +82,7 @@ def main():
 	print(f"os.path.splitdrive({shareFile}) = |{os.path.splitdrive(shareFile)}|")
 	print(f"os.path.splitext('C:/Windows/System32/notepad.exe') = |{os.path.splitext('C:/Windows/System32/notepad.exe')}|")
 	print(f'os.path.supports_unicode_filenames = |{os.path.supports_unicode_filenames}|')
+
 	#print('=' * 40)
 	#print('values from time module:')
 	#print('=' * 40)
@@ -88,6 +90,7 @@ def main():
 	#print(f'time.timezone = |{time.timezone}|')
 	#print(f'time.altzone = |{time.altzone}|')
 	#print(f'time.tzname = |{time.tzname}|')
+
 	print('=' * 40)
 	print('values from platform module:')
 	print('=' * 40)
@@ -101,10 +104,9 @@ def main():
 	#print(f'platform.system_alias() = |{platform.system_alias()}|')
 	print(f'platform.version() = |{platform.version()}|')
 	print(f'platform.uname() = |{platform.uname()}|')
-	if sys.platform == 'win32':
-		print(f'platform.win32_ver() = |{platform.win32_ver()}|')
-		print(f'platform.win32_edition() = |{platform.win32_edition() if "win32_edition" in dir(platform) else "<N/A>"}|')
-
+	print(f'platform.win32_ver() = |{platform.win32_ver() if sys.platform == "win32" else "<N/A>"}|')
+	print(f'platform.win32_edition() = |{platform.win32_edition() if sys.platform == "win32" and "win32_edition" in dir(platform) else "<N/A>"}|')
+	print(f'platform.freedesktop_os_release() = |{platform.freedesktop_os_release() if sys.platform == "linux" and sys.version_info >= (3, 10, 0) else "<N/A>"}|')
 
 if __name__ == "__main__":
 	main()
