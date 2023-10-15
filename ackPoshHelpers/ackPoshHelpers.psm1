@@ -57,6 +57,8 @@ function WriteVerboseMessage {
 		[Parameter(Mandatory=$false)] [switch] $continuation
 	)
 	process {
+		# preference vars don't propagate into module cmdlets/functions, so have to do a hacky check to read them from caller in each cmdlet/function that needs it...
+		if (-not $PSBoundParameters.ContainsKey('Verbose')) { $VerbosePreference = $PSCmdlet.GetVariableValue('VerbosePreference') }
 		if ($VerbosePreference -ne [System.Management.Automation.ActionPreference]::Continue) { return }
 
 		$msg = if ($msgScript) { $msgScript.Invoke() } elseif ($formatParams) { $message -f $formatParams } else { $message }
