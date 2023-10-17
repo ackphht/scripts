@@ -106,6 +106,7 @@ def main():
 	print(f'platform.uname() = |{platform.uname()}|')
 	print(f'platform.win32_ver() = |{platform.win32_ver() if sys.platform == "win32" else "<N/A>"}|')
 	print(f'platform.win32_edition() = |{platform.win32_edition() if sys.platform == "win32" and "win32_edition" in dir(platform) else "<N/A>"}|')
+	print(f'platform.mac_ver() = |{platform.mac_ver() if sys.platform == "darwin" else "<N/A>"}|')
 	print(f'platform.freedesktop_os_release() = |{platform.freedesktop_os_release() if sys.platform == "linux" and sys.version_info >= (3, 10, 0) else "<N/A>"}|')
 
 if __name__ == "__main__":
