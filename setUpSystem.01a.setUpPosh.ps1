@@ -150,7 +150,7 @@ function VerifyPowerShellCoreInstalled {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	[OutputType([void])]
 	param(
-		[OSDetails] $osDetails,
+		<#[OSDetails]#> [PSObject] $osDetails,
 		[switch] $noWingetForGithubDwnld,
 		[switch] $dontDeleteMsi
 	)
