@@ -187,10 +187,17 @@ function _getOSArchitecture {
 	[OutputType([string])]
 	param()
 	$result = ''
+	# RuntimeInformation.OSArchitecture should always exist for Linux and MacOS, but not necessarily for older version of PowerShell on Windows
+	# in which case, we'll fall back to the PROCESSOR_ARCHITECTURE env vars
+	#   (as far as i can tell, the PROCESSOR_ARCHITECTURE/PROCESSOR_ARCHITEW6432 env var is sorta misnamed; it's really OS_ARCHITECTURE)
 	if ('System.Runtime.InteropServices.Architecture' -as [type] -and
 			[bool]([System.Runtime.InteropServices.RuntimeInformation].GetProperty('OSArchitecture', @([System.Reflection.BindingFlags]::Static, [System.Reflection.BindingFlags]::Public)))) {
 		$result = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+	} elseif (Test-Path -Path env:PROCESSOR_ARCHITEW6432 -PathType Leaf) {
+		# if you're running a 32-bit app on a 64-bit OS, then the PROCESSOR_ARCHITEW6432 env var will exist and contain the correct OS architecture
+		$result = $env:PROCESSOR_ARCHITEW6432
 	} elseif (Test-Path -Path env:PROCESSOR_ARCHITECTURE -PathType Leaf) {
+		# else you're running a 64-bit app on a 64-bit os or a 32-bit app on a 32-bit OS, and only PROCESSOR_ARCHITECTURE will exist and contain the correct OS architecture
 		$result = $env:PROCESSOR_ARCHITECTURE
 	} else {
 		<# ??? if linux, can try uname --hardware-platform; or just fall back to uname --machine and assume the OS type is same as cpu type ??? #>
@@ -236,7 +243,7 @@ function _getWindowsId {
 	$type = [int]$wmios.ProductType
 	$caption = [string]$wmios.Caption
 	$release = $release.ToLowerInvariant()
-	WriteVerboseMessage 'mapping windows OS name: build = "{0}", type = "{1}", caption = "{2}"' $build,$type,$caption
+	WriteVerboseMessage 'mapping windows OS id: build = "{0}", type = "{1}", caption = "{2}"' $build,$type,$caption
 	switch ($type) {
 		1 {
 			switch ($build) {
@@ -268,7 +275,7 @@ function _getWindowsId {
 		}
 		default { $result = "unknown.type${type}.${build}"; break; }
 	}
-	WriteVerboseMessage 'map OS name result == "{0}"' $result
+	WriteVerboseMessage 'map OS id result == "{0}"' $result
 	return $result
 }
 
