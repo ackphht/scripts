@@ -295,7 +295,7 @@ function _getWindowsRelease {
 				#		from release for cancary and dev, but not for beta, so not sure that's helpful ???
 				{ $_ -ge 25000 } { $result = '11.canary.{0}' -f (_getWindowsBuildLab); break; }
 				{ $_ -ge 23000 } { $result = '11.dev.{0}' -f (_getWindowsBuildLab); break; }
-				{ $_ -gt 22631 } { $result = '11.beta.{0}.{1}' -f $build,$ubr; break; }	# ???
+				{ $_ -ge 22635 } { $result = '11.beta.{0}.{1}' -f $build,$ubr; break; }	# ???
 				{ $_ -ge 22000 } {
 					if ($build -ge 22621) { $result = '11.{0}' -f (_getWinReleaseFromReg) }
 					elseif ($build -ge 22449) { $result = '11.dev.{0}' -f $build }	# Win11 22H2 dev builds
@@ -491,27 +491,44 @@ function _getLinuxReleaseProps {
 	[OutputType([string[]])]
 	$distId = $description = $release = $codename = [string]::Empty
 	# try getting data from reading files before shelling out to lsb_release:
-	if (Test-Path -Path '/etc/lsb-release' -PathType Leaf) {
-		$lsbrelease = Get-Content -Path '/etc/lsb-release' | ParseLinesToLookup
+	$lsbReleasePath = '/etc/lsb-release'
+	if (Test-Path -Path $lsbReleasePath -PathType Leaf) {
+		WriteVerboseMessage -message 'reading lsb-release file from "{0}"' -formatParams $lsbReleasePath
+		$lsbrelease = Get-Content -Path $lsbReleasePath | ParseLinesToLookup
 		if ($lsbrelease.ContainsKey('DISTRIB_ID')) { $distId = $lsbrelease['DISTRIB_ID'] }
 		if ($lsbrelease.ContainsKey('DISTRIB_DESCRIPTION')) { $description = $lsbrelease['DISTRIB_DESCRIPTION'] }
 		if ($lsbrelease.ContainsKey('DISTRIB_RELEASE')) { $release = $lsbrelease['DISTRIB_RELEASE'] }
 		if ($lsbrelease.ContainsKey('DISTRIB_CODENAME')) { $codename = $lsbrelease['DISTRIB_CODENAME'] }
+	} else {
+		WriteVerboseMessage -message 'no lsb-release file found'
 	}
-	if ((-not $distId -or -not $description -or -not $release -or -not $codename) -and (Test-Path -Path '/etc/os-release' -PathType Leaf)) {
-		$osrelease = Get-Content -Path '/etc/os-release' | ParseLinesToLookup
-		if (-not $distId -and $osrelease.ContainsKey('ID')) { $distId = $osrelease['ID'] }
-		if (-not $description -and $osrelease.ContainsKey('NAME')) { $description = $osrelease['NAME'] }
-		if (-not $release -and $osrelease.ContainsKey('VERSION_ID')) { $release = $osrelease['VERSION_ID'] }
-		if (-not $codename -and $osrelease.ContainsKey('VERSION_CODENAME')) { $codename = $osrelease['VERSION_CODENAME'] }
+#	if ((-not $distId -or -not $description -or -not $release -or -not $codename) -and (Test-Path -Path '/etc/os-release' -PathType Leaf)) {
+	if ((-not $distId -or -not $description -or -not $release -or -not $codename)) {
+		$osReleasePath = '/etc/os-release'
+		if (-not (Test-Path -Path $osReleasePath -PathType Leaf)) { $osReleasePath = '/usr/lib/os-release' }
+		if ((Test-Path -Path $osReleasePath -PathType Leaf)) {
+			WriteVerboseMessage -message 'reading os-release file from "{0}"' -formatParams $osReleasePath
+			$osrelease = Get-Content -Path $osReleasePath | ParseLinesToLookup
+			if (-not $distId -and $osrelease.ContainsKey('ID')) { $distId = $osrelease['ID'] }
+			if (-not $description -and $osrelease.ContainsKey('NAME')) { $description = $osrelease['NAME'] }
+			if (-not $release -and $osrelease.ContainsKey('VERSION_ID')) { $release = $osrelease['VERSION_ID'] }
+			if (-not $codename -and $osrelease.ContainsKey('VERSION_CODENAME')) { $codename = $osrelease['VERSION_CODENAME'] }
+		} else {
+			WriteVerboseMessage -message 'no os-release file found'
+		}
 	}
 	# some distros (e.g. fedora and opensuse tumbleweed) still don't have everything but it is returned by lsb_release (??), so let's try that:
-	if ((-not $distId -or -not $description -or -not $release -or -not $codename) -and (Get-Command -Name 'lsb_release' -ErrorAction Ignore)) {
-		$lsb = lsb_release --all 2>/dev/null | ParseLinesToLookup
-		if (-not $distId -and $lsb.ContainsKey('Distributor ID')) { $distId = $lsb['Distributor ID'] }
-		if (-not $description -and $lsb.ContainsKey('Description')) { $description = $lsb['Description'] }
-		if (-not $release -and $lsb.ContainsKey('Release')) { $release = $lsb['Release'] }
-		if (-not $codename -and $lsb.ContainsKey('Codename')) { $codename = $lsb['Codename'] }
+	if ((-not $distId -or -not $description -or -not $release -or -not $codename)) {
+		if ((Get-Command -Name 'lsb_release' -ErrorAction Ignore)) {
+			WriteVerboseMessage -message 'calling lsb_release for info'
+			$lsb = lsb_release --all 2>/dev/null | ParseLinesToLookup
+			if (-not $distId -and $lsb.ContainsKey('Distributor ID')) { $distId = $lsb['Distributor ID'] }
+			if (-not $description -and $lsb.ContainsKey('Description')) { $description = $lsb['Description'] }
+			if (-not $release -and $lsb.ContainsKey('Release')) { $release = $lsb['Release'] }
+			if (-not $codename -and $lsb.ContainsKey('Codename')) { $codename = $lsb['Codename'] }
+		} else {
+			WriteVerboseMessage -message 'lsb_release command not found'
+		}
 	}
 	if ($codename -eq 'n/a') { $codename = [string]::Empty }	# opensuse tumbleweed
 
