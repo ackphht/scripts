@@ -602,10 +602,10 @@ elif sys.platform == "darwin":
 		@staticmethod
 		def _getMacId(verMajor: int, verMinor: int) -> str:
 			result = ""
-			if verMajor > 10:
-				result = f"mac.{verMajor}"
-			elif verMajor == 10:
-				result = f"mac.{verMajor}.{verMinor}"
+			#if verMajor > 10:
+			#	result = f"mac.{verMajor}"
+			#elif verMajor == 10:
+			result = f"mac.{verMajor}.{verMinor}"
 			return result
 
 		@staticmethod
