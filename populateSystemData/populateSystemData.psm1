@@ -207,7 +207,7 @@ function _getOSArchitecture {
 		'X86' { $result = 'x86_32'; break; }
 		# ARM ones just use as-is
 	}
-	return $result
+	return $result.ToLowerInvariant()
 }
 
 function _looksLikeVersion {
