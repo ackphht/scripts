@@ -1,11 +1,13 @@
 #!/bin/bash
 
-doIt() {
-	#pwsh -c "& { . ~/scripts/populateSystemData.ps1; \
-	#				Get-OSDetails | \
-	#					Select-Object Id,Distributor,Description,Codename,Release,KernelVersion | \
-	#					Format-List }"
+# TODO: how do we pass in a flag for the '-a' or '--showAllProps' option?
+
+doItPosh() {
 	pwsh -file ~/scripts/ackfetch.ps1
 }
 
-which pwsh >/dev/null 2>&1 && doIt || echo "WARNING: powershell not found"
+doItPython() {
+	python3 ~/scripts/ackfetch.py
+}
+
+which pwsh >/dev/null 2>&1 && doItPosh || which python3 >/dev/null 2>&1 && doItPython || echo "WARNING: neither powershell nor python were found"
