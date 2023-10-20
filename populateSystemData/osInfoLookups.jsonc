@@ -1,0 +1,309 @@
+{
+	"windows": {
+		//"name": "windows",
+		"names": {
+			/*
+				select productType, then sort by build numbers in desc order, find first one for currentBuild >= verBuild
+				start with name field
+				if addRegRelease, get the release name from HKLM\...\Windows NT\CurrentVersion\@DisplayVersion (or @ReleaseId if no @DisplayVersion)
+					and append to name after a period
+				if addBuildNumber, append the current build number to the name after a period
+				if addBuildLab, get the build lab value from HKLM\...\Windows NT\CurrentVersion\@BuildLab
+					and append to name after a period
+			*/
+			"client": [
+				{ "build": 25000, "name": "11.canary" /*'11.canary.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				{ "build": 23000, "name": "11.dev" /*'11.dev.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				{ "build": 22635, "name": "11.beta" /*'11.beta.1234'*/, "addRegRelease": false, "addBuildNumber": true, "addBuildLab": false, "addUbr": true },
+				{ "build": 22621, "name": "11" /*'11.22H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 22429, "name": "11.dev", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				{ "build": 22000, "name": "11" /*'11'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 19500, "name": "11.dev", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				{ "build": 10586, "name": "10" /*'10.20H1'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 10240, "name": "10" /*'10'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 9600, "name": "8.1", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 9200, "name": "8.1", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 7601, "name": "7.SP1", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 7600, "name": "7", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 6002, "name": "Vista.SP2", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 6001, "name": "Vista.SP1", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 6000, "name": "Vista", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false }
+			],
+			"server": [
+				//
+				// TODO: this needs to be updated; have not kept up with Server versions
+				//
+				/*
+				{ $_ -ge 17763 } {
+					if ($wmios.Caption -like '*2019*') {		# can't find any other way to distinguish these...
+						$result = 'RTM'
+					} else {
+						$result = _getWinReleaseFromReg
+					}
+					break
+				}
+				{ $_ -ge 16299 } { $result = _getWinReleaseFromReg; break; }
+				{ $_ -ge 14393 } { $result = 'RTM'; break; }
+				{ $_ -ge 10240 } { $result = 'RTM'; break; }
+				{ $_ -ge 9600 } { $result = 'RTM'; break; }
+				{ $_ -ge 9200 } { $result = 'RTM'; break; }
+				{ $_ -ge 7600 } {
+					if ($build -gt 7601) { $result = 'SP1' }
+					else { $result = 'RTM' }
+					break
+				}
+				{ $_ -ge 6001 } {
+					if ($build -gt 6002) { $result = 'SP1' }
+					else { $result = 'RTM' }
+					break
+				}
+				*/
+			]
+		},
+		"codenames": [
+			{ "build": 22631, "codename": "Sun Valley 3", "major": 0, "minor": 0 },	// Win 11 23H2
+			{ "build": 22621, "codename": "Sun Valley 2", "major": 0, "minor": 0 },	// Win 11 22H2
+			{ "build": 22000, "codename": "Sun Valley 3", "major": 0, "minor": 0 },	// Win 11 RTM/21H2
+			{ "build": 19041, "codename": "Vibranium", "major": 0, "minor": 0 },	// codename includes Win10 2004, 20H2, 21H1, 21H2, 22H2:
+			{ "build": 18363, "codename": "Vanadium", "major": 0, "minor": 0 },		// Win 10 1909
+			{ "build": 18362, "codename": "19H1", "major": 0, "minor": 0 },			// Win 10 1903
+			{ "build": 17763, "codename": "Redstone 5", "major": 0, "minor": 0 },	// Win 10 1809
+			{ "build": 17134, "codename": "Redstone 4", "major": 0, "minor": 0 },	// Win 10 1803
+			{ "build": 16299, "codename": "Redstone 3", "major": 0, "minor": 0 },	// Win 10 1709
+			{ "build": 15063, "codename": "Redstone 2", "major": 0, "minor": 0 },	// Win 10 1703
+			{ "build": 14393, "codename": "Redstone 1", "major": 0, "minor": 0 },	// Win 10 1607
+			{ "build": 10586, "codename": "Threshold 2", "major": 0, "minor": 0 },	// Win 10 1511
+			{ "build": 10240, "codename": "Threshold", "major": 0, "minor": 0 },	// Win 10 RTM
+			{ "build": 9600, "codename": "Blue", "major": 0, "minor": 0 },			// Win 8.1
+			{ "build": 7600, "codename": "", "major": 0, "minor": 0 },				// Win 7 and 8 didn't have codenames ?
+			{ "build": 6000, "codename": "Longhorn", "major": 0, "minor": 0 },		// Vista
+			{ "build": 2600, "codename": "Whistler", "major": 0, "minor": 0 }		// WinXP
+		],
+		"versions": [
+			{ "build": 22000, "major": 11, "minor": 0, "includeUbr": true },	// Win11
+			{ "build": 10586, "major": 10, "minor": 0, "includeUbr": true },	// Win10
+			{ "build": 10240, "major": 10, "minor": 0, "includeUbr": false },	// Win10
+			{ "build": 9600, "major": 8, "minor": 1, "includeUbr": false },		// Win8.1
+			{ "build": 9200, "major": 8, "minor": 0, "includeUbr": false },		// Win8
+			{ "build": 7601, "major": 7, "minor": 1, "includeUbr": false },		// Win7SP1
+			{ "build": 7600, "major": 7, "minor": 0, "includeUbr": false },		// Win7
+			{ "build": 6002, "major": 6, "minor": 2, "includeUbr": false },		// VistaSP2
+			{ "build": 6001, "major": 6, "minor": 1, "includeUbr": false },		// VistaSP1
+			{ "build": 6000, "major": 6, "minor": 0, "includeUbr": false }		// Vista
+		],
+		"skus": {
+			// list of constants: winnt.h
+			// descriptions: https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getproductinfo
+			// some names (and descriptions, and whole entries) from https://betawiki.net/wiki/Draft:List_of_Windows_product_types
+			"1": "Ultimate",
+			"2": "HomeBasic",
+			"3": "HomePremium",
+			"4": "Enterprise",
+			"5": "HomeBasicN",
+			"6": "Business",
+			"7": "ServerStandard",
+			"8": "ServerDatacenter",
+			"9": "ServerSBSStandard",
+			"10": "ServerEnterprise",
+			"11": "Starter",
+			"12": "ServerDatacenterCore",
+			"13": "ServerStandardCore",
+			"14": "ServerEnterpriseCore",
+			"15": "ServerEnterpriseIA64",
+			"16": "BusinessN",
+			"17": "ServerWeb",
+			"18": "ServerHPC",
+			"19": "ServerHomeStandard",
+			"20": "ServerStorageExpress",
+			"21": "ServerStorageStandard",
+			"22": "ServerStorageWorkgroup",
+			"23": "ServerStorageEnterprise",
+			"24": "ServerWinSB",
+			"25": "ServerSBSPremium",
+			"26": "HomePremiumN",
+			"27": "EnterpriseN",
+			"28": "UltimateN",
+			"29": "ServerWebCore",
+			"30": "ServerMediumBusinessManagement",
+			"31": "ServerMediumBusinessSecurity",
+			"32": "ServerMediumBusinessMessaging",
+			"33": "ServerWinFoundation",
+			"34": "ServerHomePremium",
+			"35": "ServerWinSBV",
+			"36": "ServerStandardV",
+			"37": "ServerDatacenterV",
+			"38": "ServerEnterpriseV",
+			"39": "ServerDatacenterVCore",
+			"40": "ServerStandardVCore",
+			"41": "ServerEnterpriseVCore",
+			"42": "ServerHyperCore",
+			"43": "ServerStorageExpressCore",
+			"44": "ServerStorageStandardCore",
+			"45": "ServerStorageWorkgroupCore",
+			"46": "ServerStorageEnterpriseCore",
+			"47": "StarterN",
+			"48": "Professional",
+			"49": "ProfessionalN",
+			"50": "ServerSolution",
+			"51": "ServerForSBSolutions",
+			"52": "ServerSolutionsPremium",
+			"53": "ServerSolutionsPremiumCore",
+			"54": "ServerSolutionEM",
+			"55": "ServerForSBSolutionsEM",
+			"56": "ServerEmbeddedSolution",
+			"57": "ServerEmbeddedSolutionCore",
+			"58": "EmbeddedProfessional",
+			"59": "ServerEssentialManagement",
+			"60": "ServerEssentialAdditional",
+			"61": "ServerEssentialManagementSvc",
+			"62": "ServerEssentialAdditionalSvc",
+			"63": "ServerSBSPremiumCore",
+			"64": "ServerHPCV",
+			"65": "Embedded",
+			"66": "StarterE",
+			"67": "HomeBasicE",
+			"68": "HomePremiumE",
+			"69": "ProfessionalE",
+			"70": "EnterpriseE",
+			"71": "UltimateE",
+			"72": "EnterpriseEval",
+			"74": "Prerelease",
+			"76": "ServerMultiPointStandard",
+			"77": "ServerMultiPointPremium",
+			"79": "ServerStandardEval",
+			"80": "ServerDatacenterEval",
+			"81": "PrereleaseARM",
+			"82": "PrereleaseN",
+			"84": "EnterpriseNEval",
+			"85": "EmbeddedAutomotive",
+			"86": "EmbeddedIndustryA",
+			"87": "ThinPC",
+			"88": "EmbeddedA",
+			"89": "EmbeddedIndustry",
+			"90": "EmbeddedE",
+			"91": "EmbeddedIndustryE",
+			"92": "EmbeddedIndustryAE",
+			"93": "ProfessionalPlus",
+			"95": "ServerStorageWorkgroupEval",
+			"96": "ServerStorageStandardEval",
+			"97": "WindowsRT",
+			"98": "HomeN",
+			"99": "CoreCountrySpecific",
+			"100": "HomeSingleLanguage",
+			"101": "Home",
+			"103": "ProfessionalWMC",
+			"104": "MobileCore",
+			"105": "EmbeddedIndustryEval",
+			"106": "EmbeddedIndustryEEval",
+			"107": "EmbeddedEval",
+			"108": "EmbeddedEEval",
+			"109": "CoreSystemServer",
+			"110": "ServerCloudStorage",
+			"111": "HomeConnected",
+			"112": "ProfessionalStudent",
+			"113": "HomeConnectedN",
+			"114": "ProfessionalStudentN",
+			"115": "HomeConnectedSingleLanguage",
+			"116": "HomeConnectedCountrySpecific",
+			"117": "ConnectedCar",
+			"118": "HandheldIndustry",
+			"119": "PPIPro",
+			"120": "ServerARM64",
+			"121": "Education",
+			"122": "EducationN",
+			"123": "IoTUAP",
+			"124": "ServerHI",
+			"125": "EnterpriseS",
+			"126": "EnterpriseSN",
+			"127": "ProfessionalS",
+			"128": "ProfessionalSN",
+			"129": "EnterpriseSEval",
+			"130": "EnterpriseSNEval",
+			"131": "IoTUAPCommercial",
+			"133": "MobileEnterprise",
+			"135": "AnalogOneCore",
+			"136": "AnalogOneCoreBusiness",
+			"138": "ProfessionalSingleLanguage",
+			"139": "ProfessionalCountrySpecific",
+			"140": "EnterpriseSubscription",
+			"141": "EnterpriseNSubscription",
+			"143": "ServerDatacenterNano",
+			"144": "ServerStandardNano",
+			"145": "ServerDatacenterACor",
+			"146": "ServerStandardACor",
+			"147": "ServerDatacenterCoreWS",
+			"148": "ServerStandrdCoreWS",
+			"149": "UtilityVM",
+			"159": "ServerDatacenterEvalCor",
+			"160": "ServerStandardEvalCor",
+			"161": "ProfessionalWorkstation",
+			"162": "ProfessionalWorkstationN",
+			"164": "ProfessionalEducation",
+			"165": "ProfessionalEducationN",
+			"168": "ServerAzureCor",
+			"169": "ServerAzureNano",
+			"171": "EnterpriseG",
+			"172": "EnterpriseGN",
+			"173": "Business",
+			"174": "BusinessN",
+			"175": "ServerRdsh",
+			"178": "Cloud",
+			"179": "CloudN",
+			"180": "HubOS",
+			"182": "OneCoreUpdateOS",
+			"183": "CloudE",
+			"184": "Andromeda",
+			"185": "IoTOS",
+			"186": "CloudEN",
+			"187": "IoTEdgeOS",
+			"188": "IoTEnterprise",
+			"189": "ModernPC",
+			"191": "IoTEnterpriseS",
+			"192": "SystemOS",
+			"194": "GameOS",
+			"195": "EraOS",
+			"196": "HostOS",
+			"197": "HostOS",
+			"198": "XboxKeystone",
+			"199": "PRODUCT_AZURE_SERVER_CLOUDHOST",
+			"200": "PRODUCT_AZURE_SERVER_CLOUDMOS",
+			"202": "CloudEditionN",
+			"203": "CloudEdition",
+			"204": "WinVOS",
+			"205": "IoTEnterpriseSK",
+			"206": "IoTEnterpriseK",
+			"207": "IoTEnterpriseSEval",
+			"210": "PRODUCT_WNC",
+			"406": "ServerAzureStackHCICor",
+			"407": "ServerTurbine",
+			"408": "ServerTurbineCor"
+		}
+	},
+	"macos": {
+		//"name": "macos",
+		"names": {},
+		"versions": [],
+		"codenames": [
+			{ "major": 14, "minor": 0, "codename": "Sonoma", "build": 0 },
+			{ "major": 13, "minor": 0, "codename": "Ventura", "build": 0 },
+			{ "major": 12, "minor": 0, "codename": "Monterey", "build": 0 },
+			{ "major": 11, "minor": 0, "codename": "Big Sur", "build": 0 },
+			{ "major": 10, "minor": 15, "codename": "Catalina", "build": 0 },
+			{ "major": 10, "minor": 14, "codename": "Mojave", "build": 0 },
+			{ "major": 10, "minor": 13, "codename": "High Sierra", "build": 0 },
+			{ "major": 10, "minor": 12, "codename": "Sierra", "build": 0 },
+			{ "major": 10, "minor": 11, "codename": "El Capitan", "build": 0 },
+			{ "major": 10, "minor": 10, "codename": "Yosemite", "build": 0 },
+			{ "major": 10, "minor": 9, "codename": "Mavericks", "build": 0 },
+			{ "major": 10, "minor": 8, "codename": "Mountain Lion", "build": 0 },
+			{ "major": 10, "minor": 7, "codename": "Lion", "build": 0 },
+			{ "major": 10, "minor": 6, "codename": "Snow Leopard", "build": 0 },
+			{ "major": 10, "minor": 5, "codename": "Leopard", "build": 0 },
+			{ "major": 10, "minor": 4, "codename": "Tiger", "build": 0 },
+			{ "major": 10, "minor": 3, "codename": "Panther", "build": 0 },
+			{ "major": 10, "minor": 2, "codename": "Jaguar", "build": 0 },
+			{ "major": 10, "minor": 1, "codename": "Puma", "build": 0 },
+			{ "major": 10, "minor": 0, "codename": "Cheetah", "build": 0 }
+		]
+	}
+}
