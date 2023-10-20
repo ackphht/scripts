@@ -203,8 +203,8 @@ function _getOSArchitecture {
 		<# ??? if linux, can try uname --hardware-platform; or just fall back to uname --machine and assume the OS type is same as cpu type ??? #>
 	}
 	switch ($result) {
-		{$_ -eq 'X64' -or $_ -eq 'AMD64' -or $_ -eq 'EM64T'} { $result = 'x86-64'; break; }
-		'X86' { $result = 'x86-32'; break; }
+		{$_ -eq 'X64' -or $_ -eq 'AMD64' -or $_ -eq 'EM64T'} { $result = 'x86_64'; break; }
+		'X86' { $result = 'x86_32'; break; }
 		# ARM ones just use as-is
 	}
 	return $result
