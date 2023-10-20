@@ -82,16 +82,16 @@ function _populateWindowsInfo {
 	#$osDetails.OSInstallTime = $osinfo.InstallDate
 	#$osDetails.OSStartTime = $osinfo.LastBootUpTime
 	$osDetails.Type = if ($osinfo.ProductType -eq 3) { 'Server' } else { 'WorkStation' }
-	$release = _getWindowsRelease -wmios $osinfo
-	$osDetails.Id = _getWindowsId -wmios $osinfo -release $release
+	$kernelVersion = _getWindowsKernelVersion
+	$osDetails.KernelVersion = $kernelVersion.ToString()
+	$osDetails.UpdateRevision = $kernelVersion.Revision
+	$release = _getWindowsRelease -wmios $osinfo -ubr $kernelVersion.Revision
 	# TODO: right now, we're setting $osDetails.Release like '11.22H2', '11', '10.2009', '8.1', '7.SP1', etc;
 	# is that really how we want it? other OSes are just the release version, maybe for Win, should be simpler
 	# or maybe other OSes should include more?
 	$osDetails.Release = $release
+	$osDetails.Id = _getWindowsId -wmios $osinfo -release $release
 	$osDetails.Edition = MapCimOsSku -cimOsSku $osinfo.OperatingSystemSKU -cimOsCaption $osinfo.Caption
-	$kernelVersion = _getWindowsKernelVersion
-	$osDetails.KernelVersion = $kernelVersion.ToString()
-	$osDetails.UpdateRevision = $kernelVersion.Revision
 	$osDetails.ReleaseVersion = _getWindowsVersion -kernelVersion $kernelVersion
 	#$osDetails.MajorMinor = $osDetails.KernelVersion.ToString(2)
 	$osDetails.Codename = _getWindowsCodename -wmios $osinfo
@@ -282,7 +282,7 @@ function _getWindowsId {
 function _getWindowsRelease {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
-	param($wmios)
+	param($wmios, $ubr)
 	$build = [int]$wmios.BuildNumber
 	$type = [int]$wmios.ProductType
 	WriteVerboseMessage 'mapping OS release: build = "{0}", type = "{1}"' $build,$type
@@ -295,7 +295,7 @@ function _getWindowsRelease {
 				#		from release for cancary and dev, but not for beta, so not sure that's helpful ???
 				{ $_ -ge 25000 } { $result = '11.canary.{0}' -f (_getWindowsBuildLab); break; }
 				{ $_ -ge 23000 } { $result = '11.dev.{0}' -f (_getWindowsBuildLab); break; }
-				{ $_ -gt 22631 } { $result = '11.beta.{0}' -f $build; break; }	# ???
+				{ $_ -gt 22631 } { $result = '11.beta.{0}.{1}' -f $build,$ubr; break; }	# ???
 				{ $_ -ge 22000 } {
 					if ($build -ge 22621) { $result = '11.{0}' -f (_getWinReleaseFromReg) }
 					elseif ($build -ge 22449) { $result = '11.dev.{0}' -f $build }	# Win11 22H2 dev builds
