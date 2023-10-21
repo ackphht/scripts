@@ -10,4 +10,4 @@ doItPython() {
 	python3 ~/scripts/ackfetch.py
 }
 
-which python3 >/dev/null 2>&1 && doItPython || which pwsh >/dev/null 2>&1 && doItPosh || echo "WARNING: neither powershell nor python were found"
+(which python3 >/dev/null 2>&1 && doItPython) || (which pwsh >/dev/null 2>&1 && doItPosh) || echo "WARNING: neither powershell nor python were found"
