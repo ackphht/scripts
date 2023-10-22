@@ -166,16 +166,17 @@ class OSDetails:
 		if m:
 			major = int(m.group("maj"))
 			minor = int(m.group("min"))
-			result = f"{major}.{minor}.{m.group('rev')}"	# meh
+			result = f"{major}.{minor}.{int(m.group('rev'))}"	# meh
 		elif re.match(r"^\d+$", value):
 			major = int(value)
-			result = int(value)
+			result = str(major)
 		else:
-			m = re.match(r"^(?P<maj>\d+)\.(?P<min>\d+)(\.[\d\.]+)?$", value)
+			m = re.match(r"^(?P<maj>\d+)\.(?P<min>\d+)(?P<rest>\.[\d\.]+)?$", value)
 			if m:
 				major = int(m.group("maj"))
 				minor = int(m.group("min"))
-				result = value
+				rest = m.group("rest")
+				result = f"{major}.{minor}{rest if rest else ''}"
 		return result,major,minor
 
 	# region properties
