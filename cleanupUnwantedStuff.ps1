@@ -237,7 +237,9 @@ function CleanUpCrapFolders {
 		"$env:UserProfile\Documents\LiveUpdate"
 		"$env:UserProfile\Documents\My Web Sites"
 		"$env:UserProfile\Documents\SQL Server Management Studio"
-		"$env:UserProfile\Documents\Visual Studio 20*"
+		"$env:UserProfile\Documents\Visual Studio 2017"
+		"$env:UserProfile\Documents\Visual Studio 2019"
+		#"$env:UserProfile\Documents\Visual Studio 20*"
 		"$env:UserProfile\Documents\Zoom"
 
 		"$env:UserProfile\Downloads\Remote Desktop"
@@ -417,7 +419,7 @@ function DisableUnwantedScheduledTasks {
 	@(
 		@{ Name = 'User_Feed_Synchronization*'; Path='\'; }
 		@{ Name = 'Adobe Flash Player Updater'; Path=''; }
-		@{ Name = 'GoogleUpdateTask*'; Path=''; }
+		#@{ Name = 'GoogleUpdateTask*'; Path=''; }
 		@{ Name = 'FreeDownloadManager*'; Path=''; }
 		@{ Name = 'Intel *'; Path=''; }
 		@{ Name = 'Dell SupportAssistAgent AutoUpdate'; Path=''; }
