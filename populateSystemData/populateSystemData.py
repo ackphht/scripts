@@ -500,7 +500,7 @@ elif sys.platform == "linux":
 			# some distros (e.g. fedora and opensuse tumbleweed) still don't have everything but it is returned by lsb_release (??), so let's try that:
 			if not distId or not description or not release or not codename:
 				lsbOutput = _OSDetailsLinux._getLsbReleaseOutput()
-				lsb = _OSDetailsLinux._parseLinesToDict(lsbOutput) if lsbOutput else {}
+				lsb = _OSDetailsLinux._parseLinesToDict(lsbOutput, separator=":") if lsbOutput else {}
 				if not distId and "Distributor ID" in lsb: distId = lsb["Distributor ID"]
 				if not description and "Description" in lsb: description = lsb["Description"]
 				if not release and "Release" in lsb: release = lsb["Release"]
@@ -511,15 +511,15 @@ elif sys.platform == "linux":
 			return distId, description, release, codename
 
 		@staticmethod
-		def _parseLinesToDict(lines: Union[TextIOBase, str]) -> dict[str, str]:
+		def _parseLinesToDict(lines: Union[TextIOBase, str], separator: str = "=") -> dict[str, str]:
 			content = StringIO(lines) if isinstance(lines, str) else lines
 			lx = shlex(content, posix=True)	# with posix=True, it strips quotes, too, which is nice, just not sure what else it might do, but so far, seems okay ??
 			lx.whitespace_split = True				# with this and below, only splits on newlines, which wouldn't be any better tnan just iterating the lines,
 			lx.whitespace = '\r\n'					# but shlex still does replace escapes, tries to handle comments (not very smartly but still...)
 			results = {}
 			for tk in lx:
-				if "=" in tk:
-					k, v = tk.split("=", 1)
+				if separator in tk:
+					k, v = tk.split(separator, 1)
 					results[k.strip()] = v.strip()
 			return results
 
