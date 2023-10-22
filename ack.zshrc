@@ -104,8 +104,12 @@ bindkey '^[[3~'		delete-char						# delete
 # mine:
 bindkey '^[[1;5C'	forward-word					# ctrl + ->
 bindkey '^[[1;5D'	backward-word					# ctrl + <-
-bindkey '^[[H'		beginning-of-line				# home
-bindkey '^[[F'		end-of-line						# end
+bindkey '^[[1~'		beginning-of-line				# home (linux console ??)
+bindkey '^[[H'		beginning-of-line				# home (xterm)
+bindkey '^[OH'		beginning-of-line				# home (gnome-terminal ??)
+bindkey '^[[4~'		end-of-line						# end (linux console ??)
+bindkey '^[[F'		end-of-line						# end (xterm)
+bindkey '^[OF'		end-of-line						# end (gnome-terminal)
 bindkey '^[' 		kill-whole-line					# esc
 bindkey '^H' 		backward-delete-word			# Ctrl-Backspace
 bindkey '^[[3;5~'	delete-word						# ctrl-delete
