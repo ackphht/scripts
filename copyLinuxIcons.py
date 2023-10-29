@@ -1274,6 +1274,7 @@ class IconsToCopy:
 				Icon("image-svg+xml", ["application-image-svg+xml", "application-vector"], ["svg"]),
 				Icon("image-tiff", ["application-image-tiff"], ["tif", "tiff"]),
 				Icon("image-webp", extensions=["webp"]),
+				Icon("image-vnd.djvu", ["djvu"], extensions=["djvu"]),	# more of a document format than an image, right?
 				Icon("image-x-generic", ["application-images", "image", "media-image"]),
 				Icon("message-news"),
 				Icon("message-rfc822", extensions=["eml"]),
