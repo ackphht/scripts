@@ -104,6 +104,7 @@ class Helpers:
 	@staticmethod
 	def RunProcess(args : List, description : str, ignoreWhatIf : bool = False) :#-> Helpers.RunProcessResults:
 		if not Helpers.EnableWhatIf or ignoreWhatIf:
+			LogHelper.Verbose("command line = |{0}|", lambda: ' '.join(str(a) for a in args))
 			result = RunProcessHelper.runProcess(args)
 		else:
 			LogHelper.WhatIf(f"{description}:{os.linesep}  command line = |{' '.join(str(a) for a in args)}|")
