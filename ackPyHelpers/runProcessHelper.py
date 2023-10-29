@@ -51,5 +51,5 @@ class RunProcessHelper:
 
 	@staticmethod
 	def runProcess(args: list[str]) -> "RunProcessHelper.RunProcessResults":
-		proc = subprocess.run(["oh-my-posh", "--version"], capture_output=True, text=True)
+		proc = subprocess.run(args, capture_output=True, text=True)
 		return RunProcessHelper.RunProcessResults._parseResult(proc)
