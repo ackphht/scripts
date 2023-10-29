@@ -1100,7 +1100,7 @@ class IconThemeDefinition:
 	def __init__(self, themeName : str, distroName : str, iconsFolder : str, pathScheme : int,
 				foldersMap : SourceImageSizeFolderMap, outputFolderTemplate: str = "{theme}/{type}",
 				pngPrimaryNameTemplate : str = "{primaryName} [{size}]", pngAltNameTemplate : str = "{primaryName} [{alternateName}] [{size}]",
-				pngPrimarySizeRegex : str = "^.+ \[(\d+)\].*$", pngAltSizeRegex : str = "^.+ \[(\d+)\].*$",
+				pngPrimarySizeRegex : str = r"^.+ \[(\d+)\].*$", pngAltSizeRegex : str = r"^.+ \[(\d+)\].*$",
 				icoPrimaryNameTemplate : str = "{primaryName} [{theme}]", icoAltNameTemplate : str = "{primaryName} [{theme}] [{alternateName}]"):
 		self.themeName = themeName
 		self.distroName = distroName
@@ -1915,10 +1915,10 @@ class BackupsHelper:
 	def RenameBackupFiles(reverseNaming : bool, renameIcosOnly : bool, renamePngOnly : bool):
 		if reverseNaming:
 			# find filenames starting with '@' and with timestamp on end:
-			pattern = re.compile('^@.+\.\d{8}_\d{4}$')
+			pattern = re.compile(r'^@.+\.\d{8}_\d{4}$')
 		else:
 			# find filenames NOT starting with '@' and with timestamp on end:
-			pattern = re.compile('^[^@].+\.\d{8}_\d{4}$')
+			pattern = re.compile(r'^[^@].+\.\d{8}_\d{4}$')
 		if not renameIcosOnly:
 			BackupsHelper._renameFiles(Constants.PngsOutputPath, '.png', pattern, reverseNaming)
 		if not renamePngOnly:
