@@ -53,7 +53,7 @@ class FileHelpers:
 		return None
 
 	@staticmethod
-	def _shouldProcess(self, whatIf : bool, whatIfDesc : str) -> bool:
+	def _shouldProcess(whatIf : bool, whatIfDesc : str) -> bool:
 		if whatIf:
 			LogHelper.WhatIf(whatIfDesc)
 		return not whatIf
