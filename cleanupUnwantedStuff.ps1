@@ -296,6 +296,7 @@ function CleanUpDesktopIcons {
 		'Kleopatra'
 		'Steam'
 		'Inkscape'
+		'DVDFab*'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -648,6 +649,7 @@ function CleanUpStartMenuItems {
 		#[StartMenuCleanupItem]::FromCommonPrograms('DVDFab 11\DVDFab 11.lnk', 'Applications', 'DVDFab.lnk', $true)
 		#[StartMenuCleanupItem]::FromCommonPrograms('DVDFab 11 (x64)\DVDFab 11 (x64).lnk', 'Applications', 'DVDFab.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('DVDFab 12 (x64)\DVDFab 12 (x64).lnk', 'Applications', 'DVDFab.lnk', $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('DVDFab 13 (x64)\DVDFab 13 (x64).lnk', 'Applications', 'DVDFab.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('FileMenu Tools\Configure FileMenu Tools.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('FileZilla FTP Client\FileZilla.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Free Download Manager\Free Download Manager.lnk', 'Applications', $true)
@@ -770,6 +772,7 @@ function CleanUpStartMenuItems {
 		#[StartMenuCleanupItem]::FromUserPrograms('DVDFab 11\DVDFab 11.lnk', 'Applications', 'DVDFab.lnk', $true)
 		#[StartMenuCleanupItem]::FromUserPrograms('DVDFab 11 (x64)\DVDFab 11 (x64).lnk', 'Applications', 'DVDFab.lnk', $true)
 		[StartMenuCleanupItem]::FromUserPrograms('DVDFab 12 (x64)\DVDFab 12 (x64).lnk', 'Applications', 'DVDFab.lnk', $true)
+		[StartMenuCleanupItem]::FromUserPrograms('DVDFab 13 (x64)\DVDFab 13 (x64).lnk', 'Applications', 'DVDFab.lnk', $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Free Download Manager\Free Download Manager.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromUserPrograms('GitHub, Inc\GitHub Desktop.lnk', 'Development', $true)
 		[StartMenuCleanupItem]::FromUserPrograms('grepWin\grepWin.lnk', 'Applications', $true)
