@@ -103,10 +103,10 @@ function Main {
 	@('OSArchitecture', 'ProcessArchitecture', 'OSDescription', 'FrameworkDescription', 'RuntimeIdentifier') |
 		ForEach-Object { _addProperty -o $results -n "RuntimeInfo_$_" -v '' }
 	if ([bool]('System.Runtime.InteropServices.RuntimeInformation' -as [type])) {
-		_setProperty -o $results -n 'RuntimeInfo_OSArchitecture' -v ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)
-		_setProperty -o $results -n 'RuntimeInfo_ProcessArchitecture' -v ([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)
-		_setProperty -o $results -n 'RuntimeInfo_OSDescription' -v ([System.Runtime.InteropServices.RuntimeInformation]::OSDescription)
-		_setProperty -o $results -n 'RuntimeInfo_FrameworkDescription' -v ([System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription)
+		_setProperty -o $results -n 'RuntimeInfo_OSArchitecture' -v (_getStaticPropertyIfExists -t 'System.Runtime.InteropServices.RuntimeInformation' -n 'OSArchitecture')
+		_setProperty -o $results -n 'RuntimeInfo_ProcessArchitecture' -v (_getStaticPropertyIfExists -t 'System.Runtime.InteropServices.RuntimeInformation' -n 'ProcessArchitecture')
+		_setProperty -o $results -n 'RuntimeInfo_OSDescription' -v (_getStaticPropertyIfExists -t 'System.Runtime.InteropServices.RuntimeInformation' -n 'OSDescription')
+		_setProperty -o $results -n 'RuntimeInfo_FrameworkDescription' -v (_getStaticPropertyIfExists -t 'System.Runtime.InteropServices.RuntimeInformation' -n 'FrameworkDescription')
 		_setProperty -o $results -n 'RuntimeInfo_RuntimeIdentifier' -v (_getStaticPropertyIfExists -t 'System.Runtime.InteropServices.RuntimeInformation' -n 'RuntimeIdentifier')
 	}
 
@@ -232,7 +232,7 @@ function Main {
 	$allResults.SysProps = $results
 
 	if ($saveJson -or $saveCsv -or $saveText) {
-		$scriptname = Split-Path -Path $PSCommandPath -LeafBase
+		$scriptname = (Get-Item -LiteralPath $PSCommandPath).BaseName
 		$outputBaseName = if ($saveToFldr) { Join-Path $saveToFldr $scriptname } else { $scriptname }
 		if ($saveJson) {
 			$encoding = if ($PSEdition -ne 'Core') { 'UTF8' } else { 'UTF8NoBOM' }
