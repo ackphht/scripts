@@ -35,7 +35,7 @@ function Main {
 	WriteVerboseMessage 'dumping posh variables'
 	$allResults.PoshVars = Get-Variable -Scope Global |
 		Where-Object {
-			$_.Name -notin @('StackTrace')
+			$_.Name -notin @('StackTrace','Error','null','args','false','true','foreach','input')
 		} |
 		Select-Object -Property Name,Value |
 		Sort-Object -Property Name
@@ -277,26 +277,31 @@ function Main {
 			$allResults.SysProps | Export-Csv -LiteralPath "$outputBaseName.SysProps.csv" @parms
 		}
 		if ($saveText) {
-			$allResults.EnvVars | Format-Table -AutoSize -Wrap | Out-File -LiteralPath "$outputBaseName.EnvVars.txt" -Width 4096
-			$allResults.PoshVars | Format-Table -Property Name,@{Label='Value';Expression={$_.Value};Alignment='Left';} -AutoSize -Wrap | Out-File -LiteralPath "$outputBaseName.PoshVars.txt" -Width 4096
-			$allResults.SpecFldrs | Format-Table -Property Folder,Path -AutoSize -Wrap | Out-File -LiteralPath "$outputBaseName.SpecFldrs.txt" -Width 4096
+			WriteHeader -text 'Environment Variables' -includeExtraSpace $false | Out-File -LiteralPath "$outputBaseName.txt" -Width 4096
+			$allResults.EnvVars | Format-Table -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+			WriteHeader -text 'PowerShell Variables' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+			$allResults.PoshVars | Format-Table -Property Name,@{Label='Value';Expression={$_.Value};Alignment='Left';} -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+			WriteHeader -text 'System Special Folders' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+			$allResults.SpecFldrs | Format-Table -Property Folder,Path -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
 			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
-				$allResults.UnameVals | Format-Table -AutoSize -Wrap | Out-File -LiteralPath "$outputBaseName.Uname.txt" -Width 4096
+				WriteHeader -text 'uname' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+				$allResults.UnameVals | Format-Table -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
 			}
-			$allResults.SysProps | Format-Table -AutoSize -Wrap | Out-File -LiteralPath "$outputBaseName.SysProps.txt" -Width 4096
+			WriteHeader -text 'System Properties' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+			$allResults.SysProps | Format-Table -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
 		}
 	} else {
 		WriteHeader -text 'Environment Variables' -includeExtraSpace $false
 		$allResults.EnvVars | Format-Table -AutoSize -Wrap
 		WriteHeader -text 'PowerShell Variables' -includeExtraSpace $false
 		$allResults.PoshVars | Format-Table -Property Name,@{Label='Value';Expression={$_.Value};Alignment='Left';} -AutoSize -Wrap
-		WriteHeader -text 'System Special Folders'
+		WriteHeader -text 'System Special Folders' -includeExtraSpace $false
 		$allResults.SpecFldrs | Format-Table -Property Folder,Path -AutoSize -Wrap
 		if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
-			WriteHeader -text 'uname'
+			WriteHeader -text 'uname' -includeExtraSpace $false
 			$allResults.UnameVals | Format-Table -AutoSize -Wrap
 		}
-		WriteHeader -text 'System Properties'
+		WriteHeader -text 'System Properties' -includeExtraSpace $false
 		$allResults.SysProps | Format-Table -AutoSize -Wrap
 	}
 	#endregion
