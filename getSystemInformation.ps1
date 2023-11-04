@@ -36,7 +36,8 @@ function Main {
 	$allResults.PoshVars = Get-Variable -Scope Global |
 		Where-Object {
 			# skip these:
-			$_.Name -notin @('StackTrace','Error','null','args','false','true','foreach','input','PSBoundParameters','PSDefaultParameterValues','PWD','kh')
+			$_.Name -notin @('StackTrace','Error','null','args','false','true','foreach','input','PSBoundParameters','PSDefaultParameterValues','install',
+								'PWD','kh','divider','NA','asJson','asCsv','asText','outputFolder','nonDisplayCharsMap')
 		} |
 		ForEach-Object {
 			# one or more of these is causing an infinite loop trying to serialize to json, but name is good enough:
