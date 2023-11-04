@@ -1,6 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
 import sys, os, platform, pathlib, re, json
 import logging
 from typing import Union
