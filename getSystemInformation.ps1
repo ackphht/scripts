@@ -55,24 +55,36 @@ function Main {
 	$allResults.SpecFldrs = [System.Enum]::GetValues([System.Environment+SpecialFolder]) |
 					ForEach-Object { [PSCustomObject]@{ Folder = $_.ToString(); Path = [System.Environment]::GetFolderPath($_); } } |
 					Sort-Object -Property Folder
+	#endregion
 
 	$unameAvail = [bool](Get-Command -Name 'uname' -ErrorAction Ignore)
 	$cimInstanceAvail = [bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)
+	$onWindows = [bool](_getVariableValue -n 'IsWindows' -defaultIfNotExists $true)
 	$onMacOs = [bool](_getVariableValue -n 'IsMacOS')
-	#endregion
 
 	#region uname
 	if ($unameAvail) {
 		WriteVerboseMessage 'getting uname info'
 		$allResults.UnameVals =  @(@{ nm = 'kernel-name'; op = 's'; }, @{ nm = 'kernel-release'; op = 'r'; }, @{ nm = 'kernel-version'; op = 'v'; },
-					@{ nm = 'machine'; op = 'm'; }, @{ nm = 'processor'; op = 'p'; }, @{ nm = 'hardware-platform'; op = 'i'; },
-					@{ nm = 'operating-system'; op = 'o'; }) |
-				ForEach-Object {
-					$v = uname -$($_.op) 2>/dev/null
-					if ($LASTEXITCODE -eq 0) {
-						[PSCustomObject]@{ Name = $_.nm; Value = $v; }
-					}
-				}
+		@{ nm = 'machine'; op = 'm'; }, @{ nm = 'processor'; op = 'p'; }, @{ nm = 'hardware-platform'; op = 'i'; },
+		@{ nm = 'operating-system'; op = 'o'; }) |
+		ForEach-Object {
+			$v = uname -$($_.op) 2>/dev/null
+			if ($LASTEXITCODE -eq 0) {
+				[PSCustomObject]@{ Name = $_.nm; Value = $v; }
+			}
+		}
+	}
+	#endregion
+
+	#region WinNT\CurrVer
+	if ($onWindows) {
+		WriteVerboseMessage 'getting WindowsNT\CurrentVersion info'
+		$cv = Get-ItemProperty -path 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion'
+		$allResults.WinNTCurrVer = GetSortedPropertyNames -object $cv |
+										Where-Object { $_ -notlike 'PS*' -and $_ -notin @('BuildGUID','InstallDate','InstallTime','PendingInstall',
+																							'RegisteredOwner','DigitalProductId','DigitalProductId4') } |
+										ForEach-Object { [PSCustomObject]@{ Value=$_; Data=$cv.$_; } }
 	}
 	#endregion
 
@@ -272,6 +284,9 @@ function Main {
 			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
 				ConvertTo-ProperFormattedJson -InputObject $allResults.UnameVals | Set-Content -LiteralPath "$outputBaseName.Uname.json" -Encoding $encoding -NoNewline
 			}
+			if ($allResults.ContainsKey('WinNTCurrVer') -and $allResults.WinNTCurrVer) {
+				ConvertTo-ProperFormattedJson -InputObject $allResults.WinNTCurrVer | Set-Content -LiteralPath "$outputBaseName.WinNTCurrVer.json" -Encoding $encoding -NoNewline
+			}
 			ConvertTo-ProperFormattedJson -InputObject $allResults.SysProps | Set-Content -LiteralPath "$outputBaseName.SysProps.json" -Encoding $encoding -NoNewline
 		}
 		if ($saveCsv) {
@@ -283,18 +298,27 @@ function Main {
 			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
 				$allResults.UnameVals | Export-Csv -LiteralPath "$outputBaseName.Uname.csv" @parms
 			}
+			if ($allResults.ContainsKey('WinNTCurrVer') -and $allResults.WinNTCurrVer) {
+				$allResults.WinNTCurrVer | Export-Csv -LiteralPath "$outputBaseName.WinNTCurrVer.csv" @parms
+			}
 			$allResults.SysProps | Export-Csv -LiteralPath "$outputBaseName.SysProps.csv" @parms
 		}
 		if ($saveText) {
 			WriteHeader -text 'Environment Variables' -includeExtraSpace $false | Out-File -LiteralPath "$outputBaseName.txt" -Width 4096
 			$allResults.EnvVars | Format-Table -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
 			WriteHeader -text 'PowerShell Variables' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
-			$allResults.PoshVars | Format-Table -Property Name,@{Label='Value';Expression={$_.Value};Alignment='Left';} -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+			$allResults.PoshVars | Format-Table -Property Name,@{Label='Value';Expression={$_.Value};Alignment='Left';} -AutoSize -Wrap |
+				Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
 			WriteHeader -text 'System Special Folders' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
 			$allResults.SpecFldrs | Format-Table -Property Folder,Path -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
 			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
 				WriteHeader -text 'uname' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
 				$allResults.UnameVals | Format-Table -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+			}
+			if ($allResults.ContainsKey('WinNTCurrVer') -and $allResults.WinNTCurrVer) {
+				WriteHeader -text 'Windows NT\CurrentVersion' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+				$allResults.WinNTCurrVer | Format-Table -Property Value,@{Label='Data';Expression={$_.Data};Alignment='Left';} -AutoSize -Wrap |
+					Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
 			}
 			WriteHeader -text 'System Properties' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
 			$allResults.SysProps | Format-Table -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
@@ -310,7 +334,11 @@ function Main {
 			WriteHeader -text 'uname' -includeExtraSpace $false
 			$allResults.UnameVals | Format-Table -AutoSize -Wrap
 		}
-		WriteHeader -text 'System Properties' -includeExtraSpace $false
+		if ($allResults.ContainsKey('WinNTCurrVer') -and $allResults.WinNTCurrVer) {
+			WriteHeader -text 'Windows NT\CurrentVersion' -includeExtraSpace $false
+			$allResults.WinNTCurrVer | Format-Table -Property Value,@{Label='Data';Expression={$_.Data};Alignment='Left';} -AutoSize -Wrap
+		}
+ 		WriteHeader -text 'System Properties' -includeExtraSpace $false
 		$allResults.SysProps | Format-Table -AutoSize -Wrap
 	}
 	#endregion
@@ -375,9 +403,10 @@ function _setProperty {
 function _getVariableValue {
 	[OutputType([string])]
 	param(
-		[Parameter(Mandatory=$true)] [Alias('n')] [string] $varName
+		[Parameter(Mandatory=$true)] [Alias('n')] [string] $varName,
+		[string] $defaultIfNotExists = ''
 	)
-	$value = ''
+	$value = $defaultIfNotExists
 	$v = Get-Variable -Name $varName -ErrorAction SilentlyContinue
 	if ($v) {
 		$value = $v.Value
