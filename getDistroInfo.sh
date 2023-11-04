@@ -12,6 +12,8 @@ else
 	rm -frd $targetFolder/*
 fi
 
+has() { which "$1" >/dev/null 2>/dev/null && [[ ! $(which "$1") =~ ^/mnt/[[:alpha:]]/.+ ]]; }	# filter out WSL paths
+
 cd $targetFolder
 
 cp -Lr /etc/*-release .		# os-release, lsb-release, manjaro-release, redhat-release, etc
@@ -25,10 +27,10 @@ test -f /etc/issue && cp /etc/issue .
 
 # sysctl needs sudo to access everything it wants, but also on some OSes (e.g. opensuse) need sudo just to see it:
 sudo which sysctl >/dev/null 2>&1 && sudo sysctl -a | sort --ignore-case > sysctl.log || echo "WARNING: sysctl not found"
-which lsb_release >/dev/null 2>&1 && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
-which screenfetch >/dev/null 2>&1 && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
-which neofetch >/dev/null 2>&1 && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
-if which hostnamectl >/dev/null 2>&1 ; then
+has lsb_release && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
+has screenfetch && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
+has neofetch && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
+if has hostnamectl ; then
 	# two formats, slightly different info, only supported if systemd used, and json format not always supported:
 	if hostnamectl > hostnamectl.log 2>&1; then
 		if ! hostnamectl --json=pretty > hostnamectl.json 2>&1 ; then
@@ -44,12 +46,12 @@ fi
 test -f $scriptRoot/showAppVersions.sh && bash $scriptRoot/showAppVersions.sh > showAppVersions.log
 test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > pythonProperties.log
 
-which pwsh >/dev/null 2>&1 && test -f $scriptRoot/getSystemInformation.ps1 && pwsh -command "& { $scriptRoot/getSystemInformation.ps1 -asText }"
+has pwsh && test -f $scriptRoot/getSystemInformation.ps1 && pwsh -command "& { $scriptRoot/getSystemInformation.ps1 -asText }"
 
 # for macOS:
-which system_profiler >/dev/null 2>&1 && system_profiler -json SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.json && \
+has system_profiler && system_profiler -json SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.json && \
 	system_profiler SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.log
-which sw_vers >/dev/null 2>&1 && sw_vers > sw_vers.log || true
+has sw_vers && sw_vers > sw_vers.log || true
 
 #uname -a > uname.txt
 echo -n '' > uname.log
