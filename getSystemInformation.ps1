@@ -278,16 +278,7 @@ function Main {
 		$outputBaseName = if ($saveToFldr) { Join-Path $saveToFldr $scriptname } else { $scriptname }
 		if ($saveJson) {
 			$encoding = if ($PSEdition -ne 'Core') { 'UTF8' } else { 'UTF8NoBOM' }
-			ConvertTo-ProperFormattedJson -InputObject $allResults.EnvVars | Set-Content -LiteralPath "$outputBaseName.EnvVars.json" -Encoding $encoding -NoNewline
-			ConvertTo-ProperFormattedJson -InputObject $allResults.PoshVars | Set-Content -LiteralPath "$outputBaseName.PoshVars.json" -Encoding $encoding -NoNewline
-			ConvertTo-ProperFormattedJson -InputObject $allResults.SpecFldrs | Set-Content -LiteralPath "$outputBaseName.SpecFldrs.json" -Encoding $encoding -NoNewline
-			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
-				ConvertTo-ProperFormattedJson -InputObject $allResults.UnameVals | Set-Content -LiteralPath "$outputBaseName.Uname.json" -Encoding $encoding -NoNewline
-			}
-			if ($allResults.ContainsKey('WinNTCurrVer') -and $allResults.WinNTCurrVer) {
-				ConvertTo-ProperFormattedJson -InputObject $allResults.WinNTCurrVer | Set-Content -LiteralPath "$outputBaseName.WinNTCurrVer.json" -Encoding $encoding -NoNewline
-			}
-			ConvertTo-ProperFormattedJson -InputObject $allResults.SysProps | Set-Content -LiteralPath "$outputBaseName.SysProps.json" -Encoding $encoding -NoNewline
+			ConvertTo-ProperFormattedJson -InputObject $allResults | Set-Content -LiteralPath "$outputBaseName.json" -Encoding $encoding -NoNewline
 		}
 		if ($saveCsv) {
 			$parms = @{ NoTypeInformation = $true; }
