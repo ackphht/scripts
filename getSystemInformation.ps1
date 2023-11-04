@@ -31,6 +31,7 @@ function Main {
 	WriteVerboseMessage 'dumping environment vars'
 	$allResults.EnvVars = Get-ChildItem -Path env: | Select-Object -Property Name,Value | Sort-Object -Property Name
 
+	#region powershell vars
 	WriteVerboseMessage 'dumping posh variables'
 	$allResults.PoshVars = Get-Variable -Scope Global |
 		Where-Object {
@@ -38,8 +39,9 @@ function Main {
 		} |
 		Select-Object -Property Name,Value |
 		Sort-Object -Property Name
+	#endregion
 
-	# dump out special folder paths (??)
+	#region dump out special folder paths (??)
 	WriteVerboseMessage 'getting special folders'
 	$allResults.SpecFldrs = [System.Enum]::GetValues([System.Environment+SpecialFolder]) |
 					ForEach-Object { [PSCustomObject]@{ Folder = $_.ToString(); Path = [System.Environment]::GetFolderPath($_); } } |
@@ -48,7 +50,9 @@ function Main {
 	$unameAvail = [bool](Get-Command -Name 'uname' -ErrorAction Ignore)
 	$cimInstanceAvail = [bool](Get-Command -Name 'Get-CimInstance' -ErrorAction Ignore)
 	$onMacOs = [bool](_getVariableValue -n 'IsMacOS')
+	#endregion
 
+	#region uname
 	if ($unameAvail) {
 		WriteVerboseMessage 'getting uname info'
 		$allResults.UnameVals =  @(@{ nm = 'kernel-name'; op = 's'; }, @{ nm = 'kernel-release'; op = 'r'; }, @{ nm = 'kernel-version'; op = 'v'; },
@@ -61,8 +65,11 @@ function Main {
 					}
 				}
 	}
+	#endregion
 
-	# get system properties/data/etc:
+	#region get system properties
+
+	#region get posh, .net, path info
 	WriteVerboseMessage 'getting system properties'
 
 	$results = [List[PSObject]]::new(16) #[PSObject]::new()
@@ -92,14 +99,10 @@ function Main {
 	_addProperty -o $results -n 'Path_VolumeSeparatorChar' -v ([System.IO.Path]::VolumeSeparatorChar)
 	_addProperty -o $results -n 'Path_InvalidPathChars' -v (_charsToString -chars ([System.IO.Path]::InvalidPathChars))
 	_addProperty -o $results -n 'Path_InvalidFileNameChars' -v (_charsToString -chars ([System.IO.Path]::GetInvalidFileNameChars()))
+	#endregion
 
+	#region runtime info
 	WriteVerboseMessage 'getting runtime info'
-	if ($onMacOs) {
-		# cache this, avoid a couple redundant calls below:
-		$macOsData = (system_profiler -json SPHardwareDataType SPSoftwareDataType) | ConvertFrom-Json
-	} else {
-		$macOsData = [PSCustomObject]@{}
-	}
 	@('OSArchitecture', 'ProcessArchitecture', 'OSDescription', 'FrameworkDescription', 'RuntimeIdentifier') |
 		ForEach-Object { _addProperty -o $results -n "RuntimeInfo_$_" -v '' }
 	if ([bool]('System.Runtime.InteropServices.RuntimeInformation' -as [type])) {
@@ -109,8 +112,16 @@ function Main {
 		_setProperty -o $results -n 'RuntimeInfo_FrameworkDescription' -v (_getStaticPropertyIfExists -t 'System.Runtime.InteropServices.RuntimeInformation' -n 'FrameworkDescription')
 		_setProperty -o $results -n 'RuntimeInfo_RuntimeIdentifier' -v (_getStaticPropertyIfExists -t 'System.Runtime.InteropServices.RuntimeInformation' -n 'RuntimeIdentifier')
 	}
+	#endregion
 
+	#region computer info
 	WriteVerboseMessage 'getting Computer info'
+	if ($onMacOs) {
+		# cache this, avoid a couple redundant calls below:
+		$macOsData = (system_profiler -json SPHardwareDataType SPSoftwareDataType) | ConvertFrom-Json
+	} else {
+		$macOsData = [PSCustomObject]@{}
+	}
 	@('Manufacturer', 'Model', 'SystemType', 'BIOSVersion', 'SerialNumber') |
 		ForEach-Object { _addProperty -o $results -n "Computer_$_" -v '' }
 	if ($cimInstanceAvail) {
@@ -132,7 +143,9 @@ function Main {
 		_setProperty -o $results -n 'Computer_SerialNumber' -v $macOsData.SPHardwareDataType.serial_number
 		_setProperty -o $results -n 'Computer_SystemType' -v (uname -m <# --machine; macOS doesn't support the '--' options ??? #>)
 	}
+	#endregion
 
+	#region os info
 	WriteVerboseMessage 'getting OS info'
 	@('Platform', 'Distributor', 'Name', 'Id', 'Release', 'Version', 'OSArchitecture', 'Kernel', 'SKU', 'OSType', 'Codename') |
 		ForEach-Object { _addProperty -o $results -n "OS_$_" -v '' }
@@ -153,7 +166,9 @@ function Main {
 			_setProperty -o $results -n 'OS_OSType' -v $os.OSType
 		}
 	}
+	#endregion
 
+	#region processor info
 	WriteVerboseMessage 'getting processor info'
 	_addProperty -o $results -n 'Processor_IsLittleEndian' -v ([System.BitConverter]::IsLittleEndian)
 	@('Name', 'Description', 'Architecture', 'AddressWidth', 'DataWidth', 'L2CacheSize', 'L3CacheSize', 'NumberOfCores', 'LogicalProcessors', 'ProcessorId') |
@@ -221,16 +236,22 @@ function Main {
 	_addProperty -o $results -n 'Processor_IsVector64HardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVector64HardwareAccelerated)
 	_addProperty -o $results -n 'Processor_IsVector128HardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVector128HardwareAccelerated)
 	_addProperty -o $results -n 'Processor_IsVector256HardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVector256HardwareAccelerated)
+	#endregion
 
+	#region env var info
 	WriteVerboseMessage 'getting env var info'
 	_addProperty -o $results -n 'EnvVar_ProcessorArchitecture' -v (_getEnvVarValue -n 'Processor_Architecture')
 	_addProperty -o $results -n 'EnvVar_ProcessorIdentifier' -v (_getEnvVarValue -n 'Processor_Identifier')
 	_addProperty -o $results -n 'EnvVar_CPU' -v (_getEnvVarValue -n 'CPU')
 	_addProperty -o $results -n 'EnvVar_HostType' -v (_getEnvVarValue -n 'HostType')
 	_addProperty -o $results -n 'EnvVar_OsType' -v (_getEnvVarValue -n 'OsType')
+	#endregion
+
+	#endregion
 
 	$allResults.SysProps = $results
 
+	#region output data
 	if ($saveJson -or $saveCsv -or $saveText) {
 		$scriptname = (Get-Item -LiteralPath $PSCommandPath).BaseName
 		$outputBaseName = if ($saveToFldr) { Join-Path $saveToFldr $scriptname } else { $scriptname }
@@ -278,6 +299,7 @@ function Main {
 		WriteHeader -text 'System Properties'
 		$allResults.SysProps | Format-Table -AutoSize -Wrap
 	}
+	#endregion
 }
 
 function _getPropertyIfExists {
