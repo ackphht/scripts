@@ -44,9 +44,7 @@ fi
 test -f $scriptRoot/showAppVersions.sh && bash $scriptRoot/showAppVersions.sh > showAppVersions.log
 test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > pythonProperties.log
 
-which pwsh >/dev/null 2>&1 && test -f $scriptRoot/getSystemInformation.ps1 && \
-	pwsh -command "& { $scriptRoot/getSystemInformation.ps1 | Out-File getSystemInformation.log -Width 4096 }" && \
-	pwsh -command "& { $scriptRoot/getSystemInformation.ps1 -asCsv }"
+which pwsh >/dev/null 2>&1 && test -f $scriptRoot/getSystemInformation.ps1 && pwsh -command "& { $scriptRoot/getSystemInformation.ps1 -asText }"
 
 # for macOS:
 which system_profiler >/dev/null 2>&1 && system_profiler -json SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.json && \
