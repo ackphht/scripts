@@ -80,7 +80,10 @@ function GetSortedPropertyNames {
 	param(
 		[PSObject] $object
 	)
-	return [string[]]($object | Get-Member -MemberType Property | ForEach-Object { $_.Name } | Sort-Object)
+	$props = @()
+	Get-Member -InputObject $object -MemberType Property | ForEach-Object { $props += $_.Name }
+	Get-Member -InputObject $object -MemberType NoteProperty | ForEach-Object { $props += $_.Name }
+	return [string[]]($props | Sort-Object)
 }
 
 $script:properIndentsCache = @{ 1 = "`t"; 2 = "`t`t"; 3 = "`t`t`t"; 4 = "`t`t`t`t"; }
