@@ -35,9 +35,18 @@ function Main {
 	WriteVerboseMessage 'dumping posh variables'
 	$allResults.PoshVars = Get-Variable -Scope Global |
 		Where-Object {
-			$_.Name -notin @('StackTrace','Error','null','args','false','true','foreach','input')
+			# skip these:
+			$_.Name -notin @('StackTrace','Error','null','args','false','true','foreach','input','PSBoundParameters','PSDefaultParameterValues','PWD','kh')
 		} |
-		Select-Object -Property Name,Value |
+		ForEach-Object {
+			# one or more of these is causing an infinite loop trying to serialize to json, but name is good enough:
+			if ($_.Name -in @('ExecutionContext','Host','MyInvocation','OutputEncoding','PSSessionOption','mod')) {
+				$value = $_.Value.GetType().FullName
+			} else {
+				$value = $_.Value
+			}
+			Write-Output ([PSCustomObject]@{ Name = $_.Name; Value = $value })
+		}
 		Sort-Object -Property Name
 	#endregion
 
