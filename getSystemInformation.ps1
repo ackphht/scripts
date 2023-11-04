@@ -304,24 +304,24 @@ function Main {
 			$allResults.SysProps | Export-Csv -LiteralPath "$outputBaseName.SysProps.csv" @parms
 		}
 		if ($saveText) {
-			WriteHeader -text 'Environment Variables' -includeExtraSpace $false | Out-File -LiteralPath "$outputBaseName.txt" -Width 4096
-			$allResults.EnvVars | Format-Table -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
-			WriteHeader -text 'PowerShell Variables' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
-			$allResults.PoshVars | Format-Table -Property Name,@{Label='Value';Expression={$_.Value};Alignment='Left';} -AutoSize -Wrap |
-				Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
-			WriteHeader -text 'System Special Folders' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
-			$allResults.SpecFldrs | Format-Table -Property Folder,Path -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+			$encoding = if ($PSEdition -ne 'Core') { 'UTF8' } else { 'UTF8NoBOM' }
+			$parms = @{ LiteralPath = "$outputBaseName.txt"; Encoding = $encoding; Width = 4096; }
+			WriteHeader -text 'Environment Variables' -includeExtraSpace $false | Out-File @parms
+			$allResults.EnvVars | Format-Table -AutoSize -Wrap | Out-File -Append @parms
+			WriteHeader -text 'PowerShell Variables' -includeExtraSpace $false | Out-File -Append @parms
+			$allResults.PoshVars | Format-Table -Property Name,@{Label='Value';Expression={$_.Value};Alignment='Left';} -AutoSize -Wrap | Out-File -Append @parms
+			WriteHeader -text 'System Special Folders' -includeExtraSpace $false | Out-File -Append @parms
+			$allResults.SpecFldrs | Format-Table -Property Folder,Path -AutoSize -Wrap | Out-File -Append @parms
 			if ($allResults.ContainsKey('UnameVals') -and $allResults.UnameVals) {
-				WriteHeader -text 'uname' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
-				$allResults.UnameVals | Format-Table -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+				WriteHeader -text 'uname' -includeExtraSpace $false | Out-File -Append @parms
+				$allResults.UnameVals | Format-Table -AutoSize -Wrap | Out-File -Append @parms
 			}
 			if ($allResults.ContainsKey('WinNTCurrVer') -and $allResults.WinNTCurrVer) {
-				WriteHeader -text 'Windows NT\CurrentVersion' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
-				$allResults.WinNTCurrVer | Format-Table -Property Value,@{Label='Data';Expression={$_.Data};Alignment='Left';} -AutoSize -Wrap |
-					Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+				WriteHeader -text 'Windows NT\CurrentVersion' -includeExtraSpace $false | Out-File -Append @parms
+				$allResults.WinNTCurrVer | Format-Table -Property Value,@{Label='Data';Expression={$_.Data};Alignment='Left';} -AutoSize -Wrap | Out-File -Append @parms
 			}
-			WriteHeader -text 'System Properties' -includeExtraSpace $false | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
-			$allResults.SysProps | Format-Table -AutoSize -Wrap | Out-File -Append -LiteralPath "$outputBaseName.txt" -Width 4096
+			WriteHeader -text 'System Properties' -includeExtraSpace $false | Out-File -Append @parms
+			$allResults.SysProps | Format-Table -AutoSize -Wrap | Out-File -Append @parms
 		}
 	} else {
 		WriteHeader -text 'Environment Variables' -includeExtraSpace $false
