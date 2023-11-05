@@ -33,6 +33,7 @@ has screenfetch && alias sf='screenfetch' || true
 has neofetch && alias nf='neofetch' || true
 (has python3 || has pwsh) && test -f ~/scripts/ackfetch.sh && alias af='bash ~/scripts/ackfetch.sh' || true
 has git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" && alias scup='pushd ~/scripts && git pull && popd' || true
+test -n $currShell && test -f ~/scripts/showAppVersions.sh && alias sav="$currShell ~/scripts/showAppVersions.sh" || true
 case $platform in
 	Linux|MINGW*|MSYS*|CYGWIN*)
 		alias ll='ls -AlFhv --group-directories-first'
