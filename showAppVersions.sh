@@ -12,5 +12,6 @@ _has java    && echo "java    = |$(java --version 2>/dev/null | head --lines 1)|
 _has perl    && echo "perl    = |$(perl --version | head --lines 2 | tail --lines 1 | sed -E 's/^(.+)\((v[\.0-9]+)\)(.+)$/\2/')|" || echo 'perl    = |<n/a>|'
 _has ruby    && echo "ruby    = |$(ruby --version | awk '{print $2}')|" ||					echo "ruby    = |<n/a>|"
 _has go      && echo "go      = |$(go version | awk '{print $3}')|" ||						echo "go      = |<n/a>|"
+_has rustc   && echo "rustc   = |$(rustc version | awk '{print $2}')|" ||					echo "rustc   = |<n/a>|"
 _has pwsh    && echo "pwsh    = |$(pwsh --version | awk '{print $2}')|" ||					echo "pwsh    = |<n/a>|"
 _has code    && echo "code    = |$(code --version | head --lines 1)|" ||					echo "code    = |<n/a>|"
