@@ -613,7 +613,7 @@ elif sys.platform == "darwin":
 		@staticmethod
 		def _getMacCodename(osCodenames: list["OSDetails._osCodename"], verMajor: int, verMinor: int) -> str:
 			for ver in osCodenames:
-				if verMajor == ver.major and verMinor == ver.minor:
+				if verMajor == ver.major and (verMinor == ver.minor or ver.minor < 0):
 					return ver.codename
 			return ""
 
@@ -631,7 +631,7 @@ elif sys.platform == "darwin":
 			if not tmp:
 				pass	# anywhere else to look ???
 			if tmp:
-				result = int(tmp)
+				result = int(tmp.replace(',', ''))
 			return result
 
 		@staticmethod
