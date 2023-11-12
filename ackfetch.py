@@ -13,38 +13,43 @@ def main():
 	_initLogging(args.verbose)
 
 	deets = OSDetails.GetDetails()
+	noColors = args.noColors
 	print("")
 	if args.showAllProps:
 		hdrWidth = 14
-		_printDetail("Platform", deets.platform, hdrWidth)
-		_printDetail("Id", deets.id, hdrWidth)
-		_printDetail("Description", deets.description, hdrWidth)
-		_printDetail("Release", deets.release, hdrWidth)
-		_printDetail("ReleaseVersion", deets.releaseVersion, hdrWidth)
-		_printDetail("KernelVersion", deets.kernelVersion, hdrWidth)
-		_printDetail("BuildNumber", deets.buildNumber, hdrWidth)
-		_printDetail("UpdateRevision", deets.updateRevision, hdrWidth)
-		_printDetail("Distributor", deets.distributor, hdrWidth)
-		_printDetail("Codename", deets.codename, hdrWidth)
-		_printDetail("Type", deets.osType, hdrWidth)
-		_printDetail("Edition", deets.edition, hdrWidth)
-		_printDetail("OSArchitecture", deets.osArchitecture, hdrWidth)
-		_printDetail("Is64BitOS", deets.is64BitOS, hdrWidth)
+		_printDetail("Platform", deets.platform, hdrWidth, noColors)
+		_printDetail("Id", deets.id, hdrWidth, noColors)
+		_printDetail("Description", deets.description, hdrWidth, noColors)
+		_printDetail("Release", deets.release, hdrWidth, noColors)
+		_printDetail("ReleaseVersion", deets.releaseVersion, hdrWidth, noColors)
+		_printDetail("KernelVersion", deets.kernelVersion, hdrWidth, noColors)
+		_printDetail("BuildNumber", deets.buildNumber, hdrWidth, noColors)
+		_printDetail("UpdateRevision", deets.updateRevision, hdrWidth, noColors)
+		_printDetail("Distributor", deets.distributor, hdrWidth, noColors)
+		_printDetail("Codename", deets.codename, hdrWidth, noColors)
+		_printDetail("Type", deets.osType, hdrWidth, noColors)
+		_printDetail("Edition", deets.edition, hdrWidth, noColors)
+		_printDetail("OSArchitecture", deets.osArchitecture, hdrWidth, noColors)
+		_printDetail("Is64BitOS", deets.is64BitOS, hdrWidth, noColors)
 	else:
 		hdrWidth = 13
-		_printDetail("Description", deets.description, hdrWidth)
-		_printDetail("Id", deets.id, hdrWidth)
-		_printDetail("Distributor", deets.distributor, hdrWidth)
-		_printDetail("Codename", deets.codename, hdrWidth)
-		_printDetail("Release", deets.release, hdrWidth)
-		_printDetail("KernelVersion", deets.kernelVersion, hdrWidth)
+		_printDetail("Description", deets.description, hdrWidth, noColors)
+		_printDetail("Id", deets.id, hdrWidth, noColors)
+		_printDetail("Distributor", deets.distributor, hdrWidth, noColors)
+		_printDetail("Codename", deets.codename, hdrWidth, noColors)
+		_printDetail("Release", deets.release, hdrWidth, noColors)
+		_printDetail("KernelVersion", deets.kernelVersion, hdrWidth, noColors)
 
-def _printDetail(name: str, value: str, nameMinWidth: int) -> None:
-	print(f"\033[22m\033[32m\033[1m{name:<{nameMinWidth}} :\033[0m {value}")
+def _printDetail(name: str, value: str, nameMinWidth: int, noColors: bool) -> None:
+	if noColors:
+		print(f"{name:<{nameMinWidth}} : {value}")
+	else:
+		print(f"\033[22m\033[32m\033[1m{name:<{nameMinWidth}} :\033[0m {value}")
 
 def _initArgParser() -> argparse.ArgumentParser:
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-a", "--showAllProps", action="store_true", help="show all properties rather than short list")
+	parser.add_argument("-n", "--noColors", action="store_true", help="no colors or ANSI formating")
 	parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	return parser
 
