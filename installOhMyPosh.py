@@ -1,7 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import sys, os, pathlib, argparse, shutil, subprocess, urllib.request
+import sys, os, pathlib, stat, argparse, shutil, subprocess, urllib.request
 from ackPyHelpers import LogHelper, GithubRelease, Version, RunProcessHelper
 
 PyScript = os.path.abspath(__file__)
@@ -57,6 +57,12 @@ def main():
 				f.write(resp.read())
 		else:
 			LogHelper.WhatIf(f"writing download to file |{outfile}|")
+
+	# set execute permission:
+	if not testMode:
+		os.chmod(outfile, stat.S_IXUSR)
+	else:
+		LogHelper.WhatIf(f'setting execute permission on file "{outfile}"')
 
 	# make sure the notify thing is off:
 	if not testMode:
