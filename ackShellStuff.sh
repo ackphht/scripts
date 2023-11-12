@@ -53,7 +53,7 @@ if [[ "$platform" != "Darwin" ]] && has apt; then	# macOs (at least version i ha
 	alias aptr='sudo apt update'
 	alias aptul='apt list --upgradable'
 	alias aptu='sudo apt upgrade --yes'
-	alias aptc='sudo apt-get autoclean --yes && sudo apt-get clean --yes && sudo apt-get autoremove --yes'
+	alias aptc='sudo apt-get autoremove --yes && sudo apt-get autoclean --yes && sudo apt-get clean --yes'
 	alias apts='apt-cache search'
 	alias aptn='apt show'
 	alias apti='sudo apt install'
@@ -109,6 +109,17 @@ elif has apk; then
 	alias aptx='sudo apk del'
 	alias aptxx='sudo apk del'
 	alias aptl='apk list --installed'
+elif has eopkg; then
+	alias aptr='sudo eopkg update-repo'
+	alias aptul='eopkg list-upgrades'
+	alias aptu='sudo eopkg upgrade'
+	alias aptc='sudo eopkg remove-orphans && sudo eopkg delete-cache'
+	alias apts='eopkg search'
+	alias aptn='eopkg info'
+	alias apti='sudo eopkg install'
+	alias aptx='sudo eopkg remove'
+	alias aptxx='sudo eopkg remove'
+	alias aptl='eopkg list-installed'
 elif has brew; then
 	# https://docs.brew.sh/Manpage
 	alias aptr='brew update'
