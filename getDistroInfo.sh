@@ -30,6 +30,7 @@ sudo which sysctl >/dev/null 2>&1 && sudo sysctl -a | sort --ignore-case > sysct
 has lsb_release && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
 has screenfetch && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
 has neofetch && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
+has python3 && test -f $scriptRoot/ackfetch.py && python3 $scriptRoot/ackfetch.py -an > ackfetch.log 2>/dev/null || true
 if has hostnamectl ; then
 	# two formats, slightly different info, only supported if systemd used, and json format not always supported:
 	if hostnamectl > hostnamectl.log 2>&1; then
@@ -43,8 +44,8 @@ else
 	echo "WARNING: hostnamectl not found"
 fi
 
-test -f $scriptRoot/showAppVersions.sh && bash $scriptRoot/showAppVersions.sh > showAppVersions.log
-test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > pythonProperties.log
+has bash && test -f $scriptRoot/showAppVersions.sh && bash $scriptRoot/showAppVersions.sh > showAppVersions.log
+has python3 && test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > pythonProperties.log
 
 has pwsh && test -f $scriptRoot/getSystemInformation.ps1 && pwsh -command "& { $scriptRoot/getSystemInformation.ps1 -asText }"
 
