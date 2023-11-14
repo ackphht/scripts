@@ -686,6 +686,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Node.js\Node.js command prompt.lnk', 'Development')
 		[StartMenuCleanupItem]::FromCommonPrograms('Node.js\Node.js.lnk', 'Development', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('NVIDIA Corporation\nView Desktop Manager.lnk', 'Maintenance', $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('Oracle VM VirtualBox\Oracle VM VirtualBox.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Plex\Plex.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('PostgreSQL 13\pgAdmin 4.lnk', 'Development', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('PowerShell\PowerShell 6*.lnk', 'Development', 'PowerShell 6.lnk', $true)
