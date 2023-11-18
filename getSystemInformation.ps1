@@ -258,6 +258,7 @@ function Main {
 	_addProperty -o $results -n 'Processor_IsVector64HardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVector64HardwareAccelerated)
 	_addProperty -o $results -n 'Processor_IsVector128HardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVector128HardwareAccelerated)
 	_addProperty -o $results -n 'Processor_IsVector256HardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVector256HardwareAccelerated)
+	_addProperty -o $results -n 'Processor_IsVector512HardwareAccelerated' -v ([GetSysInfo.Intrinsics]::IsVector512HardwareAccelerated)
 	#endregion
 
 	#region env var info
@@ -467,10 +468,11 @@ function WriteHeader {
 	Write-Output $script:divider
 }
 
-if ($PSVersionTable.PSVersion -ge '7.3.0') {
-	# doing this with a compiled code because if just call the properties directly,
-	# they always return false because they need RyuJit and PowerShell turns that off ??
-	# but doing it this way they seem to work...
+# doing this with a compiled code because if just call the properties directly,
+# they always return false because they need RyuJit and PowerShell turns that off ??
+# but doing it this way they seem to work...
+# v7.2.0, even if they have the Vector* classes, don't have the properties
+if ($PSVersionTable.PSVersion -ge '7.4.0') {
 	Add-Type -TypeDefinition @"
 namespace GetSysInfo {
 	public static class Intrinsics {
@@ -478,6 +480,19 @@ namespace GetSysInfo {
 		public static bool IsVector64HardwareAccelerated => System.Runtime.Intrinsics.Vector64.IsHardwareAccelerated;
 		public static bool IsVector128HardwareAccelerated => System.Runtime.Intrinsics.Vector128.IsHardwareAccelerated;
 		public static bool IsVector256HardwareAccelerated => System.Runtime.Intrinsics.Vector256.IsHardwareAccelerated;
+		public static bool IsVector512HardwareAccelerated => System.Runtime.Intrinsics.Vector512.IsHardwareAccelerated;
+	}
+}
+"@
+} elseif ($PSVersionTable.PSVersion -ge '7.3.0') {
+	Add-Type -TypeDefinition @"
+namespace GetSysInfo {
+	public static class Intrinsics {
+		public static bool IsVectorHardwareAccelerated => System.Numerics.Vector.IsHardwareAccelerated;
+		public static bool IsVector64HardwareAccelerated => System.Runtime.Intrinsics.Vector64.IsHardwareAccelerated;
+		public static bool IsVector128HardwareAccelerated => System.Runtime.Intrinsics.Vector128.IsHardwareAccelerated;
+		public static bool IsVector256HardwareAccelerated => System.Runtime.Intrinsics.Vector256.IsHardwareAccelerated;
+		public static bool IsVector512HardwareAccelerated => false;
 	}
 }
 "@
@@ -490,6 +505,7 @@ namespace GetSysInfo {
 		public static bool IsVector64HardwareAccelerated { get { return false; } }
 		public static bool IsVector128HardwareAccelerated { get { return false; } }
 		public static bool IsVector256HardwareAccelerated { get { return false; } }
+		public static bool IsVector512HardwareAccelerated { get { return false; } }
 	}
 }
 "@
