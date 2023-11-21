@@ -111,8 +111,8 @@ elif has apk; then
 	alias aptl='apk list --installed'
 elif has eopkg; then
 	alias aptr='sudo eopkg update-repo'
-	alias aptul='eopkg list-upgrades'
-	alias aptu='sudo eopkg upgrade'
+	alias aptul='eopkg list-upgrades --install-info'
+	alias aptu='sudo eopkg upgrade --yes-all'
 	alias aptc='sudo eopkg remove-orphans && sudo eopkg delete-cache'
 	alias apts='eopkg search'
 	alias aptn='eopkg info'
