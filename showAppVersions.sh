@@ -2,16 +2,15 @@
 
 _has() { which "$1" >/dev/null 2>/dev/null && [[ ! $(which "$1") =~ ^/mnt/[[:alpha:]]/.+ ]]; }	# filter out WSL paths
 
-_has apt    && echo "apt      = |$(apt --version | awk '{print $2}')|" || true
-_has zypper && echo "zypper   = |$(zypper --version | awk '{print $2}')|" || true
-_has dnf    && echo "dnf      = |$(dnf --version | head --lines 1 | awk '{print $1}')|" || true
-_has pacman && echo "pacman   = |$(pacman --version | head --lines 2 | tail --lines 1 | awk '{print $3}')|" || true
-_has eopkg  && echo "eopkg    = |$(eopkg --version)|" || true
-_has brew   && echo "brew     = |$(brew --version)|" || true
-_has apk    && echo "apk      = |$(apk --version)|" || true
-_has dpkg   && echo "dpkg     = |$(dpkg --version | head --lines 1 | awk '{print $7}')|" || true
-_has rpm    && echo "rpm      = |$(rpm --version | awk '{print $3}')|" || true
-echo ''
+_has apt     && echo "apt     = |$(apt --version | awk '{print $2}')|" || true
+_has zypper  && echo "zypper  = |$(zypper --version | awk '{print $2}')|" || true
+_has dnf     && echo "dnf     = |$(dnf --version | head --lines 1 | awk '{print $1}')|" || true
+_has pacman  && echo "pacman  = |$(pacman --version | head --lines 2 | tail --lines 1 | awk '{print $3}')|" || true
+_has eopkg   && echo "eopkg   = |$(eopkg --version)|" || true
+_has brew    && echo "brew    = |$(brew --version)|" || true
+_has apk     && echo "apk     = |$(apk --version)|" || true
+_has dpkg    && echo "dpkg    = |$(dpkg --version | head --lines 1 | awk '{print $7}')|" || true
+_has rpm     && echo "rpm     = |$(rpm --version | awk '{print $3}')|" || true
 _has bash    && echo "bash    = |$(bash --version | head --lines 1 | awk '{print $4}')|" ||	echo 'bash    = |<n/a>|'
 _has zsh     && echo "zsh     = |$(zsh --version | awk '{print $2}')|" ||					echo 'zsh     = |<n/a>|'
 _has python3 && echo "python3 = |$(python3 --version | awk '{print $2}')|" ||				echo 'python3 = |<n/a>|'
