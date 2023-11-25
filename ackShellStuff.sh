@@ -35,10 +35,10 @@ has screenfetch && alias sf='screenfetch' || true
 has neofetch && alias nf='neofetch' || true
 (has python3 || has pwsh) && test -f ~/scripts/ackfetch.sh && alias af='bash ~/scripts/ackfetch.sh' || true
 #has git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" && alias scup='pushd ~/scripts && git pull && popd' || true
-if [[ has 'git' && -d "~/scripts" && -z "$WSL_DISTRO_NAME" ]]; then
-	if [[ has 'pushd' ]]; then	# it's a builtin for bash/zsh/others, but not all
+if has git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" ; then
+	if has pushd ; then	# it's a builtin for bash/zsh/others, but not all
 		alias scup='pushd ~/scripts && git pull && popd' || true
-	elif [[ has 'bash' ]]; then
+	elif has bash ; then
 		alias scup='bash pushd ~/scripts && git pull && popd' || true
 	fi
 fi
