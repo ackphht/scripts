@@ -39,7 +39,7 @@ if has git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" ; then
 	if has pushd ; then	# it's a builtin for bash/zsh/others, but not all
 		alias scup='pushd ~/scripts && git pull && popd' || true
 	elif has bash ; then
-		alias scup='bash pushd ~/scripts && git pull && popd' || true
+		alias scup="bash -c 'pushd ~/scripts && git pull && popd'" || true
 	fi
 fi
 test -n $currShell && test -f ~/scripts/showAppVersions.sh && alias sav="$currShell ~/scripts/showAppVersions.sh" || true
