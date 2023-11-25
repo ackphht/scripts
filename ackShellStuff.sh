@@ -2,7 +2,7 @@
 # add this to .bashrc (or .zshrc [will it work ??] or whatever) (and might need to go at the bottom of file [e.g. Ubuntu]):
 #	test -r ~/scripts/ackShellStuff.sh && source ~/scripts/ackShellStuff.sh || true
 #
-has() { type -p "$1" >/dev/null; }
+has() { type -t "$1" >/dev/null; }
 
 platform=$(uname -s)
 
@@ -34,7 +34,14 @@ alias cls='clear'
 has screenfetch && alias sf='screenfetch' || true
 has neofetch && alias nf='neofetch' || true
 (has python3 || has pwsh) && test -f ~/scripts/ackfetch.sh && alias af='bash ~/scripts/ackfetch.sh' || true
-has git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" && alias scup='pushd ~/scripts && git pull && popd' || true
+#has git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" && alias scup='pushd ~/scripts && git pull && popd' || true
+if [[ has git && -d ~/scripts && -z "$WSL_DISTRO_NAME" ]]; then
+	if [[ has pushd ]]; then	# it's a builtin for bash/zsh/others, but not all
+		alias scup='pushd ~/scripts && git pull && popd' || true
+	elif [[ has bash ]]; then
+		alias scup='bash pushd ~/scripts && git pull && popd' || true
+	fi
+fi
 test -n $currShell && test -f ~/scripts/showAppVersions.sh && alias sav="$currShell ~/scripts/showAppVersions.sh" || true
 case $platform in
 	Linux|MINGW*|MSYS*|CYGWIN*)
