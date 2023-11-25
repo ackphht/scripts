@@ -673,7 +673,9 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 6 (x86).lnk', 'Development')
 		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 6 (x64).lnk', 'Development', 'LINQPad 6.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 7 (x86).lnk', 'Development')
-		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 7 (x64).lnk', 'Development', 'LINQPad 7.lnk', $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 7 (x64).lnk', 'Development', 'LINQPad 7.lnk')
+		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 8 (x86).lnk', 'Development')
+		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 8 (x64).lnk', 'Development', 'LINQPad 8.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('McAfee\McAfee® AntiVirus Plus.lnk', 'Maintenance', $true)	# shows up as 'System'
 		[StartMenuCleanupItem]::FromCommonPrograms('MediaMonkey\MediaMonkey.lnk', 'Applications', 'MediaMonkey [skinned].lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Azure Storage Explorer\Microsoft Azure Storage Explorer.lnk', 'Development', $true)
