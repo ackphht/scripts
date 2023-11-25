@@ -13,8 +13,8 @@ if [[ -z "$currShell" ]]; then
 		Darwin) currShell=$(ps -p $$ -o command=) ;;
 		MINGW*) currShell=$0 ;;		# for git's bash; doesn't support ps -o
 	esac
-elif [[ "$currShell" == "busybox" ]]; then
-	currShell=$0		# see if this is more accurate
+elif [[ "$currShell" =~ "busybox" ]]; then
+	currShell=$SHELL	# nothing else is working
 fi
 if [[ "${currShell:0:1}" == "/" ]]; then currShell=$(basename $currShell); fi	# in case got a full path
 if [[ "${currShell:0:1}" == "-" ]]; then currShell=${currShell:1}; fi	# sometimes has a '-' on the front which means it's the login shell
