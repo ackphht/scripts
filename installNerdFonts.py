@@ -229,7 +229,7 @@ class NerdFontCollection:
 		if fontName not in self._fonts:
 			patternsToExtract : list[str] = []
 			for f in fontFilenameBases:
-				patternsToExtract.append(f"{f}-.+\.(?:t|o)tf")
+				patternsToExtract.append(f"{f}-.+\\.(?:t|o)tf")
 			self._fonts[fontName] = NerdFontDefn(fontName, patternsToExtract)
 
 	def processAsset(self, asset : GithubRelease.GithubReleaseAsset):
@@ -262,16 +262,22 @@ def getNerdFontsVerStr(releaseInfo : GithubRelease) -> str:
 
 def initFontsToInstall(ghRelease : GithubRelease) -> NerdFontCollection:
 	fontsToInstall : NerdFontCollection = NerdFontCollection()
+	# first name ("fontName") is the name as they show up in the Github downloads list;
+	# second name(s) (the "fontFilenameBase"s) are the filenames to look for/extract/install in the downloaded archive
+	#    name in the archive will be "{basename}-*.(t|o)tf"
 	fontsToInstall.addFontDefn("FantasqueSansMono", ["FantasqueSansMNerdFont"])#, "FantasqueSansMNerdFontMono"])
 	fontsToInstall.addFontDefn("CascadiaCode", ["CaskaydiaCoveNerdFont"])#, "CaskaydiaCoveNerdFontMono"])
-	fontsToInstall.addFontDefn("Meslo", ["MesloLGSNerdFont"])#, "MesloLGSNerdFontMono"])
+	fontsToInstall.addFontDefn("Meslo", ["MesloLGSNerdFont"])#, "MesloLGSDZNerdFont"])
 	if sys.platform == "win32":
 		fontsToInstall.addFontDefn("ComicShannsMono", ["ComicShannsMonoNerdFont"])
+		fontsToInstall.addFontDefn("Hack", ["HackNerdFont"])
+		fontsToInstall.addFontDefn("IntelOneMono", ["IntoneMonoNerdFont"])
 		fontsToInstall.addFontDefn("JetBrainsMono", ["JetBrainsMonoNerdFont"])
-		fontsToInstall.addFontDefn("Lilex", ["LilexNerdFont"])
+		#fontsToInstall.addFontDefn("Lilex", ["LilexNerdFont"])
 		fontsToInstall.addFontDefn("Monofur", ["MonofurNerdFont"])
+		fontsToInstall.addFontDefn("SourceCodePro", ["SauceCodeProNerdFont"])
 		fontsToInstall.addFontDefn("SpaceMono", ["SpaceMonoNerdFont"])
-		fontsToInstall.addFontDefn("ShareTechMono", ["ShureTechMonoNerdFont"])
+		#fontsToInstall.addFontDefn("ShareTechMono", ["ShureTechMonoNerdFont"])
 		#fontsToInstall.addFontDefn("XXXXXXXX", ["XXXXXXXX"])
 	for a in ghRelease.assets:
 		fontsToInstall.processAsset(a)
