@@ -54,6 +54,11 @@ case $platform in
 		#alias shutdown='sudo halt --poweroff --force --no-wall'
 		;;
 	Darwin)
+		lsAlias=$(alias ls 2>/dev/null)
+		if [[ -z "$lsAlias" || ! "$lsAlias" =~ "--color=" ]]; then
+			alias ls='ls --color=auto'
+		fi
+		unset lsAlias
 		alias ll='ls -AlFhv'
 		alias l='ls -AFv'
 		;;
