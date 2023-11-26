@@ -17,24 +17,31 @@ def main():
 	args = initArgParser().parse_args()
 	LogHelper.Init(args.verbose)
 	if args.commandName in ["showImportHashes", "sih"]:
-		LogHelper.Verbose("commandName = |{0}|, calling ShowImportHashes()", args.commandName)
+		LogHelper.Verbose("commandName = |{0}|, calling ShowImportHashes(): verbose = |{1}|, whatIf = |{2}|", args.commandName, args.verbose, args.whatIf)
 		ShowImportHashes()
 	elif args.commandName in ["dupesInImports", "di"]:
-		LogHelper.Verbose("commandName = |{0}|, calling CheckForDupeImports()", args.commandName)
+		LogHelper.Verbose("commandName = |{0}|, calling CheckForDupeImports(): verbose = |{1}|, whatIf = |{2}|", args.commandName, args.verbose, args.whatIf)
 		CheckForDupeImports(args.whatIf)
 	else:
-		LogHelper.Verbose("commandName = |{0}|, calling CheckImportsForDuplicates()", args.commandName)
+		LogHelper.Verbose("commandName = |{0}|, calling CheckImportsForDuplicates(): verbose = |{1}|, whatIf = |{2}|", args.commandName, args.verbose, args.whatIf)
 		CheckImportsForDuplicates(args.whatIf)
 
 def initArgParser() -> argparse.ArgumentParser:
 	parser = argparse.ArgumentParser()
 	parser.set_defaults(verbose=False, whatIf=False)
+	# top-level verbose and whatIf will only get used if no command name specified; if a command name is specified, its own flags will override these:
+	parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	parser.add_argument("-t", "--whatIf", action="store_true", help="enable WhatIf/Test mode")
+
 	subparsers = parser.add_subparsers(dest="commandName", title="Commands", metavar="[command]", description="Valid commands to run (checkImports is default if nothing else is specified)")
+
 	command01 = subparsers.add_parser("checkImports", aliases=["ci"], help="check imports for duplicates against previously saved images")
 	command01.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	command01.add_argument("-t", "--whatIf", action="store_true", help="enable WhatIf/Test mode")
+
 	command02 = subparsers.add_parser("showImportHashes", aliases=["sih"], help="show hashes of files in the imports folder")
 	command02.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+
 	command03 = subparsers.add_parser("dupesInImports", aliases=["di"], help="look for dupes in files in the imports folder")
 	command03.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	command03.add_argument("-t", "--whatIf", action="store_true", help="enable WhatIf/Test mode")
