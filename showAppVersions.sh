@@ -2,7 +2,9 @@
 
 _has() { which "$1" >/dev/null 2>/dev/null && [[ ! $(which "$1") =~ ^/mnt/[[:alpha:]]/.+ ]]; }	# filter out WSL paths
 
-_has apt     && echo "apt     = |$(apt --version | awk '{print $2}')|" || true
+platform=$(uname -s)
+
+_has apt && test "$platform" != "Darwin" && echo "apt     = |$(apt --version | awk '{print $2}')|" || true	# bagOs (at least version i have) has some java app called apt; don't know what that is
 _has zypper  && echo "zypper  = |$(zypper --version | awk '{print $2}')|" || true
 _has dnf     && echo "dnf     = |$(dnf --version | head -n 1 | awk '{print $1}')|" || true
 _has pacman  && echo "pacman  = |$(pacman --version | head -n 2 | tail -n 1 | awk '{print $3}')|" || true
