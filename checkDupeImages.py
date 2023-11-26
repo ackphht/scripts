@@ -168,16 +168,41 @@ def ShowImportHashes():
 	for info in sorted(imageInfos, key=itemgetter(2,1,3)):	# sort by SHA1, then by PHash, then by modified time
 		print(f'{info[0]}  {info[1]}  {info[2]}  {info[3]}')
 
+def CheckForDupeImports():
+	hashes = dict()
+	for img in glob.glob(os.path.join(SpotlightImageHashesDb.SpotlightImportFolder, '_*.jpg')):
+		imgHashInfo = ImageHashInfo.FromImageFile(img, True)
+		if imgHashInfo:
+			modTime = datetime.datetime.fromtimestamp(os.path.getmtime(img)).strftime('%Y-%m-%d %H:%M:%S')
+			if imgHashInfo.SHA256 in hashes:
+				hashes[imgHashInfo.SHA256].append((img, imgHashInfo.Filename, modTime))
+			else:
+				hashes[imgHashInfo.SHA256] = [ (img, imgHashInfo.Filename, modTime) ]
+	for k in hashes:
+		files = hashes[k]
+		if len(files) > 1:
+			first = True
+			print(f"duplicates, will keep first: {', '.join(f[1] for f in files)}'")
+			for f in sorted(files, key=itemgetter(2)):	# sort by mod time
+				if first:
+					first = False
+				else:
+					folder, filename = os.path.split(f[0])
+					logging.debug(f"renaming '{f[0]}' to '{os.path.join(folder, '~' + filename)}'")
+					os.rename(f[0], os.path.join(folder, '@' + filename))
+
 def main():
 	if len(sys.argv) <= 1 or sys.argv[1].lower() == 'checkimports':
 		CheckImportsForDuplicates()
 	elif sys.argv[1].lower() == 'showimporthashes':
 		ShowImportHashes()
+	elif sys.argv[1].lower() == 'checkfordupeimports':
+		CheckForDupeImports()
 	elif sys.argv[1].lower() == 'help' or len(sys.argv) >= 1:
 		print('')
-		print('    no arguments: check imports for duplicates')
-		print('    CheckImports: check imports for duplicates')
-		print('ShowImportHashes: show hashes of files in the imports folder')
+		print('       CheckImports: check imports for duplicates against previous images (default if no options)')
+		print('   ShowImportHashes: show hashes of files in the imports folder')
+		print('CheckForDupeImports: look for dupes in files in the imports folder')
 		print('')
 
 if __name__ == '__main__':
