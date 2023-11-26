@@ -105,6 +105,11 @@ class LogHelper:
 		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.Yellow, "VERBOSE", *posargs, **kwargs)
 
 	@staticmethod
+	def Info(message : str, /, *posargs, **kwargs) -> None:
+		"""prints an INFO-level message to the console"""
+		LogHelper.MessageCyan(message, *posargs, **kwargs)
+
+	@staticmethod
 	def Warning(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a WARNING message to the console in bright yellow"""
 		LogHelper._writeMessage(message, LogHelper.Style.Bright, LogHelper.Fore.LightYellowEx, "WARNING", *posargs, **kwargs)
