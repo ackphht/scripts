@@ -2,7 +2,8 @@
 # add this to .bashrc (or .zshrc [will it work ??] or whatever) (and might need to go at the bottom of file [e.g. Ubuntu]):
 #	test -r ~/scripts/ackShellStuff.sh && source ~/scripts/ackShellStuff.sh || true
 #
-has() { type -t "$1" >/dev/null; }
+
+has() { type "$1" >/dev/null; }	# want it to work with builtins, too, and 'which' doesn't under bash but 'type' (with no params) works (at least under bash, zsh, ash)
 
 platform=$(uname -s)
 
