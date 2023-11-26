@@ -4,7 +4,8 @@
 # this uses the imagehash library: install it with e.g. py [-<python version>] -m pip install imagehash==4.0
 #    this will also install the libraries that it depends on
 
-import sys, os, pathlib, datetime, logging, glob, csv, hashlib, argparse, time
+import sys, os, pathlib, datetime, glob, csv, hashlib, argparse, time
+from ackPyHelpers import LogHelper
 from PIL import Image
 import imagehash
 from operator import itemgetter
@@ -14,7 +15,7 @@ PyScriptRoot = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
 
 def main():
 	args = initArgParser().parse_args()
-	initLogging(args.verbose if "verbose" in args else False)
+	LogHelper.Init(args.verbose if "verbose" in args else False)
 	if args.commandName == "ShowImportHashes":
 		ShowImportHashes()
 	elif args.commandName == "CheckForDupeImports":
@@ -33,18 +34,6 @@ def initArgParser() -> argparse.ArgumentParser:
 	command02.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	return parser
 
-#def command01Handler(args : argparse.Namespace):
-#	pass
-
-def initLogging(verbose : bool = False):
-	loglevel = logging.DEBUG if verbose else logging.INFO
-	# logging.Formatter.converter = time.gmtime
-	# logTimeFormat = "{asctime}.{msecs:0<3.0f}Z"
-	# see https://docs.python.org/3/library/logging.html#logrecord-attributes for things can include in format:
-	#logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=loglevel)	# <- original one before rewrite
-	#logging.basicConfig(level=loglevel, format=f"{{levelname:>8}}: {logTimeFormat} {{message}}", style='{', datefmt='%Y-%m-%d %H:%M:%S')
-	logging.basicConfig(level=loglevel, format=f"{{levelname:>8}}: {{message}}", style='{')
-
 class ImageHashInfo:
 	@staticmethod
 	def FromCsvRow(row):
@@ -62,10 +51,10 @@ class ImageHashInfo:
 	@staticmethod
 	def _getImageHashes(imgpath, withAllHashes):
 		try:
-			logging.debug('_getImageHashes(): reading file "%s" as image', imgpath)
+			LogHelper.Verbose('_getImageHashes(): reading file "{0}" as image', imgpath)
 			img = Image.open(imgpath)
 		except OSError as ex:
-			logging.warn('_getImageHashes(): could not read file "%s" as image', imgpath)
+			LogHelper.Warning('_getImageHashes(): could not read file "{0}" as image', imgpath)
 			return None
 		phash = imagehash.phash(img)
 		if (withAllHashes):
@@ -104,38 +93,38 @@ class SpotlightImageHashesDb:
 	def _loadDb(self):
 		imgFileHashes = []
 		if os.path.exists(SpotlightImageHashesDb.ImageHashesDb):
-			logging.debug('_loadDb(): reading hashes from csv file "%s"', SpotlightImageHashesDb.ImageHashesDb)
+			LogHelper.Verbose('_loadDb(): reading hashes from csv file "{0}"', SpotlightImageHashesDb.ImageHashesDb)
 			with open(SpotlightImageHashesDb.ImageHashesDb, 'r', newline='') as f:
 #				csvReader = csv.reader(f)
 				csvReader = csv.DictReader(f)
 				for row in csvReader:
 					imgFileHashes.append(ImageHashInfo.FromCsvRow(row))
 		else:
-			logging.debug('_loadDb(): hashes file "%s" does not exist', SpotlightImageHashesDb.ImageHashesDb)
-		logging.debug('_loadDb(): read %i hashes from file "%s"', len(imgFileHashes), SpotlightImageHashesDb.ImageHashesDb)
+			LogHelper.Verbose('_loadDb(): hashes file "{0}" does not exist', SpotlightImageHashesDb.ImageHashesDb)
+		LogHelper.Verbose('_loadDb(): read {0} hashes from file "{1}"', len(imgFileHashes), SpotlightImageHashesDb.ImageHashesDb)
 		return imgFileHashes
 
 	def _addImage(self, imagePath):
 		hashInfo = ImageHashInfo.FromImageFile(imagePath, True)
 		if (hashInfo):
-			logging.info('_addImage(): adding new image "%s" to hashes db list', hashInfo.Filename)
+			LogHelper.Info('_addImage(): adding new image "{0}" to hashes db list', hashInfo.Filename)
 			self._imageHashes.append(hashInfo)
 			self._isDirty = True
 
 	def _containsImage(self, imagePath):
-		#logging.debug('_containsImage(): checking file "%s"', imagePath)
+		#LogHelper.Verbose('_containsImage(): checking file "{0}"', imagePath)
 		imgFilename = os.path.normcase(os.path.basename(imagePath))
 		for hashInfo in self._imageHashes:
-			#logging.debug('_containsImage(): comparing imgFilename = "%s" to hashInfo.Filename = "%s"', imgFilename, hashInfo.Filename)
+			#LogHelper.Verbose('_containsImage(): comparing imgFilename = "{0}" to hashInfo.Filename = "{1}"', imgFilename, hashInfo.Filename)
 			if imgFilename == hashInfo.Filename:
-				#logging.debug('_containsImage(): returning True')
+				#LogHelper.Verbose('_containsImage(): returning True')
 				return True
-		#logging.debug('_containsImage(): returning False')
+		#LogHelper.Verbose('_containsImage(): returning False')
 		return False
 
 	def SaveChanges(self):
 		if self._isDirty:
-			logging.info('SaveChanges(): writing hashes to csv file "%s"', SpotlightImageHashesDb.ImageHashesDb)
+			LogHelper.Info('SaveChanges(): writing hashes to csv file "{0}"', SpotlightImageHashesDb.ImageHashesDb)
 			# TODO: should we make a backup first?
 			with open(SpotlightImageHashesDb.ImageHashesDb, 'w', newline='') as f:
 #				csvWriter = csv.writer(f)
@@ -145,10 +134,10 @@ class SpotlightImageHashesDb:
 #					csvWriter.writerow([hashInfo.Filename, hashInfo.PHash])
 					csvWriter.writerow({'Filename': hashInfo.Filename, 'PHash': hashInfo.PHash, 'SHA256': hashInfo.SHA256, 'SHA1': hashInfo.SHA1, 'MD5': hashInfo.MD5})
 		else:
-			logging.debug('SaveChanges(): _isDirty flag not set, not saving anything')
+			LogHelper.Verbose('SaveChanges(): _isDirty flag not set, not saving anything')
 
 	def CheckForNewImages(self):
-		logging.debug('CheckForNewImages(): looking for new images in folder "%s"', SpotlightImageHashesDb.SpotlightFolder)
+		LogHelper.Verbose('CheckForNewImages(): looking for new images in folder "{0}"', SpotlightImageHashesDb.SpotlightFolder)
 		for img in glob.glob(os.path.join(SpotlightImageHashesDb.SpotlightFolder, '*.jpg')):
 			if not self._containsImage(img):
 				self._addImage(img)
@@ -156,11 +145,11 @@ class SpotlightImageHashesDb:
 	def FindMatchingImages(self, imagePathToCompare):
 		toCompareHashInfo = ImageHashInfo.FromImageFile(imagePathToCompare, False)
 		if toCompareHashInfo:
-			logging.debug('FindMatchingImages(): checking file "%s": pHash = %s', os.path.basename(imagePathToCompare), toCompareHashInfo.PHash)
+			LogHelper.Verbose('FindMatchingImages(): checking file "{0}": pHash = {1}', os.path.basename(imagePathToCompare), toCompareHashInfo.PHash)
 			for existingHashInfo in self._imageHashes:
 				phDiff = existingHashInfo.PHash - toCompareHashInfo.PHash
 				if phDiff <=5:
-					logging.debug('FindMatchingImages(): probable match: existing file pHash = %s, new file pHash = %s', existingHashInfo.PHash, toCompareHashInfo.PHash)
+					LogHelper.Verbose('FindMatchingImages(): probable match: existing file pHash = {0}, new file pHash = {1}', existingHashInfo.PHash, toCompareHashInfo.PHash)
 					yield [existingHashInfo.Filename, phDiff]
 
 def CheckImportsForDuplicates():
@@ -168,24 +157,22 @@ def CheckImportsForDuplicates():
 	imageHashes.CheckForNewImages()
 	imageHashes.SaveChanges()
 
-	logging.info('comparing imported image hashes to previously saved images')
+	LogHelper.Info('comparing imported image hashes to previously saved images')
 	for img in glob.glob(os.path.join(SpotlightImageHashesDb.SpotlightImportFolder, '_*.jpg')):
 		for matchingImage in imageHashes.FindMatchingImages(img):
 			phDiff = matchingImage[1]
 			if phDiff == 0:
-				print(f'==> import image "{os.path.basename(img)}" is same as image "{matchingImage[0]}": phash diff = {phDiff}')
-				#logging.warn('==> import image "%s" is same as image "%s": phash diff = %s', os.path.basename(img), matchingImage[0], phDiff)
+				LogHelper.Warning('==> import image "{0}" is same as image "{1}": phash diff = {2}', os.path.basename(img), matchingImage[0], phDiff)
 				folder, filename = os.path.split(img)
 				os.rename(img, os.path.join(folder, '!' + filename))
 			elif phDiff <= 4:# and whDiff <= 5:
-				print(f'??? import image "{os.path.basename(img)}" may be same as image "{matchingImage[0]}": phash diff = {phDiff}')
-
-	logging.info('completed checking for duplicate images')
+				LogHelper.Warning('??? import image "{0}" may be same as image "{1}": phash diff = {2}', os.path.basename(img), matchingImage[0], phDiff)
+	LogHelper.Info('completed checking for duplicate images')
 
 def ShowImportHashes():
-	print('')
-	print(f"{'Filename':<26}  {'PHash':<16}  {'SHA1':<40}  {'Modified':<19}")
-	print(f"{'='*26:<26}  {'='*16:<16}  {'='*40:<40}  {'='*19:<19}")
+	LogHelper.Info('')
+	LogHelper.Info(f"{'Filename':<26}  {'PHash':<16}  {'SHA1':<40}  {'Modified':<19}")
+	LogHelper.Info(f"{'='*26:<26}  {'='*16:<16}  {'='*40:<40}  {'='*19:<19}")
 	imageInfos = []
 	for img in glob.glob(os.path.join(SpotlightImageHashesDb.SpotlightImportFolder, '_*.jpg')):
 		imgHashInfo = ImageHashInfo.FromImageFile(img, True)
@@ -193,7 +180,7 @@ def ShowImportHashes():
 			modTime = datetime.datetime.fromtimestamp(os.path.getmtime(img)).strftime('%Y-%m-%d %H:%M:%S')
 			imageInfos.append((os.path.basename(img), str(imgHashInfo.PHash), imgHashInfo.SHA1, modTime))
 	for info in sorted(imageInfos, key=itemgetter(2,1,3)):	# sort by SHA1, then by PHash, then by modified time
-		print(f'{info[0]}  {info[1]}  {info[2]}  {info[3]}')
+		LogHelper.Info(f'{info[0]}  {info[1]}  {info[2]}  {info[3]}')
 
 def CheckForDupeImports():
 	hashes = dict()
@@ -209,14 +196,15 @@ def CheckForDupeImports():
 		files = hashes[k]
 		if len(files) > 1:
 			first = True
-			print(f"duplicates, will keep first: {', '.join(f[1] for f in files)}'")
+			LogHelper.Info(f"duplicates, will keep first: {', '.join(f[1] for f in files)}'")
 			for f in sorted(files, key=itemgetter(2)):	# sort by mod time
 				if first:
 					first = False
 				else:
 					folder, filename = os.path.split(f[0])
-					logging.debug(f"renaming '{f[0]}' to '{os.path.join(folder, '~' + filename)}'")
-					os.rename(f[0], os.path.join(folder, '@' + filename))
+					newName = os.path.join(folder, '@' + filename)
+					LogHelper.Verbose("renaming '{0}' to '{1}'", f[0], newName)
+					os.rename(f[0], newName)
 
 if __name__ == '__main__':
 	sys.exit(main())
