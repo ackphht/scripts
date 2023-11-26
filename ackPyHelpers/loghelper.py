@@ -107,7 +107,7 @@ class LogHelper:
 	@staticmethod
 	def Info(message : str, /, *posargs, **kwargs) -> None:
 		"""prints an INFO-level message to the console"""
-		LogHelper.MessageCyan(message, *posargs, **kwargs)
+		LogHelper.MessageWhite(message, *posargs, **kwargs)
 
 	@staticmethod
 	def Warning(message : str, /, *posargs, **kwargs) -> None:
@@ -163,6 +163,11 @@ class LogHelper:
 	def MessageGray(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a regular message to the console in gray"""
 		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.LightBlackEx, "", *posargs, **kwargs)
+
+	@staticmethod
+	def MessageWhite(message : str, /, *posargs, **kwargs) -> None:
+		"""prints a regular message to the console in white"""
+		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.White, "", *posargs, **kwargs)
 
 	@staticmethod
 	def WhatIf(message : str, /, *posargs, **kwargs) -> None:
