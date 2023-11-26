@@ -4,19 +4,46 @@
 # this uses the imagehash library: install it with e.g. py [-<python version>] -m pip install imagehash==4.0
 #    this will also install the libraries that it depends on
 
-import sys
-import os
-import datetime
-import logging
-import glob
+import sys, os, pathlib, datetime, logging, glob, csv, hashlib, argparse, time
 from PIL import Image
 import imagehash
-#import json
-import csv
-import hashlib
 from operator import itemgetter
 
-logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=logging.INFO)
+PyScript = pathlib.Path(os.path.abspath(__file__))
+PyScriptRoot = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
+
+def main():
+	args = initArgParser().parse_args()
+	initLogging(args.verbose if "verbose" in args else False)
+	if args.commandName == "ShowImportHashes":
+		ShowImportHashes()
+	elif args.commandName == "CheckForDupeImports":
+		CheckForDupeImports()
+	else:
+		CheckImportsForDuplicates()
+
+def initArgParser() -> argparse.ArgumentParser:
+	parser = argparse.ArgumentParser()
+	subparsers = parser.add_subparsers(dest="commandName", title="Commands")		# 'commandName' will be set to values passed to add_parser
+	command01 = subparsers.add_parser("CheckImports", aliases=["c1"], help="check imports for duplicates against previous images (default command)")
+	command01.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	command02 = subparsers.add_parser("ShowImportHashes", help="show hashes of files in the imports folder")
+	command02.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	command02 = subparsers.add_parser("CheckForDupeImports", help="look for dupes in files in the imports folder")
+	command02.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	return parser
+
+#def command01Handler(args : argparse.Namespace):
+#	pass
+
+def initLogging(verbose : bool = False):
+	loglevel = logging.DEBUG if verbose else logging.INFO
+	# logging.Formatter.converter = time.gmtime
+	# logTimeFormat = "{asctime}.{msecs:0<3.0f}Z"
+	# see https://docs.python.org/3/library/logging.html#logrecord-attributes for things can include in format:
+	#logging.basicConfig(format='%(levelname)s: %(asctime)s %(message)s', level=loglevel)	# <- original one before rewrite
+	#logging.basicConfig(level=loglevel, format=f"{{levelname:>8}}: {logTimeFormat} {{message}}", style='{', datefmt='%Y-%m-%d %H:%M:%S')
+	logging.basicConfig(level=loglevel, format=f"{{levelname:>8}}: {{message}}", style='{')
 
 class ImageHashInfo:
 	@staticmethod
@@ -191,19 +218,5 @@ def CheckForDupeImports():
 					logging.debug(f"renaming '{f[0]}' to '{os.path.join(folder, '~' + filename)}'")
 					os.rename(f[0], os.path.join(folder, '@' + filename))
 
-def main():
-	if len(sys.argv) <= 1 or sys.argv[1].lower() == 'checkimports':
-		CheckImportsForDuplicates()
-	elif sys.argv[1].lower() == 'showimporthashes':
-		ShowImportHashes()
-	elif sys.argv[1].lower() == 'checkfordupeimports':
-		CheckForDupeImports()
-	elif sys.argv[1].lower() == 'help' or len(sys.argv) >= 1:
-		print('')
-		print('       CheckImports: check imports for duplicates against previous images (default if no options)')
-		print('   ShowImportHashes: show hashes of files in the imports folder')
-		print('CheckForDupeImports: look for dupes in files in the imports folder')
-		print('')
-
 if __name__ == '__main__':
-	main()
+	sys.exit(main())
