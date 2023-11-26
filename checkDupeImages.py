@@ -15,23 +15,29 @@ PyScriptRoot = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
 
 def main():
 	args = initArgParser().parse_args()
-	LogHelper.Init(args.verbose if "verbose" in args else False)
-	if args.commandName == "ShowImportHashes":
+	LogHelper.Init(args.verbose)
+	if args.commandName in ["showImportHashes", "sih"]:
+		LogHelper.Verbose("commandName = |{0}|, calling ShowImportHashes()", args.commandName)
 		ShowImportHashes()
-	elif args.commandName == "CheckForDupeImports":
-		CheckForDupeImports()
+	elif args.commandName in ["dupesInImports", "di"]:
+		LogHelper.Verbose("commandName = |{0}|, calling CheckForDupeImports()", args.commandName)
+		CheckForDupeImports(args.whatIf)
 	else:
-		CheckImportsForDuplicates()
+		LogHelper.Verbose("commandName = |{0}|, calling CheckImportsForDuplicates()", args.commandName)
+		CheckImportsForDuplicates(args.whatIf)
 
 def initArgParser() -> argparse.ArgumentParser:
 	parser = argparse.ArgumentParser()
-	subparsers = parser.add_subparsers(dest="commandName", title="Commands")		# 'commandName' will be set to values passed to add_parser
-	command01 = subparsers.add_parser("CheckImports", aliases=["c1"], help="check imports for duplicates against previous images (default command)")
+	parser.set_defaults(verbose=False, whatIf=False)
+	subparsers = parser.add_subparsers(dest="commandName", title="Commands", metavar="[command]", description="Valid commands to run (checkImports is default if nothing else is specified)")
+	command01 = subparsers.add_parser("checkImports", aliases=["ci"], help="check imports for duplicates against previously saved images")
 	command01.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
-	command02 = subparsers.add_parser("ShowImportHashes", help="show hashes of files in the imports folder")
+	command01.add_argument("-t", "--whatIf", action="store_true", help="enable WhatIf/Test mode")
+	command02 = subparsers.add_parser("showImportHashes", aliases=["sih"], help="show hashes of files in the imports folder")
 	command02.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
-	command02 = subparsers.add_parser("CheckForDupeImports", help="look for dupes in files in the imports folder")
-	command02.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	command03 = subparsers.add_parser("dupesInImports", aliases=["di"], help="look for dupes in files in the imports folder")
+	command03.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	command03.add_argument("-t", "--whatIf", action="store_true", help="enable WhatIf/Test mode")
 	return parser
 
 class ImageHashInfo:
@@ -86,9 +92,10 @@ class SpotlightImageHashesDb:
 	SpotlightImportFolder = os.path.join(SpotlightFolder, 'import')
 	ImageHashesDb = os.path.join(SpotlightOneDriveFolder, '$imagePHashes.csv')
 
-	def __init__(self):
+	def __init__(self, whatIf: bool):
 		self._imageHashes = self._loadDb()
 		self._isDirty = False
+		self._whatIf = whatIf
 
 	def _loadDb(self):
 		imgFileHashes = []
@@ -125,6 +132,9 @@ class SpotlightImageHashesDb:
 	def SaveChanges(self):
 		if self._isDirty:
 			LogHelper.Info('SaveChanges(): writing hashes to csv file "{0}"', SpotlightImageHashesDb.ImageHashesDb)
+			if self._whatIf:
+				LogHelper.WhatIf('writing file "{0}"', SpotlightImageHashesDb.ImageHashesDb)
+				return
 			# TODO: should we make a backup first?
 			with open(SpotlightImageHashesDb.ImageHashesDb, 'w', newline='') as f:
 #				csvWriter = csv.writer(f)
@@ -152,8 +162,8 @@ class SpotlightImageHashesDb:
 					LogHelper.Verbose('FindMatchingImages(): probable match: existing file pHash = {0}, new file pHash = {1}', existingHashInfo.PHash, toCompareHashInfo.PHash)
 					yield [existingHashInfo.Filename, phDiff]
 
-def CheckImportsForDuplicates():
-	imageHashes = SpotlightImageHashesDb()
+def CheckImportsForDuplicates(whatIf: bool):
+	imageHashes = SpotlightImageHashesDb(whatIf)
 	imageHashes.CheckForNewImages()
 	imageHashes.SaveChanges()
 
@@ -164,7 +174,12 @@ def CheckImportsForDuplicates():
 			if phDiff == 0:
 				LogHelper.Warning('==> import image "{0}" is same as image "{1}": phash diff = {2}', os.path.basename(img), matchingImage[0], phDiff)
 				folder, filename = os.path.split(img)
-				os.rename(img, os.path.join(folder, '!' + filename))
+				newName = os.path.join(folder, '!' + filename)
+				if whatIf:
+					LogHelper.WhatIf('renaming "{0}" to "{1}"', os.path.basename(img), os.path.basename(newName))
+				else:
+					LogHelper.Verbose('renaming "{0}" to "{1}"', os.path.basename(img), os.path.basename(newName))
+					os.rename(img, newName)
 			elif phDiff <= 4:# and whDiff <= 5:
 				LogHelper.Warning('??? import image "{0}" may be same as image "{1}": phash diff = {2}', os.path.basename(img), matchingImage[0], phDiff)
 	LogHelper.Info('completed checking for duplicate images')
@@ -182,7 +197,7 @@ def ShowImportHashes():
 	for info in sorted(imageInfos, key=itemgetter(2,1,3)):	# sort by SHA1, then by PHash, then by modified time
 		LogHelper.Info(f'{info[0]}  {info[1]}  {info[2]}  {info[3]}')
 
-def CheckForDupeImports():
+def CheckForDupeImports(whatIf: bool):
 	hashes = dict()
 	for img in glob.glob(os.path.join(SpotlightImageHashesDb.SpotlightImportFolder, '_*.jpg')):
 		imgHashInfo = ImageHashInfo.FromImageFile(img, True)
@@ -203,8 +218,11 @@ def CheckForDupeImports():
 				else:
 					folder, filename = os.path.split(f[0])
 					newName = os.path.join(folder, '@' + filename)
-					LogHelper.Verbose("renaming '{0}' to '{1}'", f[0], newName)
-					os.rename(f[0], newName)
+					if whatIf:
+						LogHelper.WhatIf('renaming "{0}" to "{1}"', os.path.basename(f[0]), os.path.basename(newName))
+					else:
+						LogHelper.Verbose('renaming "{0}" to "{1}"', os.path.basename(f[0]), os.path.basename(newName))
+						os.rename(f[0], newName)
 
 if __name__ == '__main__':
 	sys.exit(main())
