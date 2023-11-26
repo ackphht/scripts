@@ -3,7 +3,7 @@
 #	test -r ~/scripts/ackShellStuff.sh && source ~/scripts/ackShellStuff.sh || true
 #
 
-has() { type "$1" >/dev/null; }	# want it to work with builtins, too, and 'which' doesn't under bash but 'type' (with no params) works (at least under bash, zsh, ash)
+has() { type "$1" >/dev/null 2>/dev/null; }	# want it to work with builtins, too, and 'which' doesn't under bash but 'type' (with no params) works (at least under bash, zsh, ash)
 
 platform=$(uname -s)
 
