@@ -55,9 +55,12 @@ case $platform in
 		;;
 	Darwin)
 		alias ls='ls -G'	# -G sorta equivalent to --color=auto except it will work in ssh, too
-		unset lsAlias
 		alias ll='ls -AlFhv'
 		alias l='ls -AFv'
+		alias grep='grep --color=auto'
+		alias fgrep='fgrep --color=auto'
+		alias egrep='egrep --color=auto'
+		alias diff='diff --color=auto'
 		;;
 esac
 
