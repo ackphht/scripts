@@ -9,11 +9,12 @@ from ackPyHelpers import LogHelper
 from PIL import Image
 import imagehash
 from operator import itemgetter
+from typing import Iterator
 
 PyScript = pathlib.Path(os.path.abspath(__file__))
 PyScriptRoot = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
 
-def main():
+def main() -> int:
 	args = initArgParser().parse_args()
 	LogHelper.Init(args.verbose)
 	if args.commandName in ["showImportHashes", "sih"]:
@@ -49,12 +50,12 @@ def initArgParser() -> argparse.ArgumentParser:
 
 class ImageHashInfo:
 	@staticmethod
-	def FromCsvRow(row):
+	def FromCsvRow(row) -> "ImageHashInfo":
 #		return ImageHashInfo(row[0], imagehash.hex_to_hash(row[1]))
 		return ImageHashInfo(row['Filename'], imagehash.hex_to_hash(row['PHash']), row['SHA256'], row['SHA1'], row['MD5'])
 
 	@staticmethod
-	def FromImageFile(imagePath, withAllHashes):
+	def FromImageFile(imagePath, withAllHashes) -> "ImageHashInfo":
 		hashes = ImageHashInfo._getImageHashes(imagePath, withAllHashes)
 		if hashes:
 			return ImageHashInfo(os.path.normcase(os.path.basename(imagePath)), hashes[0], hashes[1], hashes[2], hashes[3])
@@ -62,7 +63,7 @@ class ImageHashInfo:
 			return None
 
 	@staticmethod
-	def _getImageHashes(imgpath, withAllHashes):
+	def _getImageHashes(imgpath, withAllHashes) -> tuple[imagehash.ImageHash, str, str, str]:
 		try:
 			LogHelper.Verbose('_getImageHashes(): reading file "{0}" as image', imgpath)
 			img = Image.open(imgpath)
@@ -84,9 +85,9 @@ class ImageHashInfo:
 			md5 = hMd5.hexdigest()
 		else:
 			sha256 = sha1 = md5 = ''
-		return [phash, sha256, sha1, md5]
+		return (phash, sha256, sha1, md5)
 
-	def __init__(self, name, phash, sha256, sha1, md5):
+	def __init__(self, name, phash, sha256, sha1, md5) -> None:
 		self.Filename = name
 		self.PHash = phash
 		self.SHA256 = sha256
@@ -99,12 +100,12 @@ class SpotlightImageHashesDb:
 	SpotlightImportFolder = os.path.join(SpotlightFolder, 'import')
 	ImageHashesDb = os.path.join(SpotlightOneDriveFolder, '$imagePHashes.csv')
 
-	def __init__(self, whatIf: bool):
-		self._imageHashes = self._loadDb()
-		self._isDirty = False
-		self._whatIf = whatIf
+	def __init__(self, whatIf: bool) -> None:
+		self._imageHashes: list[ImageHashInfo] = self._loadDb()
+		self._isDirty: bool = False
+		self._whatIf: bool = whatIf
 
-	def _loadDb(self):
+	def _loadDb(self) -> list[ImageHashInfo]:
 		imgFileHashes = []
 		if os.path.exists(SpotlightImageHashesDb.ImageHashesDb):
 			LogHelper.Verbose('_loadDb(): reading hashes from csv file "{0}"', SpotlightImageHashesDb.ImageHashesDb)
@@ -118,14 +119,14 @@ class SpotlightImageHashesDb:
 		LogHelper.Verbose('_loadDb(): read {0} hashes from file "{1}"', len(imgFileHashes), SpotlightImageHashesDb.ImageHashesDb)
 		return imgFileHashes
 
-	def _addImage(self, imagePath):
+	def _addImage(self, imagePath) -> None:
 		hashInfo = ImageHashInfo.FromImageFile(imagePath, True)
 		if (hashInfo):
 			LogHelper.Info('_addImage(): adding new image "{0}" to hashes db list', hashInfo.Filename)
 			self._imageHashes.append(hashInfo)
 			self._isDirty = True
 
-	def _containsImage(self, imagePath):
+	def _containsImage(self, imagePath) -> bool:
 		#LogHelper.Verbose('_containsImage(): checking file "{0}"', imagePath)
 		imgFilename = os.path.normcase(os.path.basename(imagePath))
 		for hashInfo in self._imageHashes:
@@ -136,7 +137,7 @@ class SpotlightImageHashesDb:
 		#LogHelper.Verbose('_containsImage(): returning False')
 		return False
 
-	def SaveChanges(self):
+	def SaveChanges(self) -> None:
 		if self._isDirty:
 			LogHelper.Info('SaveChanges(): writing hashes to csv file "{0}"', SpotlightImageHashesDb.ImageHashesDb)
 			if self._whatIf:
@@ -153,13 +154,13 @@ class SpotlightImageHashesDb:
 		else:
 			LogHelper.Verbose('SaveChanges(): _isDirty flag not set, not saving anything')
 
-	def CheckForNewImages(self):
+	def CheckForNewImages(self) -> None:
 		LogHelper.Verbose('CheckForNewImages(): looking for new images in folder "{0}"', SpotlightImageHashesDb.SpotlightFolder)
 		for img in glob.glob(os.path.join(SpotlightImageHashesDb.SpotlightFolder, '*.jpg')):
 			if not self._containsImage(img):
 				self._addImage(img)
 
-	def FindMatchingImages(self, imagePathToCompare):
+	def FindMatchingImages(self, imagePathToCompare) -> Iterator[tuple[str, int]]:
 		toCompareHashInfo = ImageHashInfo.FromImageFile(imagePathToCompare, False)
 		if toCompareHashInfo:
 			LogHelper.Verbose('FindMatchingImages(): checking file "{0}": pHash = {1}', os.path.basename(imagePathToCompare), toCompareHashInfo.PHash)
@@ -167,9 +168,9 @@ class SpotlightImageHashesDb:
 				phDiff = existingHashInfo.PHash - toCompareHashInfo.PHash
 				if phDiff <=5:
 					LogHelper.Verbose('FindMatchingImages(): probable match: existing file pHash = {0}, new file pHash = {1}', existingHashInfo.PHash, toCompareHashInfo.PHash)
-					yield [existingHashInfo.Filename, phDiff]
+					yield (existingHashInfo.Filename, phDiff)
 
-def CheckImportsForDuplicates(whatIf: bool):
+def CheckImportsForDuplicates(whatIf: bool) -> None:
 	imageHashes = SpotlightImageHashesDb(whatIf)
 	imageHashes.CheckForNewImages()
 	imageHashes.SaveChanges()
@@ -191,7 +192,7 @@ def CheckImportsForDuplicates(whatIf: bool):
 				LogHelper.Warning('??? import image "{0}" may be same as image "{1}": phash diff = {2}', os.path.basename(img), matchingImage[0], phDiff)
 	LogHelper.Info('completed checking for duplicate images')
 
-def ShowImportHashes():
+def ShowImportHashes() -> None:
 	LogHelper.Info('')
 	LogHelper.Info(f"{'Filename':<26}  {'PHash':<16}  {'SHA1':<40}  {'Modified':<19}")
 	LogHelper.Info(f"{'='*26:<26}  {'='*16:<16}  {'='*40:<40}  {'='*19:<19}")
@@ -204,7 +205,7 @@ def ShowImportHashes():
 	for info in sorted(imageInfos, key=itemgetter(2,1,3)):	# sort by SHA1, then by PHash, then by modified time
 		LogHelper.Info(f'{info[0]}  {info[1]}  {info[2]}  {info[3]}')
 
-def CheckForDupeImports(whatIf: bool):
+def CheckForDupeImports(whatIf: bool) -> None:
 	hashes = dict()
 	for img in glob.glob(os.path.join(SpotlightImageHashesDb.SpotlightImportFolder, '_*.jpg')):
 		imgHashInfo = ImageHashInfo.FromImageFile(img, True)
