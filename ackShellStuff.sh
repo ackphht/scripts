@@ -54,10 +54,7 @@ case $platform in
 		#alias shutdown='sudo halt --poweroff --force --no-wall'
 		;;
 	Darwin)
-		lsAlias=$(alias ls 2>/dev/null)
-		if [[ -z "$lsAlias" || ! "$lsAlias" =~ "--color=" ]]; then
-			alias ls='ls --color=auto'
-		fi
+		alias ls='ls -G'	# -G sorta equivalent to --color=auto except it will work in ssh, too
 		unset lsAlias
 		alias ll='ls -AlFhv'
 		alias l='ls -AFv'
