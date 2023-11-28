@@ -7,7 +7,7 @@ platform=$(uname -s)
 _has apt-get && echo "apt-get = |$(apt-get --version | head -n 1 | awk '{print $2}')|" || true
 _has zypper  && echo "zypper  = |$(zypper --version | awk '{print $2}')|" || true
 _has dnf     && echo "dnf     = |$(dnf --version | head -n 1 | awk '{print $1}')|" || true
-_has pacman  && echo "pacman  = |$(pacman --version | head -n 2 | tail -n 1 | awk '{print $3}')|" || true
+_has pacman  && echo "pacman  = |$(pacman --version | head -n 2 | tail -n 1 | awk '{print $3}' | sed -E 's/^v//')|" || true
 _has eopkg   && echo "eopkg   = |$(eopkg --version | awk '{print $2}')|" || true
 _has brew    && echo "brew    = |$(brew --version | awk '{print $2}')|" || true
 _has apk     && echo "apk     = |$(apk --version | awk '{print $2}' | sed -E 's/,$//')|" || true
@@ -20,7 +20,7 @@ _has git     && echo "git     = |$(git --version | awk '{print $3}')|" ||				ech
 _has snap    && echo "snap    = |$(snap --version | head -n 1 | awk '{print $2}')|" ||	echo "snap    = |<n/a>|"
 _has flatpak && echo "flatpak = |$(flatpak --version | awk '{print $2}')|" ||			echo "flatpak = |<n/a>|"
 _has java    && echo "java    = |$(java --version 2>/dev/null | head -n 1)|" ||			echo 'java    = |<n/a>|'	# show whole version line for this one
-_has perl    && echo "perl    = |$(perl --version | head -n 2 | tail -n 1 | sed -E 's/^(.+)\((v[\.0-9]+)\)(.+)$/\2/')|" || echo 'perl    = |<n/a>|'
+_has perl    && echo "perl    = |$(perl --version | head -n 2 | tail -n 1 | sed -E 's/^(.+)\(v([\.0-9]+)\)(.+)$/\2/')|" || echo 'perl    = |<n/a>|'
 _has ruby    && echo "ruby    = |$(ruby --version | awk '{print $2}')|" ||				echo "ruby    = |<n/a>|"
 _has go      && echo "go      = |$(go version | awk '{print $3}')|" ||					echo "go      = |<n/a>|"
 _has rustc   && echo "rustc   = |$(rustc version | awk '{print $2}')|" ||				echo "rustc   = |<n/a>|"
