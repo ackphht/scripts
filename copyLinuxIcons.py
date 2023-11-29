@@ -752,6 +752,9 @@ class PngFilesHelper:
 		if results.exitCode != 0:
 			LogHelper.Error(f"failed converting file '{Helpers.GetRelativePath(sourceFile)}' to png (exit code: {results.exitCode}):{os.linesep}{results.getCombinedStdoutStderr()}")
 			return False
+		if not targetFile.exists():
+			LogHelper.Error(f"converting file '{Helpers.GetRelativePath(sourceFile)}' to png returned success but target file was not created:{os.linesep}{results.getCombinedStdoutStderr()}")
+			return False
 		return True
 
 class IcoFilesHelper:
