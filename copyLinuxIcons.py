@@ -1204,7 +1204,7 @@ class IconsToCopy:
 			#IconThemeDefinition("Zorin", "NA", "_oss/zorin-icon-themes/Zorin", Constants.FldrScheme_SizeType,
 			#	SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32", "16x16@2x"], ["48x48", "24x24@2x"], ["32x32@2x"], ["48x48@2x"], None, None, None, ["512x512"], ["512x512@2x"])),
 			# found repo for 'Adwaita', but it's weird: bigger filesize, but much fewer files, so ??
-			IconThemeDefinition("Adwaita", "fedora_36", None, Constants.FldrScheme_SizeType,
+			IconThemeDefinition("Adwaita", "fedora_39", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], ["96x96"], None, None, ["256x256"], ["512x512"], None)),
 			IconThemeDefinition("gnome", "mint_21.2", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], None, ["128x128"], None, ["256x256"], ["512x512"], None)),
@@ -1213,7 +1213,7 @@ class IconsToCopy:
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], None, None, None, None, ["256x256"], None, None)),
 			IconThemeDefinition("Numix", "mint_21.2", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16"], ["24", "22"], ["32"], ["48"], ["64"], None, None, None, None, None, None)),
-			IconThemeDefinition("Humanity", "ubuntu_22.04", None, Constants.FldrScheme_TypeSize,
+			IconThemeDefinition("Humanity", "ubuntu_22.10", None, Constants.FldrScheme_TypeSize,
 				SourceImageSizeFolderMap(["16"], ["24"], ["32"], ["48"], ["64"], None, ["128"], ["192"], ["256"], None, None)),
 		]
 		self._iconTypeLists : List[IconTypeList] = [
