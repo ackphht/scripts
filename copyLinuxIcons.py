@@ -113,7 +113,7 @@ class Helpers:
 
 	@staticmethod
 	def CopyFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, description : str, ignoreWhatIf : bool = False):
-		FileHelpers.CopyFile(sourceFile, targetFile, whatIf=(Helpers.EnableWhatIf or ignoreWhatIf), whatifDescription=description)
+		FileHelpers.CopyFile(sourceFile, targetFile, whatIf=(Helpers.EnableWhatIf and not ignoreWhatIf), whatifDescription=description)
 
 	@staticmethod
 	def MoveFile(sourceFile : pathlib.Path, targetFile : pathlib.Path, whatifDescription : str):
