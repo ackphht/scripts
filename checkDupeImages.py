@@ -14,18 +14,24 @@ from typing import Iterator
 PyScript = pathlib.Path(os.path.abspath(__file__))
 PyScriptRoot = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
 
+DUPLICATES_FOUND = 2
+POSSIBLE_DUPLICATES_FOUND = 1
+NO_DUPLICATES_FOUND = 0
+
 def main() -> int:
 	args = initArgParser().parse_args()
 	LogHelper.Init(args.verbose)
+	result = NO_DUPLICATES_FOUND
 	if args.commandName in ["showImportHashes", "sih"]:
 		LogHelper.Verbose("commandName = |{0}|, calling ShowImportHashes(): verbose = |{1}|, whatIf = |{2}|", args.commandName, args.verbose, args.whatIf)
 		ShowImportHashes()
 	elif args.commandName in ["dupesInImports", "di"]:
 		LogHelper.Verbose("commandName = |{0}|, calling CheckForDupeImports(): verbose = |{1}|, whatIf = |{2}|", args.commandName, args.verbose, args.whatIf)
-		CheckForDupeImports(args.whatIf)
+		result = CheckForDupeImports(args.whatIf)
 	else:
 		LogHelper.Verbose("commandName = |{0}|, calling CheckImportsForDuplicates(): verbose = |{1}|, whatIf = |{2}|", args.commandName, args.verbose, args.whatIf)
-		CheckImportsForDuplicates(args.whatIf)
+		result = CheckImportsForDuplicates(args.whatIf)
+	return result
 
 def initArgParser() -> argparse.ArgumentParser:
 	parser = argparse.ArgumentParser()
@@ -170,12 +176,13 @@ class SpotlightImageHashesDb:
 					LogHelper.Verbose('FindMatchingImages(): probable match: existing file pHash = {0}, new file pHash = {1}', existingHashInfo.PHash, toCompareHashInfo.PHash)
 					yield (existingHashInfo.Filename, phDiff)
 
-def CheckImportsForDuplicates(whatIf: bool) -> None:
+def CheckImportsForDuplicates(whatIf: bool) -> int:
 	imageHashes = SpotlightImageHashesDb(whatIf)
 	imageHashes.CheckForNewImages()
 	imageHashes.SaveChanges()
 
 	LogHelper.Info('comparing imported image hashes to previously saved images')
+	result = NO_DUPLICATES_FOUND
 	for img in glob.glob(os.path.join(SpotlightImageHashesDb.SpotlightImportFolder, '_*.jpg')):
 		for matchingImage in imageHashes.FindMatchingImages(img):
 			phDiff = matchingImage[1]
@@ -188,9 +195,12 @@ def CheckImportsForDuplicates(whatIf: bool) -> None:
 				else:
 					LogHelper.Verbose('renaming "{0}" to "{1}"', os.path.basename(img), os.path.basename(newName))
 					os.rename(img, newName)
+				result = DUPLICATES_FOUND
 			elif phDiff <= 4:# and whDiff <= 5:
 				LogHelper.Warning('??? import image "{0}" may be same as image "{1}": phash diff = {2}', os.path.basename(img), matchingImage[0], phDiff)
+				if result < DUPLICATES_FOUND: result = POSSIBLE_DUPLICATES_FOUND
 	LogHelper.Info('completed checking for duplicate images')
+	return result
 
 def ShowImportHashes() -> None:
 	LogHelper.Info('')
@@ -206,6 +216,7 @@ def ShowImportHashes() -> None:
 		LogHelper.Info(f'{info[0]}  {info[1]}  {info[2]}  {info[3]}')
 
 def CheckForDupeImports(whatIf: bool) -> None:
+	result = NO_DUPLICATES_FOUND
 	hashes = dict()
 	for img in glob.glob(os.path.join(SpotlightImageHashesDb.SpotlightImportFolder, '_*.jpg')):
 		imgHashInfo = ImageHashInfo.FromImageFile(img, True)
@@ -220,6 +231,7 @@ def CheckForDupeImports(whatIf: bool) -> None:
 		if len(files) > 1:
 			first = True
 			LogHelper.Info(f"duplicates, will keep first: {', '.join(f[1] for f in files)}'")
+			result = DUPLICATES_FOUND
 			for f in sorted(files, key=itemgetter(2)):	# sort by mod time
 				if first:
 					first = False
@@ -231,6 +243,7 @@ def CheckForDupeImports(whatIf: bool) -> None:
 					else:
 						LogHelper.Verbose('renaming "{0}" to "{1}"', os.path.basename(f[0]), os.path.basename(newName))
 						os.rename(f[0], newName)
+	return result
 
 if __name__ == '__main__':
 	sys.exit(main())
