@@ -479,15 +479,15 @@ class TemplateHandler:
 		self._dict["alternateName"] = altName
 
 class ResolvedSourceFile:
-	def __init__(self, sourceFile : pathlib.Path, targetFile : pathlib.Path, targetSize : int, isResize : bool, includeInIco : bool, templateParams : TemplateHandler):
+	def __init__(self, sourceFile : pathlib.Path, actualFile : pathlib.Path, targetSize : int, isResize : bool, includeInIco : bool, templateParams : TemplateHandler):
 		self._sourceFile : pathlib.Path = sourceFile
-		self._targetFile : pathlib.Path = targetFile
+		self._actualFile : pathlib.Path = actualFile
 		self._targetSize : int = targetSize
 		self._isResize : bool = isResize
 		self._includeInIco : bool = includeInIco
 		self._templateParams : TemplateHandler = templateParams
-		self._sourceIsLink : bool = sourceFile != targetFile
-		self._targetExists : bool = targetFile.exists()
+		self._sourceIsLink : bool = sourceFile != actualFile
+		self._actualFileExists : bool = actualFile.exists()
 
 	@property
 	def sourceFilePath(self) -> pathlib.Path:
@@ -495,7 +495,7 @@ class ResolvedSourceFile:
 
 	@property
 	def actualFilePath(self) -> pathlib.Path:
-		return self._targetFile
+		return self._actualFile
 
 	@property
 	def sourceIsLink(self) -> bool:
@@ -503,7 +503,7 @@ class ResolvedSourceFile:
 
 	@property
 	def actualFileExists(self) -> bool:
-		return self._targetExists
+		return self._actualFileExists
 
 	@property
 	def templateParams(self) -> TemplateHandler:
@@ -546,11 +546,11 @@ class ThemeTypeSourceFileSearcher:
 			if not iconSizeSearcher.includeInPngs:
 				continue
 			for searchLookupData in iconSizeSearcher:
-				sourceFilePath,targetFilePath = self._findSourceFileInfo(searchLookupData, iconSourceName)
-				if targetFilePath:
+				sourceFilePath,actualFilePath = self._findSourceFileInfo(searchLookupData, iconSourceName)
+				if actualFilePath:
 					parms = templateParams.copy()
 					parms['size'] = searchLookupData.targetName
-					results.append(ResolvedSourceFile(sourceFilePath, targetFilePath, searchLookupData.targetSize, searchLookupData.isResize, iconSizeSearcher.includeInIco, parms))
+					results.append(ResolvedSourceFile(sourceFilePath, actualFilePath, searchLookupData.targetSize, searchLookupData.isResize, iconSizeSearcher.includeInIco, parms))
 					break
 		return results
 
