@@ -335,7 +335,7 @@ function DisableUnwantedServices {
 		@{ Name = 'AMD External Events Utility'; Start = ''; }
 		@{ Name = 'FoxitCloudUpdateService'; Start = ''; }
 		@{ Name = 'NvNetworkService'; Start = ''; }
-		@{ Name = 'gupdate'; Start = ''; }							# "Google Update Service (gupdate)",    # this one is set to "Automatic (Delayed Start)" when Chrome is installed for all users; probably does the check at system startup and then shuts down ???
+		#@{ Name = 'gupdate'; Start = ''; }							# "Google Update Service (gupdate)",    # this one is set to "Automatic (Delayed Start)" when Chrome is installed for all users; probably does the check at system startup and then shuts down ???
 		#@{ Name = 'gupdatem'; Start = ''; }						# "Google Update Service (gupdatem)", # when Chrome is installed for all users, this one is started manually, think it's the one run to do a manual upgrade (like from Chrome itself) ???
 		@{ Name = 'Intel(R) Capability Licensing Service TCP IP Interface'; Start = ''; }
 		@{ Name = 'Intel(R) Content Protection HECI Service'; Start = ''; }
