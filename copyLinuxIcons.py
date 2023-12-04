@@ -1,7 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import sys, os, re, pathlib, shutil, tempfile, argparse, time
+import sys, os, re, pathlib, shutil, tempfile, argparse, time, sqlite3
 from datetime import datetime, timezone
 from typing import Any, List, Pattern, Tuple, Iterator, Dict
 #from tabulate import tabulate	# https://pypi.org/project/tabulate/
@@ -43,7 +43,7 @@ def main():
 
 def processCreateIconsCommand(args : argparse.Namespace):
 	Helpers.LogVerbose('processing createIcons command')
-	Helpers.EnableWhatIf = args.whatIf
+	Helpers.EnableWhatIf = SourceImagesCache.WhatIfEnabled = args.whatIf
 	Helpers.EnableBackup = args.backup
 	Helpers.OptimizePngs = not args.noOptimize
 	tempPath = pathlib.Path(args.tempFolder)
@@ -124,6 +124,10 @@ class Helpers:
 				LogHelper.Message3(msg)
 				FileHelpers.MoveFile(targetFile, backupFile, Helpers.EnableWhatIf, msg)
 		FileHelpers.MoveFile(sourceFile, targetFile, Helpers.EnableWhatIf, whatifDescription)
+
+	@staticmethod
+	def GetMd5(file : pathlib.Path) -> bytes:
+		return FileHelpers.GetMd5(file)
 
 	@staticmethod
 	def GetSha1(file : pathlib.Path) -> bytes:
@@ -246,6 +250,75 @@ class Executables:
 		#args.append("-quiet")
 		args.append(pngFilepath)
 		return Helpers.RunProcess(args, f"optimizing PNG file '{Helpers.GetRelativePath(pngFilepath)}'", ignoreWhatIf=ignoreWhatIf)
+
+class SourceImagesCache:
+	Unchanged = 0
+	Changed = 1
+	NotPresent = 2
+	WhatIfEnabled: bool = False
+
+	_dbFilepath: pathlib.Path = None
+	_dbConnection: sqlite3.Connection = None
+	_dbInitScript = """CREATE TABLE SourceFiles (SourceFile TEXT NOT NULL PRIMARY KEY COLLATE NOCASE, Md5 BLOB NOT NULL); CREATE TABLE PngFiles (PngFile TEXT NOT NULL PRIMARY KEY COLLATE NOCASE, Md5 BLOB NOT NULL);"""
+	_dbQuerySourceFileScript = """SELECT Md5 FROM SourceFiles WHERE SourceFile = @sourceFile;"""
+	_dbUpsertSourceFileScript = """INSERT INTO SourceFiles (SourceFile, Md5) VALUES (@sourceFile, @md5) ON CONFLICT(SourceFile) DO UPDATE SET Md5=excluded.Md5;"""
+	_dbQueryPngFileScript = """SELECT Md5 FROM PngFiles WHERE PngFile = @pngFile;"""
+	_dbUpsertPngFileScript = """INSERT INTO PngFiles (PngFile, Md5) VALUES (@pngFile, @md5) ON CONFLICT(PngFile) DO UPDATE SET Md5=excluded.Md5;"""
+
+	@staticmethod
+	def Open() -> None:
+		SourceImagesCache._dbFilepath = Constants.PngsOutputPath / "sourceFilesCache.sqlite"
+		if SourceImagesCache._dbFilepath.exists():
+			SourceImagesCache._dbConnection = sqlite3.connect(SourceImagesCache._dbFilepath)
+		else:
+			SourceImagesCache._dbConnection = sqlite3.connect(SourceImagesCache._dbFilepath)
+			cur = SourceImagesCache._dbConnection.executescript(SourceImagesCache._dbInitScript)
+			SourceImagesCache._dbConnection.commit()
+			cur.close()
+
+	@staticmethod
+	def Close() -> None:
+		if SourceImagesCache._dbConnection:
+			SourceImagesCache._dbConnection.close()
+			SourceImagesCache._dbConnection = None
+		SourceImagesCache._dbFilepath = None
+
+	@staticmethod
+	def HasSourceFileChanged(sourceFile: pathlib.Path, md5: bytes) -> int:
+		return SourceImagesCache._hasFileChanged(sourceFile, md5, SourceImagesCache._dbQuerySourceFileScript, "sourceFile")
+
+	@staticmethod
+	def HasPngFileChanged(pngFile: pathlib.Path, md5: bytes) -> int:
+		return SourceImagesCache._hasFileChanged(pngFile, md5, SourceImagesCache._dbQueryPngFileScript, "pngFile")
+
+	@staticmethod
+	def UpsertSourceFileData(sourceFile: pathlib.Path, md5: bytes) -> None:
+		SourceImagesCache._upsertFileData(sourceFile, md5, "SourceFiles", SourceImagesCache._dbUpsertSourceFileScript, "sourceFile")
+
+	@staticmethod
+	def UpsertPngFileData(pngFile: pathlib.Path, md5: bytes) -> None:
+		SourceImagesCache._upsertFileData(pngFile, md5, "PngFiles", SourceImagesCache._dbUpsertPngFileScript, "pngFile")
+
+	@staticmethod
+	def _hasFileChanged(file: pathlib.Path, md5: bytes, query: str, paramName: str) -> bool:
+		fileRelPath = Helpers.GetRelativePath(file)
+		params = { paramName: str(fileRelPath.as_posix()), }
+		cursor = SourceImagesCache._dbConnection.execute(query, params)
+		row = cursor.fetchone()
+		if row:
+			return SourceImagesCache.Unchanged if row[0] == md5 else SourceImagesCache.Changed
+		return SourceImagesCache.NotPresent
+
+	@staticmethod
+	def _upsertFileData(file: pathlib.Path, md5: bytes, table: str, query: str, fileParamName: str) -> None:
+		fileRelPath = Helpers.GetRelativePath(file)
+		params = { fileParamName: str(fileRelPath.as_posix()), "md5": md5, }
+		if SourceImagesCache.WhatIfEnabled:
+			Helpers.LogVerbose(f'WhatIf: updating sourceImagesCache db table "{table}" for file "{fileRelPath.as_posix()}", md5 = "{md5.hex()}"')
+		else:
+			cur = SourceImagesCache._dbConnection.execute(query, params)
+			SourceImagesCache._dbConnection.commit()
+			cur.close()
 
 class SourceImageSizeFolderMap:
 	def __init__(self, names16 : List[str], names24 : List[str], names32 : List[str], names48 : List[str], names64 : List[str], names96 : List[str],
@@ -628,9 +701,9 @@ class IcoSourceFilesList:
 	_joinSeparator = os.linesep  + "    "
 
 	def __init__(self, pngSizeRegex : Pattern, iconSizes : Dict[int, TargetPngSize]):
-		self._pngSizeRegex : Pattern = pngSizeRegex
-		self._iconSizes : Dict[int, TargetPngSize] = iconSizes
-		self._filelist : List[Tuple(pathlib.Path, int)] = []
+		self._pngSizeRegex: Pattern = pngSizeRegex
+		self._iconSizes: Dict[int, TargetPngSize] = iconSizes
+		self._filelist: List[Tuple(pathlib.Path, int, bool, bool)] = []
 
 	def __iter__(self) -> Iterator[pathlib.Path]:
 		return (f[0] for f in self._filelist)
@@ -641,14 +714,26 @@ class IcoSourceFilesList:
 	def __str__(self):
 		return IcoSourceFilesList._joinSeparator + IcoSourceFilesList._joinSeparator.join(str(f) for f in self)
 
-	def addIfSizeIncluded(self, file : pathlib.Path, targetSize : int = None) -> bool:
+	def addIfSizeIncluded(self, file : pathlib.Path, sourceFileUnchanged: bool, pngFileUnchanged: bool, targetSize : int = None) -> bool:
 		if file:
 			imgSize = self._getImageSize(file) if targetSize is None or targetSize <= 0 else targetSize
 			if imgSize <= 0 or (imgSize in self._iconSizes and self._iconSizes[imgSize].includeInIco):
-				self._filelist.append((file, imgSize))
+				self._filelist.append((file, imgSize, sourceFileUnchanged, pngFileUnchanged))
 				self._filelist.sort(key=itemgetter(1), reverse=True)
 				return True
 		return False
+
+	def allSourceFilesUnchanged(self) -> bool:
+		for _,_,unchanged,_ in self._filelist:
+			if not unchanged:
+				return False
+		return True
+
+	def allPngFilesUnchanged(self) -> bool:
+		for _,_,_,unchanged in self._filelist:
+			if not unchanged:
+				return False
+		return True
 
 	def _getImageSize(self, file : pathlib.Path) -> int:
 		# for now, at least, just figure out size from the filename:
@@ -666,48 +751,65 @@ class PngFilesHelper:
 	def CopyPngsToTargetFolder(sourceFilesList : List[ResolvedSourceFile], pngTargetFolder : pathlib.Path, pngSizeRegex : Pattern, iconSizes : Dict[int, TargetPngSize]) -> IcoSourceFilesList:
 		results = IcoSourceFilesList(pngSizeRegex, iconSizes)
 		for f in sourceFilesList:
-			pngFilePath = PngFilesHelper._copyPngToTarget(f.actualFilePath, pngTargetFolder, f.targetSize, f.isResize, f.templateParams)
-			results.addIfSizeIncluded(pngFilePath, f.targetSize)
+			pngFilePath,sourceFileUnchanged = PngFilesHelper._copyPngToTarget(f, pngTargetFolder)
+			if not pngFilePath:
+				return None	# returns None if there was a problem => stop, don't continue on and overwrite something
+			pngFileUnchanged = False
+			pngFileHash = Helpers.GetMd5(pngFilePath)
+			if not SourceImagesCache.HasPngFileChanged(pngFilePath, pngFileHash):
+				pngFileUnchanged = True
+			else:
+				SourceImagesCache.UpsertPngFileData(pngFilePath, pngFileHash)
+			results.addIfSizeIncluded(pngFilePath, sourceFileUnchanged, pngFileUnchanged, f.targetSize)
 		return results
 
 	@staticmethod
-	def _copyPngToTarget(sourceFilepath : pathlib.Path, targetFolder : pathlib.Path, targetSize : int, isResize : bool, templateParams : TemplateHandler) -> pathlib.Path:
+	def _copyPngToTarget(sourceFile: ResolvedSourceFile, targetFolder : pathlib.Path) -> (pathlib.Path, bool):
 		convertToPng = False
-		targetExt = sourceFilepath.suffix
+		sourceFilePath = sourceFile.actualFilePath
+		targetExt = sourceFilePath.suffix
 		if targetExt == ".svg":
 			convertToPng = True
 			targetExt = ".png"
-		targetFilename = pathlib.Path(Helpers.AddExtension(templateParams.formattedPngName(), targetExt))
+		targetFilename = pathlib.Path(Helpers.AddExtension(sourceFile.templateParams.formattedPngName(), targetExt))
 		#Helpers.LogVerbose(f"targetFilename = '{targetFilename}' / template: '{templateParams}'")
 		targetFilepath = targetFolder / targetFilename
-
-		if convertToPng or (isResize and targetSize is not None and targetSize > 0):
-			if not PngFilesHelper._convertOrResizeFile(sourceFilepath, targetFilepath, targetSize, targetExt):
-				return None
+		targetFileExists = targetFilepath.exists()
+		sourceFileUnchanged = False
+		sourceFileHash = Helpers.GetMd5(sourceFilePath)
+		if targetFileExists:
+			if not SourceImagesCache.HasSourceFileChanged(sourceFilePath, sourceFileHash):
+				sourceFileUnchanged = True
+		if not sourceFileUnchanged:
+			SourceImagesCache.UpsertSourceFileData(sourceFilePath, sourceFileHash)
+			if convertToPng or (sourceFile.isResize and sourceFile.targetSize is not None and sourceFile.targetSize > 0):
+				if not PngFilesHelper._convertOrResizeFile(sourceFilePath, targetFilepath,targetFileExists, sourceFile.targetSize, targetExt):
+					return None,False
+			else:
+				if not PngFilesHelper._copySourceToTarget(sourceFilePath, targetFilepath, targetFileExists, targetExt):
+					return None,False
 		else:
-			if not PngFilesHelper._copySourceToTarget(sourceFilepath, targetFilepath, targetExt):
-				return None
-
-		return targetFilepath
+			Helpers.LogVerbose(f'source file "{Helpers.GetRelativePath(sourceFilePath)}" unchanged since last run, skipping copy of png to target path')
+		return targetFilepath,sourceFileUnchanged
 
 	@staticmethod
-	def _copySourceToTarget(sourceFilepath : pathlib.Path, targetFilepath : pathlib.Path, targetExt : str) -> bool:
-		if not targetFilepath.exists():
+	def _copySourceToTarget(sourceFilepath: pathlib.Path, targetFilepath: pathlib.Path, targetFileExists: bool, targetExt: str) -> bool:
+		if not targetFileExists:
 			# if target file does not exist yet, just create it in place:
 			Helpers.LogVerbose("target does not exist: copying source to target")
-			LogHelper.MessageGray(f"copying '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
-			Helpers.CopyFile(sourceFilepath, targetFilepath, f"copying '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
+			LogHelper.MessageGray(f'copying "{Helpers.GetRelativePath(sourceFilepath)}" to "{Helpers.GetRelativePath(targetFilepath)}"')
+			Helpers.CopyFile(sourceFilepath, targetFilepath, f'copying "{Helpers.GetRelativePath(sourceFilepath)}" to "{Helpers.GetRelativePath(targetFilepath)}"')
 			if Helpers.OptimizePngs and targetExt == ".png":
 				if not PngFilesHelper._optimizePng(targetFilepath):
 					return False
 		elif not (Helpers.OptimizePngs and targetExt == ".png"):
-			Helpers.LogVerbose(f"optimizing disabled, checking hashes of source '{Helpers.GetRelativePath(sourceFilepath)}' and target '{tempFile}'")
+			Helpers.LogVerbose(f'optimizing disabled, checking hashes of source "{Helpers.GetRelativePath(sourceFilepath)}" and target "{tempFile}"')
 			Helpers.UpdateFileIfNeeded(sourceFilepath, targetFilepath, None, sourceFilepath)
 		else:
 			# target file does exist, create in temp location and only update target if there was a change:
 			with Helpers.GetTempFile(prefix="ack", fileExtension=targetExt) as tempFile:
-				Helpers.LogVerbose(f"copying source '{Helpers.GetRelativePath(sourceFilepath)}' to temp file '{Helpers.GetRelativePath(tempFile)}'")
-				Helpers.CopyFile(sourceFilepath, tempFile, f"copying '{Helpers.GetRelativePath(sourceFilepath)}' to temp file '{Helpers.GetRelativePath(tempFile)}'", ignoreWhatIf=True)
+				Helpers.LogVerbose(f'copying source "{Helpers.GetRelativePath(sourceFilepath)}" to temp file "{Helpers.GetRelativePath(tempFile)}"')
+				Helpers.CopyFile(sourceFilepath, tempFile, f'copying "{Helpers.GetRelativePath(sourceFilepath)}" to temp file "{Helpers.GetRelativePath(tempFile)}"', ignoreWhatIf=True)
 				if Helpers.OptimizePngs and targetExt == ".png":
 					if not PngFilesHelper._optimizePng(tempFile, ignoreWhatIf=True):
 						return False
@@ -715,11 +817,11 @@ class PngFilesHelper:
 		return True
 
 	@staticmethod
-	def _convertOrResizeFile(sourceFilepath : pathlib.Path, targetFilepath : pathlib.Path, targetSize : int, targetExt : str) -> bool:
-		if not targetFilepath.exists():
+	def _convertOrResizeFile(sourceFilepath: pathlib.Path, targetFilepath: pathlib.Path, targetFileExists: bool, targetSize: int, targetExt: str) -> bool:
+		if not targetFileExists:
 			# if target file does not exist yet, just create it in place:
 			Helpers.LogVerbose("target does not exist: converting source to target")
-			LogHelper.MessageGray(f"converting '{Helpers.GetRelativePath(sourceFilepath)}' to '{Helpers.GetRelativePath(targetFilepath)}'")
+			LogHelper.MessageGray(f'converting "{Helpers.GetRelativePath(sourceFilepath)}" to "{Helpers.GetRelativePath(targetFilepath)}"')
 			if not PngFilesHelper._convertFile(sourceFilepath, targetFilepath, targetSize):
 				return False
 			if Helpers.OptimizePngs and targetExt == ".png":
@@ -728,7 +830,7 @@ class PngFilesHelper:
 		else:
 			# target file does exist, create in temp location and only update target if there was a change:
 			with Helpers.GetTempFile(prefix="ack", fileExtension=targetExt) as tempFile:
-				Helpers.LogVerbose(f"converting source '{Helpers.GetRelativePath(sourceFilepath)}' to temp file '{Helpers.GetRelativePath(tempFile)}' (targetSize = {targetSize})")
+				Helpers.LogVerbose(f'converting source "{Helpers.GetRelativePath(sourceFilepath)}" to temp file "{Helpers.GetRelativePath(tempFile)}" (targetSize = {targetSize})')
 				if not PngFilesHelper._convertFile(sourceFilepath, tempFile, targetSize, ignoreWhatIf=True):
 					return False
 				if Helpers.OptimizePngs and targetExt == ".png":
@@ -762,19 +864,24 @@ class IcoFilesHelper:
 	def CreateIcoFileFromSources(sourceImgs : IcoSourceFilesList, icoOutputFolder : pathlib.Path, templateParams : TemplateHandler):
 		primOutputFile = (icoOutputFolder / Helpers.AddExtension(templateParams.formattedIcoPrimName(), ".ico"))
 		altOutputFile = (icoOutputFolder / Helpers.AddExtension(templateParams.formattedIcoAltName(), ".ico")) if templateParams.isAlternate else ""
-		altSourceNameMsg = f" (source = '{altOutputFile.stem}')" if templateParams.isAlternate else ""
-		nameForLogging = f"{Helpers.GetRelativePath(primOutputFile)} (altName = '{altOutputFile.stem}')" if templateParams.isAlternate else Helpers.GetRelativePath(primOutputFile)
-		Helpers.LogVerbose(f"creating ICO file {{{nameForLogging}}} from {len(sourceImgs)} files:{sourceImgs}")
+		altSourceNameMsg = f' (source = "{altOutputFile.stem}")' if templateParams.isAlternate else ""
+		nameForLogging = f'{Helpers.GetRelativePath(primOutputFile)} (altName = "{altOutputFile.stem}")' if templateParams.isAlternate else Helpers.GetRelativePath(primOutputFile)
+
+		if primOutputFile.exists() and (not templateParams.isAlternate or altOutputFile.exists()) and sourceImgs.allPngFilesUnchanged():
+			Helpers.LogVerbose(f'all png files for creating ICO file "{nameForLogging}" are unchanged from last run; skipping creation')
+			return True
+
+		Helpers.LogVerbose(f'creating ICO file "{{{nameForLogging}}}" from {len(sourceImgs)} png files:{sourceImgs}')
 		if not primOutputFile.exists():
 			# create an icon in place using the primary name, and we're done
 			Helpers.LogVerbose("icon with primary name does not exist: converting source to target")
-			LogHelper.MessageCyan(f"creating ICO file '{Helpers.GetRelativePath(primOutputFile)}'{altSourceNameMsg}")
+			LogHelper.MessageCyan(f'creating ICO file "{Helpers.GetRelativePath(primOutputFile)}"{altSourceNameMsg}')
 			if not IcoFilesHelper._createIcoFile(sourceImgs, primOutputFile):
 				return False
 		else:
 			with Helpers.GetTempFile(prefix="ack", fileExtension=".ico") as tempFile:
 				# create icon in temp location and then move to final location if file actually updated:
-				Helpers.LogVerbose(f"icon with primary name exists, creating temp ICO file '{Helpers.GetRelativePath(tempFile)}'")
+				Helpers.LogVerbose(f'icon with primary name exists, creating temp ICO file "{Helpers.GetRelativePath(tempFile)}"')
 				if not IcoFilesHelper._createIcoFile(sourceImgs, tempFile, ignoreWhatIf=True):
 					return False
 				Helpers.UpdateFileIfNeeded(tempFile, primOutputFile, altOutputFile, isIco=True, messageSuffix=altSourceNameMsg)
@@ -784,7 +891,7 @@ class IcoFilesHelper:
 	def _createIcoFile(sourceImgs : IcoSourceFilesList, icoOutputFile : pathlib.Path, ignoreWhatIf : bool = False):
 		results = Executables.CreateIcoFile(sourceImgs, icoOutputFile, ignoreWhatIf)
 		if results.exitCode != 0:
-			LogHelper.Error(f"failed creating ICO file '{icoOutputFile}' (exit code: {results.exitCode}):{os.linesep}{results.getCombinedStdoutStderr()}")
+			LogHelper.Error(f'failed creating ICO file "{icoOutputFile}" (exit code: {results.exitCode}):{os.linesep}{results.getCombinedStdoutStderr()}')
 			return False
 		return True
 
@@ -998,7 +1105,6 @@ class Icon:
 			if iconFiles is None or len(iconFiles) == 0:
 				Helpers.LogVerbose(f"no files to create an ICO file from for '{logName}'; returning")
 				continue
-
 			IcoFilesHelper.CreateIcoFileFromSources(iconFiles, workUnit.iconsBasePath, templateParms)
 
 	def createIcoFromPngs(self, workUnit : CreateIcoWorkUnit):
@@ -1022,7 +1128,13 @@ class Icon:
 				templateParms['size'] = iconSize.baseSizeName
 				maybeFile = (workUnit.pngsBasePath / Helpers.AddExtension(templateParms.formattedPngName(), ".png"))
 				if maybeFile.exists():
-					iconFiles.addIfSizeIncluded(maybeFile)
+					pngFileUnchanged = False
+					pngFileHash = Helpers.GetMd5(maybeFile)
+					if not SourceImagesCache.HasPngFileChanged(maybeFile, pngFileHash):
+						pngFileUnchanged = True
+					else:
+						SourceImagesCache.UpsertPngFileData(maybeFile, pngFileHash)
+					iconFiles.addIfSizeIncluded(maybeFile, False, pngFileUnchanged)
 
 			if len(iconFiles) == 0:
 				Helpers.LogVerbose(f"no files found to create an ICO file from for '{logName}'")
@@ -1325,6 +1437,7 @@ class IconsToCopy:
 				Icon("text-x-python"),
 				Icon("text-x-python3", "text-x-python"),
 				Icon("text-x-r", ["text-r"]),	# not registered, not in mime type xml files
+				Icon("text-x-rst", extensions=["rst"]),
 				Icon("text-x-readme", ["readme"]),
 				Icon("text-x-sass", extensions=["sass"]),
 				Icon("text-x-scala", extensions=["scala"]),
@@ -1901,6 +2014,7 @@ class IconsToCopy:
 		origTempdir = tempfile.tempdir
 		try:
 			tempfile.tempdir = self.tempPath
+			SourceImagesCache.Open()
 			for th in self.themeDefinitions:
 				if onlyTheme and th.themeName != onlyTheme:
 					Helpers.LogVerbose(f"skipping iconTheme for '{th.themeName}', doesn't match --theme option '{onlyTheme}'")
@@ -1914,6 +2028,7 @@ class IconsToCopy:
 				th.process(workUnit)
 		finally:
 			tempfile.tempdir = origTempdir
+			SourceImagesCache.Close()
 
 class BackupsHelper:
 	@staticmethod
