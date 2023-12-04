@@ -36,14 +36,16 @@ class FileHelpers:
 			shutil.move(sourceFile, targetFile)
 
 	@staticmethod
+	def GetMd5(file: pathlib.Path) -> bytes:
+		return FileHelpers._getFileHash(file, "md5")
+
+	@staticmethod
 	def GetSha1(file: pathlib.Path) -> bytes:
-		if not file.exists() and FileHelpers._enableWhatIf:
-			return hashlib.sha1("").digest()
-		hSha1 = hashlib.sha1()
-		with open(file, 'rb', buffering=0) as f:
-			for chunk in iter(lambda: f.read(FileHelpers._hashBufferSize), b''):
-				hSha1.update(chunk)
-		return hSha1.digest()
+		return FileHelpers._getFileHash(file, "sha1")
+
+	@staticmethod
+	def GetSha256(file: pathlib.Path) -> bytes:
+		return FileHelpers._getFileHash(file, "sha256")
 
 	@staticmethod
 	def FindOnPath(exe: str) -> pathlib.Path:
@@ -51,6 +53,17 @@ class FileHelpers:
 		if exepath:
 			return pathlib.Path(exepath)
 		return None
+
+	@staticmethod
+	def _getFileHash(file: pathlib.Path, hashName: str) -> bytes:
+		if not file.exists() and FileHelpers._enableWhatIf:
+			return hashlib.new(hashName, "").digest()
+
+		hasher = hashlib.new(hashName)
+		with open(file, 'rb', buffering=0) as f:
+			for chunk in iter(lambda: f.read(FileHelpers._hashBufferSize), b''):
+				hasher.update(chunk)
+		return hasher.digest()
 
 	@staticmethod
 	def _shouldProcess(whatIf : bool, whatIfDesc : str) -> bool:
