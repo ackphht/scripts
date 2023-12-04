@@ -174,6 +174,52 @@ if ((Get-Variable -Name 'PSStyle' -ErrorAction Ignore)) {
 		}
 	}
 }
+
+function Test-IsElevated {
+	[OutputType([bool])]
+	param()
+	if (($PSEdition -ne 'Core' -or $IsWindows)) {	# can't use ackIsWindows
+		return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')
+	} else {
+		return ((id -u) -eq 0)
+	}
+}
+
+if ($ackIsWindows) {
+	$winBuild = [System.Environment]::OSVersion.Version.Build
+	if ($winBuild -ge 10240 <# Win10 #> -and ($PSEdition -ne 'Core' -or $winBuild -ge 22000 <# Win11 (cmdlets are broken on Win10 in Core) #>)) {
+		function Remove-AppxCompletely {
+			[CmdletBinding(SupportsShouldProcess=$true)]
+			[OutputType([void])]
+			param([Parameter(Mandatory=$true)] [string] $name)
+			if (-not (Test-IsElevated)) {
+				Write-Error "Elevation is required to remove system AppX apps"
+				return
+			}
+			foreach ($appx in (Get-AppXPackage -Name $name)) {
+				Write-Host "removing user appx '$($appx.Name)" -ForegroundColor DarkYellow
+				try {
+					$appx | Remove-AppxPackage -ErrorAction Stop
+				} catch {
+					if ($_.Exception) { Write-Warning "error removing user appx '$($appx.Name)': $($_.Exception.Message)" } else { throw }
+				}
+			}
+			foreach ($appx in (Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like $name })) {
+				# Remove-AppxProvisionedPackage doesn't support -Confirm for some reason, so have to check ourselves:
+				if ($PSCmdLet.ShouldProcess($appx.DisplayName, 'Remove provisioned package')) {
+					Write-Host "removing system appx '$($appx.DisplayName)" -ForegroundColor DarkYellow
+					try {
+						$appx | Remove-AppxProvisionedPackage -Online
+					} catch {
+						if ($_.Exception) { Write-Warning "error removing system appx '$($appx.DisplayName)': $($_.Exception.Message)" } else { throw }
+					}
+				}
+			}
+		}
+	}
+	Remove-Variable -Name 'winBuild'
+}
+
 Remove-Variable -Name 'ackIsWindows'
 
 # some more aliases:
