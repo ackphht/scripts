@@ -14,38 +14,32 @@ has readlink && echo "\"readlink /proc/\$\$/exe\" = |$(readlink -f /proc/$$/exe)
 has sh && has realpath && echo "$(which sh) = |$(realpath $(which sh))|" || echo 'sh = |<n/a>|'
 
 echo
-echo "\$TERM = |$TERM|"
-echo "\$COLORTERM = |$COLORTERM|"
-echo "\$BASH = |$BASH|"
-echo "\$BASH_VERSION = |$BASH_VERSION|"
-echo "\$BASH_SOURCE = |$BASH_SOURCE|"
-echo "\$ZSH_NAME = |$ZSH_NAME|"
-echo "\$ZSH_VERSION = |$ZSH_VERSION|"
-echo "\$ZSH_SCRIPT = |$ZSH_SCRIPT|"
-echo "\$VENDOR = |$VENDOR|"
-echo "\$HOSTNAME = |$HOSTNAME|"
-echo "\$HOSTTYPE = |$HOSTTYPE|"
-echo "\$CPU = |$CPU|"
-echo "\$CPUTYPE = |$CPUTYPE|"
-echo "\$MACHTYPE = |$MACHTYPE|"
-echo "\$OSTYPE = |$OSTYPE|"
-echo "\$LANG = |$LANG|"
+echo "\$TERM            = |$TERM|"
+echo "\$COLORTERM       = |$COLORTERM|"
+echo "\$BASH            = |$BASH|"
+echo "\$BASH_VERSION    = |$BASH_VERSION|"
+echo "\$BASH_SOURCE     = |$BASH_SOURCE|"
+echo "\$ZSH_NAME        = |$ZSH_NAME|"
+echo "\$ZSH_VERSION     = |$ZSH_VERSION|"
+echo "\$ZSH_SCRIPT      = |$ZSH_SCRIPT|"
+echo "\$VENDOR          = |$VENDOR|"
+echo "\$HOSTNAME        = |$HOSTNAME|"
+echo "\$HOSTTYPE        = |$HOSTTYPE|"
+echo "\$CPU             = |$CPU|"
+echo "\$CPUTYPE         = |$CPUTYPE|"
+echo "\$MACHTYPE        = |$MACHTYPE|"
+echo "\$OSTYPE          = |$OSTYPE|"
+echo "\$LANG            = |$LANG|"
 echo "\$WSL_DISTRO_NAME = |$WSL_DISTRO_NAME|"
 
+if [[ -f "$scriptRoot/showUnameInfo.sh" ]]; then
+	echo
+	echo 'uname:'
+	source $scriptRoot/showUnameInfo.sh
+fi
 echo
 # for future me: can do multiple sed subs by separating with a ';' or can specify multiples with '-e' (-e <expr1> -e <expr2>):
 has lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//;s/\|/ ¦ /g')|" || echo 'lsb_release = |<n/a>|'
-if has uname; then
-	echo "uname: kernel-name [-s] = |$(uname -s)|"
-	echo "uname: kernel-release [-r] = |$(uname -r)|"
-	echo "uname: kernel-version [-v] = |$(uname -v)|"
-	echo "uname: operating system [-o] = |$(uname -o)|"
-	echo "uname: machine [-m] = |$(uname -m)|"
-	echo "uname: processor [-p] = |$(uname -p 2>/dev/null || echo '<n/a>')|"
-	echo "uname: hardware-platform [-i] = |$(uname -i 2>/dev/null || echo '<n/a>')|"
-else
-	echo 'uname = |<n/a>|'
-fi
 
 if [[ -f "$scriptRoot/showAppVersions.sh" ]]; then
 	echo
