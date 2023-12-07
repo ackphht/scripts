@@ -168,10 +168,11 @@ fi
 
 # default prompt in case oh-my-posh (below) isn't installed
 case $currShell in
-	bash) PS1='\n\e[36m\s \e[95m\u@\h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m ' ;;
-	zsh) PS1=$'\n%F{cyan}zsh%f %F{magenta}%n@%m%f %F{yellow}%*%f %F{green}%~%f\n%F{green}WHAT?!? %#%f ' ;;
+	bash) PS1='\n\e[36m\s v\v \e[95m\u@\h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m ' ;;
+	zsh) PS1=$'\n\e[36mzsh \e[95m%n@%m \e[33m%* \e[92m%~\n\e[32mWHAT?!? %(!.#.$)\e[0m ' ;;	# can use named colors with %F but they're limited
+	ash) PS1='\n\e[36mash \e[95m\u@\h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m ' ;;
 esac
-if has oh-my-posh && test -n $currShell ; then
+if has zzoh-my-posh && test -n $currShell ; then
 	eval "$(oh-my-posh init $currShell --config ~/scripts/ack.omp.linux.json)"
 	alias omp='oh-my-posh'
 	if has python3; then
