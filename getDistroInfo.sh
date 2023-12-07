@@ -1,9 +1,7 @@
 #!/bin/bash
-if [[ -n "$ZSH_SCRIPT" ]]; then	# think there's also a ZSH_ARGZERO that has same info ?? these are both there in v5.8 and v5.9
-	scriptRoot=$(realpath $(dirname ${ZSH_SCRIPT}))
-else
-	scriptRoot=$(realpath $(dirname ${BASH_SOURCE[0]}))
-fi
+scriptRoot=$(dirname $(realpath ${ZSH_SCRIPT[0]:-${ZSH_SCRIPT:-${BASH_SOURCE[0]:-${0}}}}))		# ffs
+source $scriptRoot/ackShellHelpers.sh
+
 targetFolder="$HOME/distInfo"
 
 if [ ! -d $targetFolder ]; then
@@ -11,8 +9,6 @@ if [ ! -d $targetFolder ]; then
 else
 	rm -frd $targetFolder/*
 fi
-
-has() { which "$1" >/dev/null 2>/dev/null && [[ ! $(which "$1") =~ ^/mnt/[[:alpha:]]/.+ ]]; }	# filter out WSL paths
 
 cd $targetFolder
 
@@ -27,11 +23,11 @@ test -f /etc/issue && cp /etc/issue .
 
 # sysctl needs sudo to access everything it wants, but also on some OSes (e.g. opensuse) need sudo just to see it:
 sudo which sysctl >/dev/null 2>&1 && sudo sysctl -a | sort --ignore-case > sysctl.log || echo "WARNING: sysctl not found"
-has lsb_release && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
-has screenfetch && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
-has neofetch && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
-has python3 && test -f $scriptRoot/ackfetch.py && python3 $scriptRoot/ackfetch.py -an > ackfetch.log 2>/dev/null || true
-if has hostnamectl ; then
+hasCmd lsb_release && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
+hasCmd screenfetch && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
+hasCmd neofetch && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
+hasCmd python3 && test -f $scriptRoot/ackfetch.py && python3 $scriptRoot/ackfetch.py -an > ackfetch.log 2>/dev/null || true
+if hasCmd hostnamectl ; then
 	# two formats, slightly different info, only supported if systemd used, and json format not always supported:
 	if hostnamectl > hostnamectl.log 2>&1; then
 		if ! hostnamectl --json=pretty > hostnamectl.json 2>&1 ; then
@@ -44,15 +40,15 @@ else
 	echo "WARNING: hostnamectl not found"
 fi
 
-has bash && test -f $scriptRoot/showAppVersions.sh && bash $scriptRoot/showAppVersions.sh > showAppVersions.log
-has python3 && test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > pythonProperties.log
+hasCmd bash && test -f $scriptRoot/showAppVersions.sh && bash $scriptRoot/showAppVersions.sh > showAppVersions.log
+hasCmd python3 && test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > pythonProperties.log
 
-has pwsh && test -f $scriptRoot/getSystemInformation.ps1 && pwsh -command "& { $scriptRoot/getSystemInformation.ps1 -asText }"
+hasCmd pwsh && test -f $scriptRoot/getSystemInformation.ps1 && pwsh -command "& { $scriptRoot/getSystemInformation.ps1 -asText }"
 
 # for macOS:
-has system_profiler && system_profiler -json SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.json && \
+hasCmd system_profiler && system_profiler -json SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.json && \
 	system_profiler SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.log
-has sw_vers && sw_vers > sw_vers.log || true
+hasCmd sw_vers && sw_vers > sw_vers.log || true
 
 #uname -a > uname.txt
 echo -n '' > uname.log

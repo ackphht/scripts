@@ -1,12 +1,8 @@
 #!/bin/bash
-backupFolder=$HOME/backup_$HOSTNAME		# TODO, kinda: zsh doesn't have HOSTNAME ??
+scriptRoot=$(dirname $(realpath ${ZSH_SCRIPT[0]:-${ZSH_SCRIPT:-${BASH_SOURCE[0]:-${0}}}}))		# ffs
+source $scriptRoot/ackShellHelpers.sh
 
-verifyFolder() {
-	if [[ ! -d $1 ]]; then
-		#echo "    creating folder '$1'"
-		mkdir -p $1
-	fi
-}
+backupFolder=$HOME/backup_$HOSTNAME		# TODO, kinda: zsh doesn't have HOSTNAME ??
 
 backUpFile() {
 	local origFilename=$1
@@ -20,7 +16,7 @@ backUpFile() {
 		#	#echo "    creating folder '$fldr'"
 		#	mkdir -p $fldr
 		#fi
-		verifyFolder $fldr
+		ackVerifyFolder $fldr
 		echo "backing up file '$origFilename' to '$backUpFilename'"
 		cp $origFilename $backUpFilename
 	#else
@@ -34,15 +30,15 @@ backupMultiFiles() {
 	# in this, if $fldr is empty, find will print something, else if $fldr is not empty,
 	# it does not print anything; weird but okay:
 	if [[ -d $fldr && -z "$(find $fldr -prune -empty 2>/dev/null)" ]]; then
-		verifyFolder $backUpTo
+		ackVerifyFolder $backUpTo
 		echo "backing up files in '$fldr' to '$backUpTo'"
 		cp -r $fldr/* $backUpTo
 	fi
 }
 
-verifyFolder $backupFolder
+ackVerifyFolder $backupFolder
 
-if type -p dconf >/dev/null && [[ -f "$HOME/.config/dconf/user" ]]; then
+if hasCmd dconf && [[ -f "$HOME/.config/dconf/user" ]]; then
 	if dconf list /com/gexperts/Tillix/ > /dev/null; then dconf dump /com/gexperts/Tillix/ > "$backupFolder/dconf_tillix"; fi	# Budgie's terminal
 	if dconf list /org/caja/ > /dev/null; then dconf dump /org/caja/ > "$backupFolder/dconf_caja"; fi
 	if dconf list /org/cinnamon/desktop/screensaver/ > /dev/null; then dconf dump /org/cinnamon/desktop/screensaver/ > "$backupFolder/dconf_cinnamonScreensaver"; fi

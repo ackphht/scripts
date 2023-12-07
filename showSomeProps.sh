@@ -1,17 +1,12 @@
 #!env bash
-if [[ -n "${theScript:=${ZSH_SCRIPT:-$BASH_SOURCE[0]}}" ]]; then
-	if [[ "${theScript: -3}" == "[0]" ]]; then theScript=${theScript:0:-3}; fi	# freaking macpOS
-	scriptRoot=$(dirname $(realpath $theScript))
-	unset theScript
-fi
-
-has() { which "$1" >/dev/null 2>/dev/null && [[ ! $(which "$1") =~ ^/mnt/[[:alpha:]]/.+ ]]; }	# filter out WSL paths
+scriptRoot=$(dirname $(realpath ${ZSH_SCRIPT[0]:-${ZSH_SCRIPT:-${BASH_SOURCE[0]:-${0}}}}))		# ffs
+source $scriptRoot/ackShellHelpers.sh
 
 echo
 echo "\$0 = |$0|"
 echo "\$SHELL = |$SHELL|"
-has readlink && echo "\"readlink /proc/\$\$/exe\" = |$(readlink -f /proc/$$/exe)|" || echo '"readlink /proc/$$/exe" = |<n/a>|'
-has sh && has realpath && echo "$(which sh) = |$(realpath $(which sh))|" || echo 'sh = |<n/a>|'
+hasCmd readlink && echo "\"readlink /proc/\$\$/exe\" = |$(readlink -f /proc/$$/exe)|" || echo '"readlink /proc/$$/exe" = |<n/a>|'
+hasCmd sh && hasCmd realpath && echo "$(which sh) = |$(realpath $(which sh))|" || echo 'sh = |<n/a>|'
 
 echo
 echo "\$TERM            = |$TERM|"
@@ -39,7 +34,7 @@ if [[ -f "$scriptRoot/showUnameInfo.sh" ]]; then
 fi
 echo
 # for future me: can do multiple sed subs by separating with a ';' or can specify multiples with '-e' (-e <expr1> -e <expr2>):
-has lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//;s/\|/ ¦ /g')|" || echo 'lsb_release = |<n/a>|'
+hasCmd lsb_release && echo "lsb_release = |$(lsb_release -a 2>/dev/null | tr '\t' ' ' | tr '\n' '|' | sed -E 's/\|$//;s/\|/ ¦ /g')|" || echo 'lsb_release = |<n/a>|'
 
 if [[ -f "$scriptRoot/showAppVersions.sh" ]]; then
 	echo

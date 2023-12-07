@@ -3,7 +3,8 @@
 #	test -r ~/scripts/ackShellStuff.sh && source ~/scripts/ackShellStuff.sh || true
 #
 
-has() { type "$1" >/dev/null 2>/dev/null; }	# want it to work with builtins, too, and 'which' doesn't under bash but 'type' (with no params) works (at least under bash, zsh, ash)
+scriptRoot=$(dirname $(realpath ${ZSH_SCRIPT[0]:-${ZSH_SCRIPT:-${BASH_SOURCE[0]:-${0}}}}))		# ffs
+source $scriptRoot/ackShellHelpers.sh
 
 platform=$(uname -s)
 
@@ -32,14 +33,14 @@ if [[ -d ~/.local/bin && ! "$PATH" =~ "$HOME/.local/bin" ]]; then
 fi
 
 alias cls='clear'
-has screenfetch && alias sf='screenfetch' || true
-has neofetch && alias nf='neofetch' || true
-(has python3 || has pwsh) && test -f ~/scripts/ackfetch.sh && alias af='bash ~/scripts/ackfetch.sh' || true
-#has git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" && alias scup='pushd ~/scripts && git pull && popd' || true
-if has git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" ; then
-	if has pushd ; then	# it's a builtin for bash/zsh/others, but not all
+hasCmd screenfetch && alias sf='screenfetch' || true
+hasCmd neofetch && alias nf='neofetch' || true
+(hasCmd python3 || hasCmd pwsh) && test -f ~/scripts/ackfetch.sh && alias af='bash ~/scripts/ackfetch.sh' || true
+#hasCmd git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" && alias scup='pushd ~/scripts && git pull && popd' || true
+if hasCmd git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" ; then
+	if hasCmd pushd ; then	# it's a builtin for bash/zsh/others, but not all
 		alias scup='pushd ~/scripts && git pull && popd' || true
-	elif has bash ; then
+	elif hasCmd bash ; then
 		alias scup="bash -c 'pushd ~/scripts && git pull && popd'" || true
 	fi
 fi
@@ -64,7 +65,7 @@ case $platform in
 		;;
 esac
 
-if [[ "$platform" != "Darwin" ]] && has apt; then	# macOs (at least version i have) has some java app called apt; don't know what it is
+if [[ "$platform" != "Darwin" ]] && hasCmd apt; then	# macOs (at least version i have) has some java app called apt; don't know what it is
 	alias aptr='sudo apt update'
 	alias aptul='apt list --upgradable'
 	alias aptu='sudo apt upgrade --yes'
@@ -75,7 +76,7 @@ if [[ "$platform" != "Darwin" ]] && has apt; then	# macOs (at least version i ha
 	alias aptx='sudo apt remove'	# leaves settings	(leaving off --yes)
 	alias aptxx='sudo apt purge'	# removes settings too
 	alias aptl='apt list --installed'
-elif has dnf; then
+elif hasCmd dnf; then
 	alias aptr='sudo dnf check-update --refresh'
 	alias aptul='sudo dnf check-update'	# ???
 	alias aptu='sudo dnf upgrade --assumeyes'
@@ -88,7 +89,7 @@ elif has dnf; then
 	alias aptx='sudo dnf remove'	# these both do the same thing
 	alias aptxx='sudo dnf remove'	# but to keep the same aliases available...
 	alias aptl='dnf list --installed'
-elif has zypper; then
+elif hasCmd zypper; then
 	alias aptr='sudo zypper refresh --force'	# if output is piped into, e.g. grep, it displays a warning about not having a 'stable CLI interface', 'use with caution'; ???
 	alias aptul='zypper list-updates'
 	alias aptu='sudo zypper update --no-confirm'
@@ -100,7 +101,7 @@ elif has zypper; then
 	alias aptx='sudo zypper remove --clean-deps'
 	alias aptxx='sudo zypper remove --clean-deps'
 	alias aptl='zypper packages --installed-only'
-elif has pacman; then
+elif hasCmd pacman; then
 	alias aptr='sudo pacman -Syy'	# --sync --refresh x 2 to force updae
 	alias aptul='pacman --query --upgrades'
 	alias aptu='sudo pacman --sync --sysupgrade --noconfirm'
@@ -113,7 +114,7 @@ elif has pacman; then
 	alias aptl='pacman --query'
 	# just to store this somewhere: to list all explicitly installed packages that aren't required by something else:
 	#	pacman --query --explicit --unrequired (or pacman -Qet if wanna be lazy)
-elif has apk; then
+elif hasCmd apk; then
 	alias aptr='sudo apk update'
 	alias aptul='apk list --upgradable'
 	alias aptu='sudo apk upgrade --available'
@@ -124,7 +125,7 @@ elif has apk; then
 	alias aptx='sudo apk del'
 	alias aptxx='sudo apk del'
 	alias aptl='apk list --installed'
-elif has eopkg; then
+elif hasCmd eopkg; then
 	alias aptr='sudo eopkg update-repo'
 	alias aptul='eopkg list-upgrades --install-info'
 	alias aptu='sudo eopkg upgrade --yes-all'
@@ -135,7 +136,7 @@ elif has eopkg; then
 	alias aptx='sudo eopkg remove'
 	alias aptxx='sudo eopkg remove'
 	alias aptl='eopkg list-installed'
-elif has brew; then
+elif hasCmd brew; then
 	# https://docs.brew.sh/Manpage
 	alias aptr='brew update'
 	alias aptul='brew outdated'
@@ -149,7 +150,7 @@ elif has brew; then
 	alias aptl='brew list'
 fi
 
-if has snap; then
+if hasCmd snap; then
 	alias snaptul='snap refresh --list'
 	alias snaptr='snap refresh --list'
 	alias snaptu='sudo snap refresh'
@@ -172,18 +173,18 @@ case $currShell in
 	zsh) PS1=$'\n\e[36mzsh \e[95m%n@%m \e[33m%* \e[92m%~\n\e[32mWHAT?!? %(!.#.$)\e[0m ' ;;	# can use named colors with %F but they're limited
 	ash) PS1='\n\e[36mash \e[95m\u@\h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m ' ;;
 esac
-if has oh-my-posh && test -n $currShell ; then
+if hasCmd oh-my-posh && test -n $currShell ; then
 	eval "$(oh-my-posh init $currShell --config ~/scripts/ack.omp.linux.json)"
 	alias omp='oh-my-posh'
-	if has python3; then
+	if hasCmd python3; then
 		alias ompu='python3 ~/scripts/installOhMyPosh.py'
 	else
 		alias ompu='bash ~/scripts/installOhMyPosh.sh'
 	fi
 fi
 
-case $currShell in
-	bash) unset has ;;
-	zsh) unfunction has ;;
-esac
+#case $currShell in
+#	bash) unset has ;;
+#	zsh) unfunction has ;;
+#esac
 unset platform currShell

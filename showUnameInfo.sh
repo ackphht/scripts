@@ -1,6 +1,8 @@
 #!env bash
+scriptRoot=$(dirname $(realpath ${ZSH_SCRIPT[0]:-${ZSH_SCRIPT:-${BASH_SOURCE[0]:-${0}}}}))		# ffs
+source $scriptRoot/ackShellHelpers.sh
 
-if which uname >/dev/null 2>/dev/null; then
+if hasCmd uname >/dev/null 2>/dev/null; then
 	echo "kernel-name [-s]       = |$(uname -s)|"
 	echo "kernel-release [-r]    = |$(uname -r)|"
 	echo "kernel-version [-v]    = |$(uname -v)|"
