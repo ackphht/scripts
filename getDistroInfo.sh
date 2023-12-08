@@ -52,14 +52,9 @@ hasCmd sw_vers && sw_vers > sw_vers.log || true
 
 #uname -a > uname.txt
 echo -n '' > uname.log
-# macOS doesn't like the '--xxx' arguments for uname, but want those for the names, so parse out a name/value pair thingy:
-while read -d , kv; do
-	IFS=: read name opt <<< $kv
-	val=$(uname -${opt} 2>&1)
-	if [[ $? == 0 ]]; then
-		echo "${name} = ${val}" >> uname.log
-	fi
-done <<< 'kernel-name:s,kernel-release:r,kernel-version:v,machine:m,processor:p,hardware-platform:i,operating-system:o,'
+if hasCmd uname; then
+	source $scriptRoot/showUnameInfo.sh > uname.log
+fi
 
 env | sort --ignore-case > envVars_env.log
 #set > envVars_set.txt	# TODO?: is there a way to run this from lower shell level ??

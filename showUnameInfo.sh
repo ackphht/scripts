@@ -1,8 +1,10 @@
 #!env bash
+
 scriptRoot=$(dirname $(realpath ${ZSH_SCRIPT[0]:-${ZSH_SCRIPT:-${BASH_SOURCE[0]:-${0}}}}))		# ffs
 source $scriptRoot/ackShellHelpers.sh
 
-if hasCmd uname >/dev/null 2>/dev/null; then
+if hasCmd uname; then
+	# macOS doesn't like the '--xxx' arguments for uname, so have to use short ones:
 	echo "kernel-name [-s]       = |$(uname -s)|"
 	echo "kernel-release [-r]    = |$(uname -r)|"
 	echo "kernel-version [-v]    = |$(uname -v)|"
