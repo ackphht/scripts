@@ -1410,6 +1410,7 @@ class IconsToCopy:
 				Icon("text-plain", ["text-x-generic", "ascii"], ["txt"]),
 				Icon("text-richtext", extensions=["rtx"]),		# apparently not the same as 'application-rtf' ??
 				Icon("text-rust", extensions=["rs"]),
+				Icon("text-tcl", extensions=["tcl", "tk"]),
 				Icon("text-vbscript", ["text-x-vbscript"], ["vbs"]),
 				Icon("text-x-c++hdr", extensions=["hpp", "hh", "hxx", "h++"]),
 				Icon("text-x-c++src", ["text-x-cpp"], ["cpp", "cxx", "cc", "c++"]),
