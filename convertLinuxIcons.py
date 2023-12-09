@@ -251,6 +251,45 @@ class Executables:
 		args.append(pngFilepath)
 		return Helpers.RunProcess(args, f"optimizing PNG file '{Helpers.GetRelativePath(pngFilepath)}'", ignoreWhatIf=ignoreWhatIf)
 
+class PseudoLinkHelper:
+	@staticmethod
+	def IsSupported(filePath : pathlib.Path) -> bool:
+		return filePath.suffix in [".png", ".svg"]
+
+	@staticmethod
+	def IsPseudoLink(filePath : pathlib.Path) -> bool:
+		stat = filePath.stat()
+		if stat.st_size < Constants.PseudoLinkMaxFileSize:
+			fileExt = filePath.suffix
+			with filePath.open(mode = "rb") as f:
+				if fileExt == '.png':
+					bytes = f.read(8)
+					if bytes != Constants.ValidPngStart:
+						return True
+				elif fileExt == '.svg':
+					bytes = f.read(9)
+					if bytes[:4] != Constants.ValidSvgStartUtf8NoSig and bytes[:7] != Constants.ValidSvgStartUtf8WithSig and \
+							bytes[:6] != Constants.ValidXmlStartUtf8NoSig and bytes != Constants.ValidXmlStartUtf8WithSig:
+						return True
+				else:
+					raise NotImplementedError(strerror = f"file type '{fileExt}' not supported (yet)")
+		return False
+
+	@staticmethod
+	def ResolvePseudoLink(file : pathlib.Path) -> pathlib.Path:
+		# assuming it's already been checked and we know it's one of those weird pseudo link file where the contents is a relative path to another file:
+		link = file.read_text()
+		newFile = (file.parent / link).resolve()
+		if not newFile.exists():
+			Helpers.LogVerbose(f"    file '{Helpers.GetRelativePath(file)}' is pseudolink to file '{Helpers.GetRelativePath(newFile)}', but that file does not exist")
+			return None
+		# sometimes the contents of the pseudo-link is a relative path to another folder; and it's possible the new file could be a symlink;
+		# the resolve() above will take care of both of those, so just need to check if the new file is itself another pseudo-link:
+		if PseudoLinkHelper.IsPseudoLink(newFile):
+			return PseudoLinkHelper.ResolvePseudoLink(newFile)
+		# we've resolved it:
+		return newFile
+
 class SourceImagesCache:
 	Unchanged = 0
 	Changed = 1
@@ -646,9 +685,9 @@ class ThemeTypeSourceFileSearcher:
 			Helpers.LogVerbose(f"    targetSize {searchLookupData.targetName}: file '{Helpers.GetRelativePath(sourceFilepath)}' is a symlink")
 			# if this is a link to a link to a link to ..., the .resolve() will take care of all that:
 			target = sourceFilepath.resolve()
-		elif self._isPseudoLink(sourceFilepath):
+		elif PseudoLinkHelper.IsPseudoLink(sourceFilepath):
 			Helpers.LogVerbose(f"    targetSize {searchLookupData.targetName}: file '{Helpers.GetRelativePath(sourceFilepath)}' looks like a pseudo-link file")
-			target = self._resolvePseudoLink(sourceFilepath)
+			target = PseudoLinkHelper.ResolvePseudoLink(sourceFilepath)
 		else:
 			#Helpers.LogVerbose(f"    file '{sourceFilepath}' is not a link")
 			Helpers.LogVerbose(f"    targetSize {searchLookupData.targetName}: file '{Helpers.GetRelativePath(sourceFilepath)}' is a real file")
@@ -664,38 +703,6 @@ class ThemeTypeSourceFileSearcher:
 				#LogVerbose(f"    file '{maybePath}' exists, returning it")
 				return maybePath
 		return None
-
-	def _isPseudoLink(self, filePath : pathlib.Path) -> bool:
-		stat = filePath.stat()
-		if stat.st_size < Constants.PseudoLinkMaxFileSize:
-			fileExt = filePath.suffix
-			with filePath.open(mode = "rb") as f:
-				if fileExt == '.png':
-					bytes = f.read(8)
-					if bytes != Constants.ValidPngStart:
-						return True
-				elif fileExt == '.svg':
-					bytes = f.read(9)
-					if bytes[:4] != Constants.ValidSvgStartUtf8NoSig and bytes[:7] != Constants.ValidSvgStartUtf8WithSig and \
-							bytes[:6] != Constants.ValidXmlStartUtf8NoSig and bytes != Constants.ValidXmlStartUtf8WithSig:
-						return True
-				else:
-					raise NotImplementedError(strerror = f"file type '{fileExt}' not supported (yet)")
-		return False
-
-	def _resolvePseudoLink(self, file : pathlib.Path):
-		# assuming it's already been checked and we know it's one of those weird pseudo link file where the contents is a relative path to another file:
-		link = file.read_text()
-		newFile = (file.parent / link).resolve()
-		if not newFile.exists():
-			Helpers.LogVerbose(f"    file '{Helpers.GetRelativePath(file)}' is pseudolink to file '{Helpers.GetRelativePath(newFile)}', but that file does not exist")
-			return None
-		# sometimes the contents of the pseudo-link is a relative path to another folder; and it's possible the new file could be a symlink;
-		# the resolve() above will take care of both of those, so just need to check if the new file is itself another pseudo-link:
-		if self._isPseudoLink(newFile):
-			return self._resolvePseudoLink(newFile)
-		# we've resolved it:
-		return newFile
 
 class IcoSourceFilesList:
 	_joinSeparator = os.linesep  + "    "
