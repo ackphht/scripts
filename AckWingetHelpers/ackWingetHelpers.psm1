@@ -655,7 +655,7 @@ function _sortAndWriteOutput {
 #region add aliases:
 Set-Alias -Name 'wgs' -Value 'Search-AckWingetPackages'
 Set-Alias -Name 'wgl' -Value 'Get-AckWingetInstalledPackages'
-Set-Alias -Name 'wgsh' -Value 'Get-AckWingetPackageDetails'
+Set-Alias -Name 'wgn' -Value 'Get-AckWingetPackageDetails'
 Set-Alias -Name 'wgi' -Value 'Install-AckWingetPackage'
 Set-Alias -Name 'wgx' -Value 'Uninstall-AckWinGetPackage'
 Set-Alias -Name 'wgul' -Value 'Get-AckWingetOutdatedPackages'
