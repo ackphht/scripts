@@ -8,7 +8,7 @@ from typing import Any, List, Pattern, Tuple, Iterator, Dict
 from operator import attrgetter, itemgetter
 import hashlib
 
-from ackPyHelpers import LogHelper, FileHelpers, RunProcessHelper
+from ackPyHelpers import LogHelper, FileHelpers, RunProcessHelper, DateTimeHelpers
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -196,6 +196,11 @@ class Helpers:
 	@staticmethod
 	def FindOnPath(exe : str) -> pathlib.Path:
 		return FileHelpers.FindOnPath(exe)
+
+	@staticmethod
+	def GetFileTimestamp(file: pathlib.Path) -> datetime:
+		modtime = file.stat().st_mtime
+		return DateTimeHelpers.FromTimestamp(modtime)
 
 class Constants:
 	FldrScheme_SizeType = 0
@@ -2040,10 +2045,11 @@ class IconsToCopy:
 
 class BackupsHelper:
 	@staticmethod
-	def GetBackupName(file : pathlib.Path) -> pathlib.Path:
+	def GetBackupName(file : pathlib.Path, useSeconds: bool = False) -> pathlib.Path:
 		if file != None and file.exists():
 			#ts = datetime.fromtimestamp(targetFile.stat().st_mtime, tz=timezone.utc).strftime('%Y%m%d_%H%M')
-			ts = datetime.fromtimestamp(file.stat().st_mtime).strftime('%Y%m%d_%H%M')	# use local time
+			#ts = datetime.fromtimestamp(file.stat().st_mtime).strftime('%Y%m%d_%H%M')	# use local time
+			ts = Helpers.GetFileTimestamp(file).strftime("%Y%m%d_%H%M%S" if useSeconds else "%Y%m%d_%H%M")	# use local time
 			return file.parent / f'{file.stem}.{ts}{file.suffix}'
 		return None
 
