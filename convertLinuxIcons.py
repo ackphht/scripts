@@ -1517,7 +1517,7 @@ class IconsToCopy:
 				Icon("text-plain", ["text-x-generic", "ascii"], ["txt"]),
 				Icon("text-richtext", extensions=["rtx"]),		# apparently not the same as 'application-rtf' ??
 				Icon("text-rust", extensions=["rs"]),
-				Icon("text-tcl", extensions=["tcl", "tk"]),
+				Icon("text-tcl", ["text-x-tcl"], extensions=["tcl", "tk"]),
 				Icon("text-vbscript", ["text-x-vbscript"], ["vbs"]),
 				Icon("text-x-c++hdr", extensions=["hpp", "hh", "hxx", "h++"]),
 				Icon("text-x-c++src", ["text-x-cpp"], ["cpp", "cxx", "cc", "c++"]),
@@ -1552,6 +1552,8 @@ class IconsToCopy:
 				Icon("text-x-scheme", extensions=["scm", "ss"]),
 				Icon("text-x-script"),
 				Icon("text-x-scss", extensions=["scss"]),
+				Icon("text-x-tex", ["application-x-tex"], extensions=["tex", "latext", "ltx"]),
+				Icon("text-x-texinfo", extensions=["texinfo", "texi"]),
 				Icon("text-x-typescript", extensions=["ts"]),	# not registered, not in mime type xml files
 				Icon("video-mp4", ["video-x-mp4", "video-x-m4v"], ["mp4", "m4v"]),
 				Icon("video-mpeg", ["video-x-mpeg"], ["mpeg", "mpg", "mp2", "vob"]),
