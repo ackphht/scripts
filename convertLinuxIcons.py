@@ -257,9 +257,11 @@ class Executables:
 		return Helpers.RunProcess(args, f"optimizing PNG file '{Helpers.GetRelativePath(pngFilepath)}'", ignoreWhatIf=ignoreWhatIf)
 
 class PseudoLinkHelper:
+	_supportedFiletypes: list[str] = [".png", ".svg"]
+
 	@staticmethod
 	def IsSupported(filePath : pathlib.Path) -> bool:
-		return filePath.suffix in [".png", ".svg"]
+		return filePath.suffix in PseudoLinkHelper._supportedFiletypes
 
 	@staticmethod
 	def IsPseudoLink(filePath : pathlib.Path) -> bool:
