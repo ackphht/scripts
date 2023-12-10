@@ -1247,7 +1247,7 @@ class IconThemeDefinition:
 
 	def process(self, workUnit : WorkUnit):
 		# create some vars here outside of loop below so they're only done once:
-		themeSourcePath = (pathlib.Path(workUnit.inputBasePath) / self.iconsFolder) if self.iconsFolder else (pathlib.Path(workUnit.inputBasePath) / self.distroName / self.themeName)
+		themeSourcePath = self.getThemePath(workUnit.inputBasePath)
 		searchMaps = [SourceFileSearchMap(size, self.foldersMap) for size in workUnit.iconSizes] if not workUnit.createIcosOnly else None
 		iconSizesDict = { sz.baseSize: sz for sz in workUnit.iconSizes } #if workUnit.createIcosOnly else None
 		pngPrimarySizeRegex = re.compile(self.pngPrimarySizeRegexPattern)
@@ -1291,6 +1291,11 @@ class IconThemeDefinition:
 						icon.createIcoFromPngs(iconTypeWorkUnit)
 					#else:
 					#	Helpers.LogVerbose(f"skipping icon '{icon.inputName}' (not in --name list)")
+
+	def getThemePath(self, sourceBasePath: pathlib.Path):
+		if self.iconsFolder:
+			return pathlib.Path(sourceBasePath) / self.iconsFolder
+		return pathlib.Path(sourceBasePath) / self.distroName / self.themeName
 
 class IconsToCopy:
 	def __init__(self, inputPath : pathlib.Path, pngsBasePath : pathlib.Path, iconsBasePath : pathlib.Path, tempPath : pathlib.Path):
