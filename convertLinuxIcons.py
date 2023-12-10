@@ -35,6 +35,11 @@ def main():
 	renameBackupsCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	renameBackupsCmd.set_defaults(func=processRenameBackupsCommand)
 
+	listImagesCmd = subparsers.add_parser("listImages", aliases=["l","list"], help="make a list of images in the folders for the themes/distros that we care about")
+	listImagesCmd.add_argument("-o", "--outputFile", help="file path to write the list to")
+	listImagesCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	listImagesCmd.set_defaults(func=processListImagesCommand)
+
 	args = parser.parse_args()
 
 	LogHelper.Init(args.verbose)
@@ -55,6 +60,89 @@ def processRenameBackupsCommand(args : argparse.Namespace):
 	Helpers.EnableWhatIf = args.whatIf
 	Helpers.EnableBackup = False	# does any of this get reused if we run script multiple times ??
 	BackupsHelper.RenameBackupFiles(args.fromAt, args.renameIcosOnly, args.renamePngsOnly)
+
+def processListImagesCommand(args : argparse.Namespace):
+	Helpers.LogVerbose('processing listImages command')
+
+	filetypes: list[str] = [".png", ".svg", ".gif", ".jpg", ".jpeg"]
+
+	#region helper functions
+	def _backupFile(file: pathlib.Path) -> None:
+		if file.exists():
+			backupFile = BackupsHelper.GetBackupName(file, useSeconds=True)
+			if not backupFile.exists():
+				LogHelper.Verbose('creating backup file "{0}"', backupFile)
+				Helpers.MoveFile(file, backupFile, "n/a")
+
+	def _getFolderInfo(fldr: pathlib.Path) -> tuple[str, bool]:
+		if fldr.is_junction():
+			#return (f"{Helpers.GetRelativePath(fldr)} => {Helpers.GetRelativePath(fldr.resolve())} [Junction]", False)
+			return (f"{Helpers.GetRelativePath(fldr)}\t\t{Helpers.GetRelativePath(fldr.resolve())}\t\t[Junction]", False)
+		elif fldr.is_symlink():
+			#return (f"{Helpers.GetRelativePath(fldr)} => {Helpers.GetRelativePath(fldr.resolve())} [SymLink]", False)
+			return (f"{Helpers.GetRelativePath(fldr)}\t\t{Helpers.GetRelativePath(fldr.resolve())}\t\t[SymLink]", False)
+		return (str(Helpers.GetRelativePath(fldr)), True)
+
+	def _getFileInfo(file: pathlib.Path) -> str:
+		if file.is_symlink():
+			#return f"{Helpers.GetRelativePath(file)} => {Helpers.GetRelativePath(file.resolve())}"
+			return f"{Helpers.GetRelativePath(file)}\t\t{Helpers.GetRelativePath(file.resolve())}"
+		elif PseudoLinkHelper.IsSupported(file) and PseudoLinkHelper.IsPseudoLink(file):
+			#return f"{Helpers.GetRelativePath(file)} => {PseudoLinkHelper.ResolvePseudoLink(file)} (pseudo link)"
+			return f"{Helpers.GetRelativePath(file)}\t\t{PseudoLinkHelper.ResolvePseudoLink(file)}\t\t(pseudo link)"
+		return str(Helpers.GetRelativePath(file))
+
+	def _getFiles(fldr: pathlib.Path) -> Iterator[tuple[str|None, str|None]]:
+		if fldr.exists():
+			for p in fldr.iterdir():
+				try:
+					if p.is_dir():
+						info,isRealDir = _getFolderInfo(p)
+						yield (info, None)
+						if isRealDir:
+							for tpl in _getFiles(p):
+								yield tpl
+					elif p.is_file():
+						#if p.suffix not in filetypes: continue
+						yield (None, _getFileInfo(p))
+				except OSError as e:
+					LogHelper.Error('exception accessing file/folder "{0}": {1}', p, e)
+					yield (None, f'*** exception accessing file/folder "{p}": {e}')
+	#endregion
+
+	#region checks
+	if not args.outputFile:
+		raise Exception("need to give me an output file to write results to")
+	filesOutputFile = pathlib.Path(args.outputFile).absolute()
+	if filesOutputFile.is_dir():
+		raise Exception("specified outputFile is an existing directory; try again")
+	LogHelper.Verbose('writing files results to output file "{0}"', filesOutputFile)
+	_backupFile(filesOutputFile)
+	fldrsOutputFile = filesOutputFile.parent / f'{filesOutputFile.stem}.folders{filesOutputFile.suffix}'
+	LogHelper.Verbose('writing folders results to output file "{0}"', fldrsOutputFile)
+	_backupFile(fldrsOutputFile)
+	#endregion
+
+	# not going to process this, but need its lists:
+	iconsToCopy = IconsToCopy(Constants.IconsSourceBasePath, Constants.PngsOutputPath, Constants.IconsOutputPath, pathlib.Path(os.path.expandvars("%TEMP%")))
+	# now iterate folders and looks for files we want:
+	with open(filesOutputFile, "wt", newline="\n") as files, open(fldrsOutputFile, "wt", newline="\n") as fldrs:
+		pastFirst = False
+		for th in iconsToCopy.themeDefinitions:
+			startPath = th.getThemePath(Constants.IconsSourceBasePath)
+			LogHelper.Info('getting files in folder "{0}"', startPath)
+			if pastFirst:
+				files.write("\n================================================================================\n\n")
+				fldrs.write("\n================================================================================\n\n")
+			else:
+				pastFirst = True
+			for d,f in _getFiles(startPath):
+				if f:
+					files.write(f)
+					files.write("\n")
+				if d:
+					fldrs.write(d)
+					fldrs.write("\n")
 
 class Helpers:
 	EnableBackup = False
