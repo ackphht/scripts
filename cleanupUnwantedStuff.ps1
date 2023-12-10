@@ -297,6 +297,7 @@ function CleanUpDesktopIcons {
 		'Steam'
 		'Inkscape'
 		'DVDFab*'
+		'Kobo*'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -597,6 +598,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Excel.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonStartMenu('Docker Desktop.lnk', 'Development')
 		[StartMenuCleanupItem]::FromCommonPrograms('Cloud Nine Keyboard Application.lnk', 'Maintenance')
+		[StartMenuCleanupItem]::FromCommonPrograms('Dashboard.lnk', 'Maintenance')	# WD app
 		[StartMenuCleanupItem]::FromCommonPrograms('Firefox.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonPrograms('foobar2000.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonPrograms('GIMP*.lnk', 'Applications', 'GIMP.lnk')
@@ -642,6 +644,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('AudioShell\AudioShell Settings.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('AutoHotkey\AutoHotkey Help File.lnk', 'Applications')
 		[StartMenuCleanupItem]::FromCommonPrograms('AutoHotkey\AutoHotkey.lnk', 'Applications', $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('Battle.net\Battle.net.lnk', 'Games', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('C989M Application Software\C989M Application Software.lnk', 'Maintenance', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('calibre 64bit - E-book Management\E-book viewer 64bit.lnk', 'Applications', 'calibre E-book viewer.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('calibre 64bit - E-book Management\calibre 64bit - E-book management.lnk', 'Applications', 'calibre.lnk', $true)
@@ -664,6 +667,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Intel\Intel(R) Rapid Storage Technology.lnk', 'Maintenance', $true)		# shows up as 'System'
 		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\JetBrains DataGrip*.lnk', 'Development', 'DataGrip.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\JetBrains PyCharm*.lnk', 'Development', 'PyCharm.lnk', $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('Kobo\Kobo.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('KMyMoney\KMyMoney.lnk', 'Applications', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Logitech\Logitech Capture.lnk', 'Maintenance')
 		[StartMenuCleanupItem]::FromCommonPrograms('Logitech\Logitech Options.lnk', 'Maintenance', $true)
@@ -694,7 +698,8 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('PowerShell\PowerShell 6*.lnk', 'Development', 'PowerShell 6.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('PowerToys (Preview)\PowerToys (Preview).lnk', 'Applications', 'PowerToys.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Sigil\Sigil.lnk', 'Applications', $true)
-		[StartMenuCleanupItem]::FromCommonPrograms('Steam\Steam.lnk', 'Games', $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('Steam\*.url', 'Games')		# steam uses a protocol handler ('steam://') to launch its games
+		[StartMenuCleanupItem]::FromCommonPrograms('Steam\*.lnk', 'Games', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Stellarium\Stellarium.lnk', 'Applications', $true)
 		#[StartMenuCleanupItem]::FromCommonPrograms('TortoiseGit\TortoiseGit.lnk', 'Development', $false)
 		#[StartMenuCleanupItem]::FromCommonPrograms('TortoiseGit\TortoiseGitBlame.lnk', 'Development', $false)
