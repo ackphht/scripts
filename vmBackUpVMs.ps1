@@ -1,61 +1,62 @@
-﻿# Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 #Requires -Version 5.1
+#Requires -Modules 'Hyper-V'
 
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	[string] $vmName = ''
 )
 
-$script:backupFolder = 'D:\Users\michael\temp\VMs'
-
 function Main {
+	[CmdletBinding(SupportsShouldProcess=$true)]
+	param([string] $name)
+
+	$baseBackupFolder = 'D:\Users\michael\temp\VMs'
+	# back up Hyper-V VMs:
+	$hyperVBackupFolder = Join-Path $baseBackupFolder 'HyperV'
 	Get-VM |
-		Where-Object { -not $vmName -or $_.Name -like $vmName } |
-		Where-Object { $_.Name -notlike '*_diff' } |
-		ForEach-Object { BackUpVM $_ }
+		Where-Object { -not $name -or $_.Name -like $name } |
+		Where-Object { $_.Name -notlike '*_diff' -and $_.Name -notlike '*_test' } |
+		ForEach-Object { BackUpHyperVVM -vm $_ -backupFolder $hyperVBackupFolder }
+	# back up VirtualBox VMs:
+	$virtualBoxBackupFolder = Join-Path $baseBackupFolder 'VirtualBox'
+	# TODO:
+	#	find path for vboxmanage.exe in the registry (HKLM\Software\Oracle\VirtualBox\@InstallPath [i think])
+	#	run "vboxmange.exe list vms" to get list of vms; have to parse out the names (each line looks like: "<vm name>" {<vm guid>})
+	#	for each one: vboxmanae.exe export <vm name or id> --output <outputFile.ova> --options=manifest,nomacsbutnat
+	#	(if we use .OVA format, then everything will be written to single file, and we can just put all VMs in the same folder; if we use .OVF, everything is a separate file, and need to use subfolder for each VM)
+	#	(and not sure about the nomacsbutnat; since this is just for backup purposes, might want to leave that off and get all mac addresses)
 }
 
-function BackUpVM {
+function BackUpHyperVVM {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param(
-		[Microsoft.HyperV.PowerShell.VirtualMachine] $vm
+		[Parameter(Mandatory=$true)] [Microsoft.HyperV.PowerShell.VirtualMachine] $vm,
+		[Parameter(Mandatory=$false)] [string] $backupFolder
 	)
 	$vmHdFileInfo = Get-Item -LiteralPath $vm.HardDrives[0].Path -ErrorAction SilentlyContinue
 	if (-not $vmHdFileInfo) {
 		Write-Warning "hard drive for VM '$($vm.Name)' was not found"
 		return
 	}
-
-	$backupHdFile = Join-Path $script:backupFolder $vm.Name 'Virtual Hard Disks' $vmHdFileInfo.Name
+	$vmBackupFolder = (Join-Path $backupFolder $vm.Name)
+	# see if any existing backup is up-to-date by comparing mod times of disk files:
+	$backupHdFile = Join-Path $vmBackupFolder 'Virtual Hard Disks' $vmHdFileInfo.Name
 	$backupHdFileInfo = Get-Item -LiteralPath $backupHdFile -ErrorAction SilentlyContinue
 	if ($backupHdFileInfo -and $backupHdFileInfo.LastWriteTimeUtc -ge $vmHdFileInfo.LastWriteTimeUtc) {
-		Write-Host "skipping backup for VM '$($vm.Name)': current backup already exists" -ForegroundColor DarkYellow
+		Write-Host "skipping backup for VM '$($vm.Name)': current backup already exists" -ForegroundColor Green
 		return
 	}
-
 	# if a backup already exists, have to remove it or Export-VM errors out:
-	$vmBackupFolder = (Join-Path $backupFolder $vm.Name)
 	if (Test-Path -LiteralPath $vmBackupFolder -PathType Container) {
 		Write-Host "removing old backup folder for VM '$($vm.Name)'" -ForegroundColor DarkGray
 		Remove-Item -LiteralPath $vmBackupFolder -Force -Recurse
 	}
-
+	# now create the backup:
 	Write-Host "backing up VM '$($vm.Name)'" -ForegroundColor Cyan
 	Export-VM -VM $vm -Path $backupFolder
 }
 
-function BackUpVM_old {
-	[CmdletBinding(SupportsShouldProcess=$true)]
-	param([string] $vmName)
-
-	if (-not (Test-Path -LiteralPath (Join-Path $backupFolder $vmName) -PathType Container)) {
-		Write-Host "backing up VM '$vmName'" -ForegroundColor Cyan
-		Export-VM -Name $vmName -Path $backupFolder
-	} else {
-		Write-Host "skipping backup for VM '$vmName': backup already exists" -ForegroundColor DarkYellow
-	}
-}
-
 #==============================
-Main
+Main -name $vmName
 #==============================
