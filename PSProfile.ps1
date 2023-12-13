@@ -178,7 +178,7 @@ if ((Get-Variable -Name 'PSStyle' -ErrorAction Ignore)) {
 function Test-IsElevated {
 	[OutputType([bool])]
 	param()
-	if (($PSEdition -ne 'Core' -or $IsWindows)) {	# can't use ackIsWindows
+	if (($PSEdition -ne 'Core' -or $IsWindows)) {	# can't use ackIsWindows here
 		return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')
 	} else {
 		return ((id -u) -eq 0)
@@ -216,6 +216,18 @@ if ($ackIsWindows) {
 				}
 			}
 		}
+	}
+	if ($winBuild -ge 10240 <# Win10 #> <# should it be higher?? #>) {
+		function Update-StoreAppsAvailableUpgrades {
+			[CmdletBinding(SupportsShouldProcess=$false)]
+			[OutputType([void])]
+			param()
+			if (-not (Test-IsElevated)) { Write-Error "This command requires elevation"; return; }
+			Get-CimInstance -Namespace "Root\cimv2\mdm\dmmap" -ClassName "MDM_EnterpriseModernAppManagement_AppManagement01" |
+				Invoke-CimMethod -MethodName UpdateScanMethod |
+				Out-Null
+		}
+		New-Alias -Name 'forceStoreAppsUpdate' -Value 'Update-StoreAppsAvailableUpgrades'	# old name
 	}
 	Remove-Variable -Name 'winBuild'
 }
