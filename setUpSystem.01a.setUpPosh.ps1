@@ -166,15 +166,17 @@ function VerifyPowerShellCoreInstalled {
 	Write-Verbose "$($MyInvocation.InvocationName): installing PowerShellCore (wingetAvailable = $wingetAvailable)"
 	if ($env:PROCESSOR_ARCHITECTURE -notlike 'ARM*') {
 		if ($wingetCapableOs) {
-			Write-Host
-			Write-Host 'You can install either the direct download version of PowerShellCore from Github'
-			Write-Host 'or you can install the Store version.'
-			Write-Host
-			$selection = Read-Host -Prompt '1 = Github (default), 2 = Store'
+			$caption = 'Installing PowerShellCore'
+			$message = "You can install either the direct download version of PowerShellCore from Github`nor you can install the Store version."
+			$choices = @(
+				[System.Management.Automation.Host.ChoiceDescription]::new('&Github', 'download from Github')
+				[System.Management.Automation.Host.ChoiceDescription]::new('&Store', 'install from MS Store')
+			)
+			$selection = $Host.UI.PromptForChoice($caption, $message, $choices, 0)
 		} else {
-			$selection = '1'
+			$selection = 1
 		}
-		if ($selection -eq '2') {
+		if ($selection -eq 2) {
 			Write-Verbose "$($MyInvocation.InvocationName): x64: setting flag to install Store version of PowerShellCore"
 			$installStoreVersion = $true
 		} else {

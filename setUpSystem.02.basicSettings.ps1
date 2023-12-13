@@ -55,18 +55,18 @@ function Main {
 		WriteStatusMessage 'manual steps'
 		Write-Host
 		Write-Host 'other things to be done manually (haven''t figured out how to automate yet):' -ForegroundColor Magenta
-		$yn = Read-Host -Prompt 'Would you like to configure the disk write cache policy? Y/n'
-		if ($yn -ne 'n') {
+		$yn = $Host.UI.PromptForChoice('Disk Write Cache', 'Would you like to configure the disk write cache policy?', $('&Yes', '&No'), 0)
+		if ($yn -eq 0) {
 			Start-Process -FilePath "$env:SystemRoot\System32\devmgmt.msc"
 		}
 		if ($osDetails.Id -in @('win.10', 'win.11')) {
-			$yn = Read-Host -Prompt 'Would you like to change the Store app settings? Y/n'
-			if ($yn -ne 'n') {
+			$yn = $Host.UI.PromptForChoice('Store App Settings', 'Would you like to change the Store app settings?', $('&Yes', '&No'), 0)
+			if ($yn -eq 0) {
 				Start-Process -FilePath 'ms-windows-store:Settings'
 			}
 		}
-		$yn = Read-Host -Prompt 'Would you like to change the Explorer default view properties for General, Documents, Music, Videos? Y/n'
-		if ($yn -ne 'n') {
+		$yn = $Host.UI.PromptForChoice('Explorer Views', 'Would you like to change the Explorer default view properties for General, Documents, Music, Videos?', $('&Yes', '&No'), 0)
+		if ($yn -eq 0) {
 			Start-Process -FilePath "$env:SystemDrive\"
 			Start-Process -FilePath "$env:UserProfile\Documents"
 			Start-Process -FilePath "$env:UserProfile\Music"

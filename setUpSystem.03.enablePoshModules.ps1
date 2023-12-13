@@ -37,8 +37,8 @@ function Main {
 	if (-not $wallach9Repo) {
 		Write-Host
 		Write-Host
-		$yn = Read-Host 'do you want to add a package repository for wallach9? y/N'
-		if ($yn -eq 'y') {
+		$yn = $Host.UI.PromptForChoice('Add repository', 'do you want to add a package repository for wallach9?', $('&Yes', '&No'), 1)
+		if ($yn -eq 0) {
 			Register-PSRepository -Name 'wallach9' -SourceLocation '\\wallach9\packages\powershell\' -PublishLocation '\\wallach9\packages\powershell\' -InstallationPolicy 'Trusted'
 		}
 	}
