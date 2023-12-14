@@ -13,7 +13,7 @@ if [[ -z "$currShell" ]]; then
 	case $platform in
 		Linux) currShell=$(ps -p $$ -o exe=) ;;		# things i found said to use 'cmd=' but that sometimes include all the args, too; think this one's more what i need
 		Darwin) currShell=$(ps -p $$ -o command=) ;;
-		MINGW*) currShell=$0 ;;		# for git's bash; doesn't support ps -o
+		MINGW*) currShell=$(ps -p $$ | tail -n 1 | awk '{print $NF}') ;;		# for git's bash; doesn't support ps -o
 	esac
 elif [[ "$currShell" =~ "busybox" ]]; then
 	currShell=$SHELL	# nothing else is working
