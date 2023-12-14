@@ -1,6 +1,6 @@
 #!/bin/bash
 
-scriptRoot=$(dirname $(realpath ${ZSH_SCRIPT[0]:-${ZSH_SCRIPT:-${BASH_SOURCE[0]:-${0}}}}))		# ffs
+scriptRoot=$(dirname $(realpath ${BASH_SOURCE[0]:-${0}}))
 source $scriptRoot/ackShellHelpers.sh
 
 platform=$(uname -s)
