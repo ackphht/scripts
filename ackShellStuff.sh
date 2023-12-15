@@ -44,6 +44,7 @@ if hasCmd git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" ; then
 		alias scup="bash -c 'pushd ~/scripts && git pull && popd'" || true
 	fi
 fi
+hasCmd man && [[ "$COLUMNS" -gt 120 ]] && export MANWIDTH=120 || true
 test -n $currShell && test -f ~/scripts/showAppVersions.sh && alias sav="$currShell ~/scripts/showAppVersions.sh" || true
 case $platform in
 	Linux|MINGW*|MSYS*|CYGWIN*)
