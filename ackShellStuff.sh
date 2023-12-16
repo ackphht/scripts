@@ -51,7 +51,7 @@ case $platform in
 	Linux|MINGW*|MSYS*|CYGWIN*)
 		alias ll='ls -AlFhv --group-directories-first'
 		alias l='ls -AFv --group-directories-first'
-		alias cj='sudo journalctl --vacuum-time=1d'
+		hasCmd journalctl && alias cj='sudo journalctl --vacuum-time=1d' || true
 		# ???
 		#alias reboot='sudo reboot --reboot'
 		#alias shutdown='sudo halt --poweroff --force --no-wall'
