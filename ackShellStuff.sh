@@ -149,6 +149,17 @@ elif hasCmd brew; then
 	alias aptx='brew uninstall'
 	alias aptxx='brew uninstall'
 	alias aptl='brew list'
+elif hasCmd pkg; then
+	alias aptr='pkg update --force'
+	alias aptul='pkg upgrade --dry-run'
+	alias aptu='pkg upgrade --yes'
+	alias aptc='pkg autoremove --yes && pkg clean --all --yes'
+	alias apts='pkg search'
+	alias aptn='pkg info --case-insensitive'
+	alias apti='pkg install'
+	alias aptx='pkg delete'
+	alias aptxx='pkg delete'
+	alias aptl='pkg info --all'
 fi
 
 if hasCmd snap; then
