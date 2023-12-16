@@ -14,6 +14,7 @@ if [[ -z "$currShell" ]]; then
 		Linux) currShell=$(ps -p $$ -o exe=) ;;		# things i found said to use 'cmd=' but that sometimes include all the args, too; think this one's more what i need
 		Darwin) currShell=$(ps -p $$ -o command=) ;;
 		MINGW*) currShell=$(ps -p $$ | tail -n 1 | awk '{print $NF}') ;;		# for git's bash; doesn't support ps -o
+		FreeBSD) currShell=$(ps -p $$ -o comm=) ;;
 	esac
 elif [[ "$currShell" =~ "busybox" ]]; then
 	currShell=$SHELL	# nothing else is working
