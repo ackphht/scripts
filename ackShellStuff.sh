@@ -55,7 +55,7 @@ case $platform in
 		#alias reboot='sudo reboot --reboot'
 		#alias shutdown='sudo halt --poweroff --force --no-wall'
 		;;
-	Darwin)
+	Darwin|FreeBSD)
 		alias ls='ls -G'	# -G sorta equivalent to --color=auto except it will work in ssh, too
 		alias ll='ls -AlFhv'
 		alias l='ls -AFv'
