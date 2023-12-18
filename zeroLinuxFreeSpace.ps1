@@ -3,7 +3,8 @@
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	[switch] $pauseBeforeCleanup,
-	[switch] $writeOnesFirst
+	[switch] $writeOnesFirst,
+	[switch] $forceRemountCompressibleFS
 )
 
 $ErrorActionPreference = 'Stop'	#'Continue'
@@ -22,7 +23,8 @@ function Main {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param(
 		[switch] $pauseCleanup,
-		[switch] $writeOnes
+		[switch] $writeOnes,
+		[switch] $forceRemount
 	)
 
 	if (-not (isLinuxOs)) { Write-Error "this script is only intended for Linux"; return; }
@@ -37,13 +39,14 @@ function Main {
 	$fsInfo = Get-FSInfo
 
 	$remountedRoot = $false
-	if ($fsInfo.FileSystem -eq 'btrfs' -and $fsInfo.Compression -and $fsInfo.Compression -ne 'none') {
+	if ($forceRemount -and $fsInfo.FileSystem -eq 'btrfs' -and $fsInfo.Compression -and $fsInfo.Compression -ne 'none') {
 		# some distro's seem to be ignoring it if we set specific files to not use compressions, so remount drive without compression ???
 		Write-Host "remounting root filesystem with no compression" -ForegroundColor DarkYellow
 		mount -o remount,compress=none /
 		$remountedRoot = $true
 	}
 
+	$progressBarCaption = 'Zero''ing free space'
 	# create our file we're going to write to
 	Write-Host "writing zeroes to file '$script:zeroFile' (writeOnesFirst = $writeOnes)" -ForegroundColor DarkCyan
 	$trgFile = [File]::Open($script:zeroFile, [FileMode]::Create)
@@ -51,13 +54,13 @@ function Main {
 		if ($fsInfo.FileSystem -eq 'btrfs' -and $fsInfo.Compression) {
 			# try to disable compression on the file (in case we don't remount above...):
 			Write-Verbose "$($MyInvocation.InvocationName): disabling btrfs compression for file '$script:zeroFile'"
-			btrfs property set $script:zeroFile compression `"`"
+			btrfs property set $script:zeroFile compression none
 		}
 		# start loop:
 		$startFreeSpace = $freeSpace = (Get-PSDrive -Name '/').Free
 		while ($freeSpace -gt 0) {
 			$percentDone = ($startFreeSpace - $freeSpace) * 100.0 / $startFreeSpace
-			Write-Progress -Activity 'Zero''ing free space' -PercentComplete $percentDone
+			Write-Progress -Activity $progressBarCaption -PercentComplete $percentDone
 			if ($freeSpace -ge 1.1GB) {
 				Write-Verbose "$($MyInvocation.InvocationName): freespace = $freeSpace, writing 1GB data"
 				WriteSomeData -file $trgFile -passes $script:passesFor1GB -writeOnes:$writeOnes
@@ -79,7 +82,7 @@ function Main {
 			$freeSpace = (Get-PSDrive -Name '/').Free
 		}
 	} finally {
-		Write-Progress -Activity 'Zero''ing free space' -PercentComplete 100 -Completed
+		Write-Progress -Activity $progressBarCaption -PercentComplete 100 -Completed
 		if ($pauseCleanup) {
 			Read-Host -Prompt 'press enter to clean up space'
 		}
@@ -155,5 +158,5 @@ function isRunningAsRoot {
 }
 
 #==============================
-Main -pauseCleanup:$pauseBeforeCleanup -writeOnes:$writeOnesFirst
+Main -pauseCleanup:$pauseBeforeCleanup -writeOnes:$writeOnesFirst -forceRemount:$forceRemountCompressibleFS
 #==============================
