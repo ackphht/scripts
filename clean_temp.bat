@@ -74,6 +74,7 @@ call :CleanTempFileType zeal*
 call :CleanTempFileType ~clean.ack
 call :CleanTempFileType *.diagsession
 call :CleanTempFileType gdbus-nonce-file-*
+call :CleanTempFileType PowerToysMSIInstaller_*
 call :CleanTempFileType VSIX*
 call :CleanTempFileType .ses			:: not a file type, just a file
 call :CleanTempFileType MTShell.m3u8	:: not a file type, just a file
