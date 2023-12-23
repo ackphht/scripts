@@ -178,7 +178,12 @@ fi
 # can't use which or type for sbin stuff on openSuse:
 if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
 	alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
+	if [[ -x /usr/bin/compsize || -x /usr/sbin/compsize ]]; then
+		alias sz='sudo compsize -x /'
+	fi
 fi
+
+if hasCmd pwsh && test -f ~/scripts/zeroLinuxFreeSpace.ps1 && alias zx='sudo $(which pwsh) -f ~/scripts/zeroLinuxFreeSpace.ps1' || true
 
 # default prompt in case oh-my-posh (below) isn't installed
 case $currShell in
