@@ -72,7 +72,12 @@ class OSDetails:
 			return result
 	# endregion
 
+	Windows: str = "Windows"
+	Linux: str = "Linux"
+	MacOS: str = "MacOS"
+	BSD: str = "BSD"
 	_cachedOSDetails: "OSDetails" = None
+	_cachedPlatform: str = None
 
 	def __init__(self):
 		self._platform: str = OSDetails._getPlatform()
@@ -103,24 +108,31 @@ class OSDetails:
 	@staticmethod
 	def GetDetails() -> "OSDetails":
 		if not OSDetails._cachedOSDetails:
-			if sys.platform == "win32":
+			platform = OSDetails._getPlatform()
+			if platform == OSDetails.Windows:
 				OSDetails._cachedOSDetails = _OSDetailsWin()
-			elif sys.platform == "linux":
+			elif platform == OSDetails.Linux:
 				OSDetails._cachedOSDetails = _OSDetailsLinux()
-			elif sys.platform == "darwin":
+			elif platform == OSDetails.MacOS:
 				OSDetails._cachedOSDetails = _OSDetailsMac()
+			elif platform == OSDetails.BSD:
+				OSDetails._cachedOSDetails = _OSDetailsBSD()
 		return OSDetails._cachedOSDetails
 
 	@staticmethod
 	def _getPlatform() -> str:
-		if sys.platform == "win32":
-			return "Windows"
-		elif sys.platform == "linux":
-			return "Linux"
-		elif sys.platform == "darwin":
-			return "MacOS"
-		else:
-			raise NotImplementedError(f'unrecognized platform: "{sys.platform}"')
+		if not OSDetails._cachedPlatform:
+			if sys.platform == "win32":
+				OSDetails._cachedPlatform = OSDetails.Windows
+			elif sys.platform == "linux":
+				OSDetails._cachedPlatform = OSDetails.Linux
+			elif sys.platform == "darwin":
+				OSDetails._cachedPlatform = OSDetails.MacOS
+			elif platform.system().upper().endswith("BSD"):
+				OSDetails._cachedPlatform = OSDetails.BSD
+			else:
+				raise NotImplementedError(f'unrecognized platform: "{sys.platform}"')
+		return OSDetails._cachedPlatform
 
 	@staticmethod
 	def _getOsInfoLookups() -> "OSDetails._osInfos":
@@ -252,7 +264,7 @@ class OSDetails:
 		return self._is64BitOs
 	# endregion
 
-if sys.platform == "win32":
+if OSDetails._getPlatform() == OSDetails.Windows:
 	import winreg
 	class _OSDetailsWin(OSDetails):
 		def __init__(self):
@@ -434,7 +446,7 @@ if sys.platform == "win32":
 			# for everything else, just use what the registry had:
 			return editionId
 
-elif sys.platform == "linux":
+elif OSDetails._getPlatform() == OSDetails.Linux:
 	from io import StringIO, TextIOBase
 	from shlex import shlex
 	import subprocess, shutil
@@ -557,7 +569,7 @@ elif sys.platform == "linux":
 					result = f"{result} [{version}]"
 			return result
 
-elif sys.platform == "darwin":
+elif OSDetails._getPlatform() == OSDetails.MacOS:
 	import subprocess, shutil
 	class _OSDetailsMac(OSDetails):
 		def __init__(self):
@@ -650,6 +662,12 @@ elif sys.platform == "darwin":
 		def _getCommandOutput(args: list[str]) -> str:
 			tmp = subprocess.check_output(args, stderr=subprocess.DEVNULL)
 			return tmp.decode().strip()
+
+elif OSDetails._getPlatform() == OSDetails.BSD:
+	class _OSDetailsBSD(OSDetails):
+		def __init__(self):
+			base = super()
+			base.__init__()
 
 else:
 	raise NotImplementedError(f'unrecognized platform: "{sys.platform}"')
