@@ -111,12 +111,10 @@ class OSDetails:
 			platform = OSDetails._getPlatform()
 			if platform == OSDetails.Windows:
 				OSDetails._cachedOSDetails = _OSDetailsWin()
-			elif platform == OSDetails.Linux:
+			elif platform in [OSDetails.Linux, OSDetails.BSD]:
 				OSDetails._cachedOSDetails = _OSDetailsLinux()
 			elif platform == OSDetails.MacOS:
 				OSDetails._cachedOSDetails = _OSDetailsMac()
-			elif platform == OSDetails.BSD:
-				OSDetails._cachedOSDetails = _OSDetailsBSD()
 		return OSDetails._cachedOSDetails
 
 	@staticmethod
@@ -446,7 +444,7 @@ if OSDetails._getPlatform() == OSDetails.Windows:
 			# for everything else, just use what the registry had:
 			return editionId
 
-elif OSDetails._getPlatform() == OSDetails.Linux:
+elif OSDetails._getPlatform() in [OSDetails.Linux, OSDetails.BSD]:
 	from io import StringIO, TextIOBase
 	from shlex import shlex
 	import subprocess, shutil
@@ -469,12 +467,12 @@ elif OSDetails._getPlatform() == OSDetails.Linux:
 			base._setfield("_release", release)
 			base._setfield("_codename", codename)
 			if releaseLooksLikeVersion:
-				base._setfield("_id", f"linux.{distId.lower()}.{release}")
+				base._setfield("_id", f"{OSDetails._getPlatform().lower()}.{distId.lower()}.{release}")
 				releaseVersion,major,minor = OSDetails._convertVersion(release)
 				base._setfield("_releaseVersion", releaseVersion)
 				pass
 			else:
-				base._setfield("_id", f"linux.{distId.lower()}")
+				base._setfield("_id", f"{OSDetails._getPlatform().lower()}.{distId.lower()}")
 			base._setfield("_kernelVersion", _OSDetailsLinux._getLinuxKernelVersion())
 			osArch, is64BitOs = OSDetails._normalizeArchitecture(platform.machine())	# apparently "platform.machine()"/"uname -m" is the OS arch, not the processor/"machine" arch
 			base._setfield("_osArchitecture", osArch)
@@ -662,12 +660,6 @@ elif OSDetails._getPlatform() == OSDetails.MacOS:
 		def _getCommandOutput(args: list[str]) -> str:
 			tmp = subprocess.check_output(args, stderr=subprocess.DEVNULL)
 			return tmp.decode().strip()
-
-elif OSDetails._getPlatform() == OSDetails.BSD:
-	class _OSDetailsBSD(OSDetails):
-		def __init__(self):
-			base = super()
-			base.__init__()
 
 else:
 	raise NotImplementedError(f'unrecognized platform: "{sys.platform}"')
