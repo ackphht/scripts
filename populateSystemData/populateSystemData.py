@@ -112,7 +112,7 @@ class OSDetails:
 			if platform == OSDetails.Windows:
 				OSDetails._cachedOSDetails = _OSDetailsWin()
 			elif platform in [OSDetails.Linux, OSDetails.BSD]:
-				OSDetails._cachedOSDetails = _OSDetailsLinux()
+				OSDetails._cachedOSDetails = _OSDetailsNix()
 			elif platform == OSDetails.MacOS:
 				OSDetails._cachedOSDetails = _OSDetailsMac()
 		return OSDetails._cachedOSDetails
@@ -448,11 +448,11 @@ elif OSDetails._getPlatform() in [OSDetails.Linux, OSDetails.BSD]:
 	from io import StringIO, TextIOBase
 	from shlex import shlex
 	import subprocess, shutil
-	class _OSDetailsLinux(OSDetails):
+	class _OSDetailsNix(OSDetails):
 		def __init__(self):
 			base = super()
 			base.__init__()
-			distId, description, release, codename = _OSDetailsLinux._getLinuxReleaseProps()
+			distId, description, release, codename = _OSDetailsNix._getLinuxReleaseProps()
 			releaseLooksLikeVersion = OSDetails._looksLikeVersion(release)
 			# # special case(s):
 			if distId == "debian" and re.match(r"^\d+$", release):
@@ -473,7 +473,7 @@ elif OSDetails._getPlatform() in [OSDetails.Linux, OSDetails.BSD]:
 				pass
 			else:
 				base._setfield("_id", f"{OSDetails._getPlatform().lower()}.{distId.lower()}")
-			base._setfield("_kernelVersion", _OSDetailsLinux._getLinuxKernelVersion())
+			base._setfield("_kernelVersion", _OSDetailsNix._getLinuxKernelVersion())
 			osArch, is64BitOs = OSDetails._normalizeArchitecture(platform.machine())	# apparently "platform.machine()"/"uname -m" is the OS arch, not the processor/"machine" arch
 			base._setfield("_osArchitecture", osArch)
 			base._setfield("_is64BitOs", is64BitOs)
@@ -486,7 +486,7 @@ elif OSDetails._getPlatform() in [OSDetails.Linux, OSDetails.BSD]:
 			if lsbReleasePath.is_file():
 				logging.debug(f'reading lsb-release from file "{lsbReleasePath}"')
 				with open(lsbReleasePath, "r", encoding="utf-8") as f:
-					lsbrelease = _OSDetailsLinux._parseLinesToDict(f)
+					lsbrelease = _OSDetailsNix._parseLinesToDict(f)
 				if "DISTRIB_ID" in lsbrelease: distId = lsbrelease["DISTRIB_ID"]
 				if "DISTRIB_DESCRIPTION" in lsbrelease: description = lsbrelease["DISTRIB_DESCRIPTION"]
 				if "DISTRIB_RELEASE" in lsbrelease: release = lsbrelease["DISTRIB_RELEASE"]
@@ -500,7 +500,7 @@ elif OSDetails._getPlatform() in [OSDetails.Linux, OSDetails.BSD]:
 			if (not distId or not description or not release or not codename) and osReleasePath.is_file():
 				logging.debug(f'reading os-release from file "{osReleasePath}"')
 				with open(osReleasePath, "r", encoding="utf-8") as f:
-					osrelease = _OSDetailsLinux._parseLinesToDict(f)
+					osrelease = _OSDetailsNix._parseLinesToDict(f)
 				if not distId and "ID" in osrelease: distId = osrelease["ID"]
 				if not description and "NAME" in osrelease: description = osrelease["NAME"]
 				if not release and "VERSION_ID" in osrelease: release = osrelease["VERSION_ID"]
@@ -510,8 +510,8 @@ elif OSDetails._getPlatform() in [OSDetails.Linux, OSDetails.BSD]:
 
 			# some distros (e.g. fedora and opensuse tumbleweed) still don't have everything but it is returned by lsb_release (??), so let's try that:
 			if not distId or not description or not release or not codename:
-				lsbOutput = _OSDetailsLinux._getLsbReleaseOutput()
-				lsb = _OSDetailsLinux._parseLinesToDict(lsbOutput, separator=":") if lsbOutput else {}
+				lsbOutput = _OSDetailsNix._getLsbReleaseOutput()
+				lsb = _OSDetailsNix._parseLinesToDict(lsbOutput, separator=":") if lsbOutput else {}
 				if not distId and "Distributor ID" in lsb: distId = lsb["Distributor ID"]
 				if not description and "Description" in lsb: description = lsb["Description"]
 				if not release and "Release" in lsb: release = lsb["Release"]
