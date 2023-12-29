@@ -103,6 +103,7 @@ elif hasCmd zypper; then
 	alias aptx='sudo zypper remove --clean-deps'
 	alias aptxx='sudo zypper remove --clean-deps'
 	alias aptl='zypper packages --installed-only'
+	alias zp='zypper'
 elif hasCmd pacman; then
 	alias aptr='sudo pacman -Syy'	# --sync --refresh x 2 to force updae
 	alias aptul='pacman --query --upgrades'
