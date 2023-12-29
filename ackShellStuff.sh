@@ -184,7 +184,13 @@ if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
 	fi
 fi
 
-hasCmd pwsh && test -f ~/scripts/zeroLinuxFreeSpace.ps1 && alias zx='sudo $(which pwsh) -f ~/scripts/zeroLinuxFreeSpace.ps1' || true
+if [[ "$platform" == "Linux" || "$platform" =~ "BSD" ]]; then
+	if hasCmd python3 && [[ -f ~/scripts/zeroLinuxFreeSpace.py ]]; then
+		alias zx='sudo python3 ~/scripts/zeroLinuxFreeSpace.py'
+	elif hasCmd pwsh && [[ -f ~/scripts/zeroLinuxFreeSpace.ps1 ]]; then
+		alias zx='sudo $(which pwsh) -f ~/scripts/zeroLinuxFreeSpace.ps1'
+	fi
+fi
 
 # default prompt in case oh-my-posh (below) isn't installed
 case $currShell in
