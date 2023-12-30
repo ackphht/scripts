@@ -102,7 +102,7 @@ elif hasCmd zypper; then
 	alias apti='sudo zypper install'
 	alias aptx='sudo zypper remove --clean-deps'
 	alias aptxx='sudo zypper remove --clean-deps'
-	alias aptl='zypper packages --installed-only'
+	alias aptl='zypper search --installed-only'
 	alias zp='zypper'
 elif hasCmd pacman; then
 	alias aptr='sudo pacman -Syy'	# --sync --refresh x 2 to force updae
@@ -176,11 +176,12 @@ if hasCmd snap; then
 	alias snaptl='snap list'
 fi
 
+alias sz='df -TPh /'
 # can't use which or type for sbin stuff on openSuse:
 if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
 	alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
 	if [[ -x /usr/bin/compsize || -x /usr/sbin/compsize ]]; then
-		alias sz='sudo compsize -x /'
+		alias sz='df -TPh /; echo; sudo compsize -x /'
 	fi
 fi
 
