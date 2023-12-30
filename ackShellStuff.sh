@@ -176,14 +176,17 @@ if hasCmd snap; then
 	alias snaptl='snap list'
 fi
 
-alias sz='df -TPh /'
+dfRoot='df -TPh --sync /'
+alias sz=$dfRoot
 # can't use which or type for sbin stuff on openSuse:
 if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
 	alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
 	if [[ -x /usr/bin/compsize || -x /usr/sbin/compsize ]]; then
-		alias sz='df -TPh /; echo; sudo compsize -x /'
+		alias sz="${dfRoot}; echo; sudo compsize -x /"
 	fi
 fi
+unset dfRoot
+alias szz='df -TPh --sync --type=ext2 --type=ext3 --type=ext4 --type=btrfs --type=zfs --type=vfat'
 
 if [[ "$platform" == "Linux" || "$platform" =~ "BSD" ]]; then
 	if hasCmd python3 && [[ -f ~/scripts/zeroLinuxFreeSpace.py ]]; then
