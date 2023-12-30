@@ -187,6 +187,7 @@ if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
 fi
 unset dfRoot
 alias szz='df -TPh --sync --type=ext2 --type=ext3 --type=ext4 --type=btrfs --type=zfs --type=vfat'
+alias sza='df -TPh --sync'
 
 if [[ "$platform" == "Linux" || "$platform" =~ "BSD" ]]; then
 	if hasCmd python3 && [[ -f ~/scripts/zeroLinuxFreeSpace.py ]]; then
