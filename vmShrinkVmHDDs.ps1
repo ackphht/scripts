@@ -11,61 +11,99 @@ param(
 	[string] $vhd
 )
 
-$ErrorActionPreference = 'Stop'	#'Continue'
+$ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
 Set-StrictMode -Version Latest
+
+. $PSScriptRoot/vmVirtualBoxCommon.ps1
 
 function Main {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param(
-		[string] $vm,
-		[string] $vhd
+		[string] $vmName,
+		[string] $vmDrive
 	)
-	if ($vm) {
-		_optimizeVm -vmName $vm
+	if ($vmName) {
+		$vm = Get-VM | Where-Object { $_.Name -eq $vmName }
+		if ($vm) {
+			Write-Verbose "found Hyper-V VM for name |$vmName|"
+			_optimizeHyperVVm -vm $vm
+		} else {
+			$vm = GetVirtualBoxVms | Where-Object { $_.Name -eq $vmName }
+			if ($vm) {
+				Write-Verbose "found VirtualBox VM for name |$vmName|"
+				_optimizeVirtualBoxVm -vm $vm
+			}
+		}
 	} else {
-		_optimizeVhd -vhd $vhd
+		_optimizeVhd -vhdPath $vmDrive -vhdType 'Unknown'
 	}
 }
 
-function _optimizeVm {
+function _optimizeHyperVVm {
 	[CmdletBinding(SupportsShouldProcess=$true)]
-	[OutputType([PSObject])]
-	param(
-		[Parameter(Mandatory=$true)] [string] $vmName
-	)
-	$vm = Get-VM -VMName $vmName -ErrorAction Continue
-	if (-not $vm) {
-		# above should print error message for non-existent vm
-		return
-	}
+	[OutputType([void])]
+	param([Parameter(Mandatory=$true)] [Microsoft.HyperV.PowerShell.VirtualMachine] $vm)
+
 	if (-not $vm.HardDrives -or $vm.HardDrives.Count -eq 0) {
-		Write-Warning "VM '$vmName' does not have any hard drives"
+		Write-Warning "Hyper-V VM '$vmName' does not have any hard drives"
 		return
 	}
 	foreach ($drv in $vm.HardDrives) {
-		_optimizeVhd -vhd $drv.Path
+		_optimizeVhd -vhdPath $drv.Path -vhdType 'HyperV'
+	}
+}
+
+function _optimizeVirtualBoxVm {
+	[CmdletBinding(SupportsShouldProcess=$true)]
+	[OutputType([void])]
+	param([Parameter(Mandatory=$true)] [VirtualBoxVm] $vm)
+
+	if (-not $vm.HardDrives -or $vm.HardDrives.Count -eq 0) {
+		Write-Warning "VirtualBox VM '$vmName' does not have any hard drives"
+		return
+	}
+	foreach ($drv in $vm.HardDrives) {
+		_optimizeVhd -vhdPath $drv.Path -vhdType 'VirtualBox'
 	}
 }
 
 function _optimizeVhd {
 	[CmdletBinding(SupportsShouldProcess=$true)]
-	[OutputType([PSObject])]
+	[OutputType([void])]
 	param(
-		[Parameter(Mandatory=$true)] [string] $vhd
+		[Parameter(Mandatory=$true)] [string] $vhdPath,
+		[Parameter(Mandatory=$true)] [ValidateSet('HyperV', 'VirtualBox', 'Unknown')] [string] $vhdType
 	)
-	if (-not (Test-Path -Path $vhd -PathType Leaf)) {
-		Write-Warning "VM hard drive path does not exist: `"$vhd`""
+	if (-not (Test-Path -Path $vhdPath -PathType Leaf)) {
+		Write-Warning "VM hard drive path does not exist: `"$vhdPath`""
 		return
 	}
-	Write-Verbose "optimizing VHD |$vhd|"
-	$preSize = Format-Bytes -value (Get-Item -LiteralPath $vhd).Length
-	Optimize-VHD -Mode Full -Path $vhd
-	$postSize = Format-Bytes -value (Get-Item -LiteralPath $vhd).Length
-	Write-Host "optimized VHD file `"$vhd`"" -ForegroundColor Cyan
+	if (-not $vhdType -or $vhdType -eq 'Unknown') {
+		$type = Split-Path -Path $vhdPath -Extension
+		switch ($type) {
+			'.vhdx' { $vhdType = 'HyperV'; break; }
+			'.vdi' { $vhdType = 'VirtualBox'; break; }
+			default { Write-Error "unrecognized VHD type for path `"$vhdPath`""; return; }
+		}
+	}
+	Write-Verbose "optimizing VHD |$vhdPath| (type = $vhdType)"
+	$preSize = Format-Bytes -value (Get-Item -LiteralPath $vhdPath).Length
+	switch ($vhdType) {
+		'HyperV' {
+			Optimize-VHD -Mode Full -Path $vhdPath
+			break
+		}
+		'VirtualBox' {
+			VBoxManage.exe modifyhd $vhdPath --compact
+			break
+		}
+	}
+	$postSize = Format-Bytes -value (Get-Item -LiteralPath $vhdPath).Length
+	Write-Host "optimized VHD file `"$vhdPath`"" -ForegroundColor Cyan
 	Write-Host "    before: $preSize" -ForegroundColor Cyan
 	Write-Host "     after: $postSize" -ForegroundColor Cyan
 }
 
 #==============================
-Main -vm $vmName -vhd $vhd
+Main -vmName $vmName -vmDrive $vhd
 #==============================
