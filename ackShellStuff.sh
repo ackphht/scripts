@@ -198,7 +198,7 @@ case $platform in
 		;;
 	*BSD)
 		alias sz='df -TPh /'
-		alias szz='df -TPh -t ext2 -t ext3 -t ext4 -t btrfs -t zfs -t vfat -t msdosfs -t ntfs -t apfs -t hfs -t smbfs'
+		alias szz='df -TPh -t ext2,ext3,ext4,btrfs,zfs,vfat,msdosfs,ntfs,apfs,hfs,smbfs'
 		alias sza='df -TPh'
 		;;
 esac
