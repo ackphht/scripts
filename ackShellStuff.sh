@@ -138,7 +138,7 @@ elif hasCmd eopkg; then
 	alias apti='sudo eopkg install'
 	alias aptx='sudo eopkg remove'
 	alias aptxx='sudo eopkg remove'
-	alias aptl='eopkg list-installed'
+	alias aptl='eopkg list-installed --install-info'
 elif hasCmd brew; then
 	# https://docs.brew.sh/Manpage
 	alias aptr='brew update'
@@ -176,18 +176,32 @@ if hasCmd snap; then
 	alias snaptl='snap list'
 fi
 
-dfRoot='df -TPh --sync /'
-alias sz=$dfRoot
-# can't use which or type for sbin stuff on openSuse:
-if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
-	alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
-	if [[ -x /usr/bin/compsize || -x /usr/sbin/compsize ]]; then
-		alias sz="${dfRoot}; echo; sudo compsize -x /"
-	fi
-fi
-unset dfRoot
-alias szz='df -TPh --sync --type=ext2 --type=ext3 --type=ext4 --type=btrfs --type=zfs --type=vfat'
-alias sza='df -TPh --sync'
+case $platform in
+	Linux|MINGW*|MSYS*|CYGWIN*)
+		dfRoot='df -TPh --sync /'
+		alias sz=$dfRoot
+		# can't use which or type for sbin stuff on openSuse:
+		if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
+			alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
+			if [[ -x /usr/bin/compsize || -x /usr/sbin/compsize ]]; then
+				alias sz="${dfRoot}; echo; sudo compsize -x /"
+			fi
+		fi
+		unset dfRoot
+		alias szz='df -TPh --sync --type=ext2 --type=ext3 --type=ext4 --type=btrfs --type=zfs --type=vfat --type=ntfs'
+		alias sza='df -TPh --sync'
+		;;
+	Darwin)
+		alias sz='df -hY /'
+		alias szz='df -hY -T apfs,hfs,smbfs,ntfs,vfat'
+		alias sza='df -hlY'
+		;;
+	*BSD)
+		alias sz='df -TPh /'
+		alias szz='df -TPh -t ext2 -t ext3 -t ext4 -t btrfs -t zfs -t vfat -t msdosfs -t ntfs -t apfs -t hfs -t smbfs'
+		alias sza='df -TPh'
+		;;
+esac
 
 if [[ "$platform" == "Linux" || "$platform" =~ "BSD" ]]; then
 	if hasCmd python3 && [[ -f ~/scripts/zeroLinuxFreeSpace.py ]]; then
@@ -203,6 +217,7 @@ case $currShell in
 	zsh) PS1=$'\n\e[36mzsh \e[95m%n@%m \e[33m%* \e[92m%~\n\e[32mWHAT?!? %(!.#.$)\e[0m ' ;;	# can use named colors with %F but they're limited
 	ash) PS1='\n\e[36mash \e[95m\u@\h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m ' ;;
 esac
+
 if hasCmd oh-my-posh && test -n $currShell ; then
 	eval "$(oh-my-posh init $currShell --config ~/scripts/ack.omp.linux.json)"
 	alias omp='oh-my-posh'
@@ -213,8 +228,4 @@ if hasCmd oh-my-posh && test -n $currShell ; then
 	fi
 fi
 
-#case $currShell in
-#	bash) unset has ;;
-#	zsh) unfunction has ;;
-#esac
 unset platform currShell
