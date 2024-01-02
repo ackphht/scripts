@@ -298,6 +298,7 @@ function CleanUpDesktopIcons {
 		'Inkscape'
 		'DVDFab*'
 		'Kobo*'
+		'Logi Options+'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -373,6 +374,7 @@ function DisableUnwantedServices {
 		@{ Name = 'Waves Audio Universal Services'; Start = ''; }
 		@{ Name = 'Microsoft Edge Update Service (edgeupdate)'; Start = 'Manual'; }
 		@{ Name = 'Microsoft Edge Update Service (edgeupdatem)'; Start = 'Manual'; }
+		#@{ Name = 'OptionsPlusUpdaterService'; Start = 'Manual'; }		# Logitech Options+ Updater; nevermind, apparently needed
 		#@{ Name = 'xxxxxxxxxxxxxxxx'; Start = ''; }
 	) | ForEach-Object { DisableService $_; }
 }
