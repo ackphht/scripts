@@ -113,14 +113,14 @@ function Main {
 	_addProperty -o $results -n 'SysEnv_Is64BitOperatingSystem' -v ([System.Environment]::Is64BitOperatingSystem)
 	_addProperty -o $results -n 'SysEnv_Is64BitProcess' -v ([System.Environment]::Is64BitProcess)
 	_addProperty -o $results -n 'SysEnv_ProcessorCount' -v ([System.Environment]::ProcessorCount)
-	_addProperty -o $results -n 'SysEnv_Newline' -v (_charsToString -chars ([System.Environment]::NewLine))
+	_addProperty -o $results -n 'SysEnv_Newline' -v (_makeDisplayable -chars ([System.Environment]::NewLine) -keepSource)
 
 	_addProperty -o $results -n 'Path_DirectorySeparatorChar' -v ([System.IO.Path]::DirectorySeparatorChar)
 	_addProperty -o $results -n 'Path_AltDirectorySeparatorChar' -v ([System.IO.Path]::AltDirectorySeparatorChar)
 	_addProperty -o $results -n 'Path_PathSeparator' -v ([System.IO.Path]::PathSeparator)
 	_addProperty -o $results -n 'Path_VolumeSeparatorChar' -v ([System.IO.Path]::VolumeSeparatorChar)
-	_addProperty -o $results -n 'Path_InvalidPathChars' -v (_charsToString -chars ([System.IO.Path]::InvalidPathChars))
-	_addProperty -o $results -n 'Path_InvalidFileNameChars' -v (_charsToString -chars ([System.IO.Path]::GetInvalidFileNameChars()))
+	_addProperty -o $results -n 'Path_InvalidPathChars' -v (_makeDisplayable -chars ([System.IO.Path]::InvalidPathChars))
+	_addProperty -o $results -n 'Path_InvalidFileNameChars' -v (_makeDisplayable -chars ([System.IO.Path]::GetInvalidFileNameChars()))
 	#endregion
 
 	#region runtime info
@@ -430,20 +430,27 @@ $script:nonDisplayCharsMap = @{
 	[char]0x20 = '␠'; [char]0x7f = '\x7f'; [char]0xa0<#NBSP#> = '\xa0'; [char]0x85<#NEL#> = '\x85'; [char]0x2028<#LS#> = '\u2028'; [char]0x2029<#PS#> = '\u2029';
 }
 
-function _charsToString {
+function _makeDisplayable {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
 	param(
-		[char[]] $chars
+		[char[]] $chars,
+		[switch] $keepSource
 	)
+	function mapChar {
+		param([char] $c)
+		if ($script:nonDisplayCharsMap.ContainsKey($c)) { return $script:nonDisplayCharsMap[$c] } else { return $c }
+	}
 	if ($chars) {
 		$sb = [System.Text.StringBuilder]::new(512)
-		foreach ($c in ($chars | Sort-Object)) {
-			if ($sb.Length -gt 0) { [void]$sb.Append(' ') }
-			if ($script:nonDisplayCharsMap.ContainsKey($c)) {
-				[void]$sb.Append($script:nonDisplayCharsMap[$c])
-			} else {
-				[void]$sb.Append($c)
+		if ($keepSource) {
+			foreach ($c in $chars) {
+				[void]$sb.Append((mapChar $c))
+			}
+		} else {
+			foreach ($c in ($chars | Sort-Object)) {
+				if ($sb.Length -gt 0) { [void]$sb.Append(' ') }
+				[void]$sb.Append((mapChar $c))
 			}
 		}
 		return $sb.ToString()
