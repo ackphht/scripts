@@ -38,11 +38,15 @@ hasCmd screenfetch && alias sf='screenfetch' || true
 hasCmd neofetch && alias nf='neofetch' || true
 (hasCmd python3 || hasCmd pwsh) && test -f ~/scripts/ackfetch.sh && alias af='bash ~/scripts/ackfetch.sh' || true
 #hasCmd git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" && alias scup='pushd ~/scripts && git pull && popd' || true
-if hasCmd git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" ; then
-	if hasCmd pushd ; then	# it's a builtin for bash/zsh/others, but not all
-		alias scup='pushd ~/scripts && git pull && popd' || true
-	elif hasCmd bash ; then
-		alias scup="bash -c 'pushd ~/scripts && git pull && popd'" || true
+if hasCmd git; then
+	alias git-count='git count-objects -v'
+	alias git-compact='git reflog expire --expire=now --all && git gc --prune=now --aggressive'
+	if test -d ~/scripts && test -z "$WSL_DISTRO_NAME"; then
+		if hasCmd pushd ; then	# it's a builtin for bash/zsh/others, but not all
+			alias scup='pushd ~/scripts && git pull && popd' || true
+		elif hasCmd bash ; then
+			alias scup="bash -c 'pushd ~/scripts && git pull && popd'" || true
+		fi
 	fi
 fi
 hasCmd man && [[ "$COLUMNS" -gt 120 ]] && export MANWIDTH=120 || true
