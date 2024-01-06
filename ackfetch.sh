@@ -14,7 +14,7 @@ while [ $# -ne 0 ]; do
 		-?|--?|-h|--help|-[Hh]elp)
 			script_name="$(basename "$0")"
 			echo "show system info"
-			echo "Usage: $script_name [-a|--showAll] [-n|--noFormatting]"
+			echo "Usage: $script_name [-a|--showAll] [-n|--noColors]"
 			echo "       $script_name -h|-?|--help"
 			echo ""
 			echo "$script_name dumps out some system details, kind of like neofetch or screenfetch"
