@@ -1,16 +1,13 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import sys, os, pathlib, stat, argparse, shutil, subprocess, urllib.request
+import sys, os, pathlib, platform, stat, argparse, shutil, subprocess, urllib.request
 from ackPyHelpers import LogHelper, GithubRelease, Version, RunProcessHelper
 
 PyScript = os.path.abspath(__file__)
 PyScriptRoot = os.path.dirname(os.path.abspath(__file__))
 
 def main():
-	if sys.platform != "linux" and \
-			'_pydevd_bundle' not in sys.modules:	# so if we're on windows and working in VSCode (or other editor?), rest of file won't be grayed out; there's also 'debugpy' that's MS specific ??
-		raise RuntimeError("this script is only for Linux")
 	args = initArgParser().parse_args()
 	verboseLogging = args.verbose
 	testMode = args.test
@@ -18,7 +15,14 @@ def main():
 
 	LogHelper.Init(verboseLogging)
 
-	binFldr = pathlib.Path(os.path.expandvars(f"$HOME/.local/bin"))
+	osPlatform = platform.system().lower()
+	osArch = normalizeArchForOhMyPosh(platform.machine())
+	if osPlatform != "linux" and osPlatform != "freebsd" and \
+			'_pydevd_bundle' not in sys.modules:	# so if we're on windows and working in VSCode (or other editor?), rest of file won't be grayed out; there's also 'debugpy' that's MS specific ??:
+		raise RuntimeError("this script is only for Linux and FreeBSD")
+
+	binFldr = ".local/bin" if osPlatform == "linux" else "bin"
+	binFldr = pathlib.Path(os.path.expanduser(f"~/{binFldr}"))
 	if not binFldr.exists():
 		LogHelper.Verbose(f"creating bin folder |{binFldr}|")
 		if not testMode:
@@ -27,7 +31,8 @@ def main():
 			LogHelper.WhatIf(f"creating bin folder |{binFldr}|")
 	outfile = binFldr / "oh-my-posh"
 
-	downloadUrl = "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64"
+	ompFilename = f"posh-{osPlatform}-{osArch}"
+	downloadUrl = f"https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/{ompFilename}"
 	print("")
 	if not forceInstall:
 		currVer = getCurrentOhMyPoshVer()
@@ -39,7 +44,7 @@ def main():
 			if latestVer > currVer:
 				LogHelper.Message(f"installing newer version of OhMyPosh: v{latestVer} (current version = v{currVer})")
 				for a in gh.assets:	# see if we can save them a redirect
-					if a.name == "posh-linux-amd64":
+					if a.name == ompFilename:
 						downloadUrl = a.downloadUrl
 						break
 			else:
@@ -88,6 +93,21 @@ def getCurrentOhMyPoshVer() -> Version:
 		else:
 			LogHelper.Error(f"error running oh-my-posh --version: exit code = {result.exitCode}{os.linesep}{result.getCombinedStdoutStderr()}")
 	return Version(0, 0, 0)
+
+def normalizeArchForOhMyPosh(arch: str) -> str:
+	arch = arch.lower()
+	LogHelper.Verbose(f"normalizing os architecture |{arch}|")
+	if arch in ["x86_64", "x64", "em64t", "x86_64h"]:
+		arch = "amd64"
+	elif arch in ["x86", "i386", "i686"]:
+		arch = "386"
+	elif arch in ["aarch64", "arm64e"]:
+		arch = "arm64"
+	elif arch.startswith("armv"):
+		arch = "arm"
+	# any others just use name as-is
+	LogHelper.Verbose(f"normalized os architecture |{arch}|")
+	return arch
 
 def initArgParser() -> argparse.ArgumentParser:
 	parser = argparse.ArgumentParser()
