@@ -8,6 +8,8 @@ class Version:
 	create one directly and pass in the major, minor and revision, or use the static method parseVersionString() to initialize a Version.
 	"""
 
+	_zeroVersion: "Version" = None
+
 	def __init__(self, major: int, minor: int, revision: int) -> None:
 		self._major: int = major
 		self._minor: int = minor
@@ -30,6 +32,12 @@ class Version:
 		return (self.major < other.major or self.minor < other.minor or self.revision < other.revision) if isinstance(other, Version) else NotImplemented
 
 	@staticmethod
+	def zeroVersion() -> "Version":	# -> Self:
+		if not Version._zeroVersion:
+			Version._zeroVersion = Version(0, 0, 0)
+		return Version._zeroVersion
+
+	@staticmethod
 	def parseVersionString(ver: str) -> "Version":	# -> Self:
 		if ver:
 			major = minor = rev = 0
@@ -42,7 +50,7 @@ class Version:
 				rev = int(sp[2])
 			return Version(major, minor, rev)
 		else:
-			return Version(0, 0, 0)
+			return Version.zeroVersion
 
 	@property
 	def isZeroVersion(self) -> bool:
