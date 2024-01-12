@@ -1425,14 +1425,14 @@ class IconsToCopy:
 			# found repo for 'Adwaita', but it's weird: bigger filesize, but much fewer files, so ??
 			IconThemeDefinition("Adwaita", "fedora_39", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], ["96x96"], None, None, ["256x256"], ["512x512"], None)),
-			IconThemeDefinition("gnome", "mint_21.2", None, Constants.FldrScheme_SizeType,
+			IconThemeDefinition("gnome", "mint_21.3", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], None, ["128x128"], None, ["256x256"], ["512x512"], None)),
 			# found repo for 'mate', but it seems to have less in it ??
-			IconThemeDefinition("mate", "mint_21.2", None, Constants.FldrScheme_SizeType,
+			IconThemeDefinition("mate", "mint_21.3", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], None, None, None, None, ["256x256"], None, None)),
-			IconThemeDefinition("Numix", "mint_21.2", None, Constants.FldrScheme_SizeType,
+			IconThemeDefinition("Numix", "mint_21.3", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16"], ["24", "22"], ["32"], ["48"], ["64"], None, None, None, None, None, None)),
-			IconThemeDefinition("Humanity", "ubuntu_22.10", None, Constants.FldrScheme_TypeSize,
+			IconThemeDefinition("Humanity", "ubuntu_23.10", None, Constants.FldrScheme_TypeSize,
 				SourceImageSizeFolderMap(["16"], ["24"], ["32"], ["48"], ["64"], None, ["128"], ["192"], ["256"], None, None)),
 		]
 		self._iconTypeLists : List[IconTypeList] = [
@@ -1448,6 +1448,7 @@ class IconsToCopy:
 				Icon("application-rss+xml", ["application-x-rss+xml", "application-rss_xml"], ["rss"]),
 				Icon("application-rtf", extensions=["rtf"]),
 				Icon("application-sql", ["text-x-sql", "application-x-sqlite3", "application-x-sqlite2", "application-vnd.oasis.opendocument.database"], ["sql"]),
+				Icon("application-table"),
 				Icon("application-toml", extensions=["toml"]),
 				Icon("application/vnd.coffeescript"),
 				Icon("application-vnd.rar", ["application-x-rar"], ["rar"]),
@@ -1509,6 +1510,7 @@ class IconsToCopy:
 				Icon("message-news"),
 				Icon("message-rfc822", extensions=["eml"]),
 				Icon("package-x-generic", ["application-x-package-generic"]),		# target name is not real (but neither is the source name), but want this to show up near the other package types
+				Icon("text-tab-separated-values", extensions=["tsv"]),
 				Icon("text-css", extensions=["css"]),
 				Icon("text-csv", ["text-x-csv", "text-x-comma-separated-values"], ["csv"]),
 				Icon("text-html", ["application-html", "application-x-mswinurl"], ["htm", "html"]),
