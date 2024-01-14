@@ -14,7 +14,7 @@ if [[ -z "$currShell" ]]; then
 		Linux) currShell=$(ps -p $$ -o exe=) ;;		# things i found said to use 'cmd=' but that sometimes include all the args, too; think this one's more what i need
 		Darwin) currShell=$(ps -p $$ -o command=) ;;
 		MINGW*) currShell=$(ps -p $$ | tail -n 1 | awk '{print $NF}') ;;		# for git's bash; doesn't support ps -o
-		FreeBSD) currShell=$(ps -p $$ -o comm=) ;;
+		*BSD) currShell=$(ps -p $$ -o comm=) ;;
 	esac
 elif [[ "$currShell" =~ "busybox" ]]; then
 	currShell=$SHELL	# nothing else is working
@@ -68,6 +68,11 @@ case $platform in
 		alias fgrep='fgrep --color=auto'
 		alias egrep='egrep --color=auto'
 		alias diff='diff --color=auto'
+		;;
+	OpenBSD)
+		# doesn't support colors ??
+		alias ll='ls -AlFh'
+		alias l='ls -AF'
 		;;
 esac
 
@@ -200,10 +205,15 @@ case $platform in
 		alias szz='df -hY -T apfs,hfs,smbfs,ntfs,vfat'
 		alias sza='df -hlY'
 		;;
-	*BSD)
+	FreeBSD)
 		alias sz='df -TPh /'
 		alias szz='df -TPh -t ext2,ext3,ext4,btrfs,zfs,vfat,msdosfs,ntfs,apfs,hfs,smbfs'
 		alias sza='df -TPh'
+		;;
+	OpenBSD)
+		alias sz='df -hl'
+		alias szz='df -h -t ext2,ext3,ext4,btrfs,zfs,ffs,vfat,msdosfs,ntfs,apfs,hfs,smbfs'
+		alias sza='df -h'
 		;;
 esac
 
