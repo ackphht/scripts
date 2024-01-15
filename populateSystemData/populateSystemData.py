@@ -93,14 +93,14 @@ class OSDetails:
 	@staticmethod
 	def GetDetails() -> "OSDetails":
 		if not OSDetails._cachedOSDetails:
-			platform = OSDetails._getPlatform()
-			if platform == OSDetails.PlatformWindows:
+			p = OSDetails._getPlatform()
+			if p == OSDetails.PlatformWindows:
 				OSDetails._cachedOSDetails = _OSDetailsWin()
 			elif platform.system() == OSDetails.SystemOpenBsd:
 				OSDetails._cachedOSDetails = _OSDetailsNoReleaseFiles()
-			elif platform in [OSDetails.PlatformLinux, OSDetails.PlatformBSD]:
+			elif p in [OSDetails.PlatformLinux, OSDetails.PlatformBSD]:
 				OSDetails._cachedOSDetails = _OSDetailsNix()
-			elif platform == OSDetails.PlatformMacOS:
+			elif p == OSDetails.PlatformMacOS:
 				OSDetails._cachedOSDetails = _OSDetailsMac()
 		return OSDetails._cachedOSDetails
 
