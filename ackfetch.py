@@ -23,12 +23,16 @@ def main():
 		_printDetail("Release", deets.release, hdrWidth, noColors)
 		_printDetail("ReleaseVersion", deets.releaseVersion, hdrWidth, noColors)
 		_printDetail("KernelVersion", deets.kernelVersion, hdrWidth, noColors)
-		_printDetail("BuildNumber", deets.buildNumber, hdrWidth, noColors)
-		_printDetail("UpdateRevision", deets.updateRevision, hdrWidth, noColors)
+		if deets.buildNumber:
+			_printDetail("BuildNumber", deets.buildNumber, hdrWidth, noColors)
+		if deets.updateRevision:
+			_printDetail("UpdateRevision", deets.updateRevision, hdrWidth, noColors)
 		_printDetail("Distributor", deets.distributor, hdrWidth, noColors)
 		_printDetail("Codename", deets.codename, hdrWidth, noColors)
-		_printDetail("Type", deets.osType, hdrWidth, noColors)
-		_printDetail("Edition", deets.edition, hdrWidth, noColors)
+		if deets.osType:
+			_printDetail("Type", deets.osType, hdrWidth, noColors)
+		if deets.edition:
+			_printDetail("Edition", deets.edition, hdrWidth, noColors)
 		_printDetail("OSArchitecture", deets.osArchitecture, hdrWidth, noColors)
 		_printDetail("Is64BitOS", deets.is64BitOS, hdrWidth, noColors)
 	else:
