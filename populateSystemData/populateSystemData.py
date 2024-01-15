@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import annotations
+from pydoc import describe
 import sys, os, platform, pathlib, re, json
 import logging
 from typing import Union
@@ -72,48 +73,34 @@ class OSDetails:
 			return result
 	# endregion
 
-	Windows: str = "Windows"
-	Linux: str = "Linux"
-	MacOS: str = "MacOS"
-	BSD: str = "BSD"
+	PlatformWindows: str = "Windows"
+	PlatformLinux: str = "Linux"
+	PlatformMacOS: str = "MacOS"
+	PlatformBSD: str = "BSD"
+	SystemOpenBsd: str = "OpenBSD"
 	_cachedOSDetails: "OSDetails" = None
 	_cachedPlatform: str = None
 
 	def __init__(self):
 		self._platform: str = OSDetails._getPlatform()
-		self._id: str = ""
-		self._description: str = ""
-		self._release: str = ""
-		self._releaseVersion: str = ""
-		self._kernelVersion: str = "0.0.0"
-		self._buildNumber: str = "0"
-		self._updateRevision: int = 0
-		self._distributor: str = ""
-		self._codename: str = ""
-		self._osType: str = ""
-		self._edition: str = ""
-		self._osArchitecture: str = ""
-		self._is64BitOs: bool = True
 
 	def __repr__(self) -> str:
-		return f'<OSDetails: platform = "{self._platform}", id = "{self._id}", description = "{self._description}", release = "{self._release}", ' +\
-				f'releaseVersion = "{self._releaseVersion}", kernelVersion = "{self._kernelVersion}", buildNumber = "{self._buildNumber}", ' +\
-				f'updateRevision = "{self._updateRevision}", distributor = "{self._distributor}", codename = "{self._codename}", osType = "{self._osType}", ' +\
-				f'edition = "{self._edition}", osArchitecture = "{self._osArchitecture}", is64BitOs = "{self._is64BitOs}">'
-
-	def _setfield(self, propName: str, propValue) -> None:
-		# subclasses can't set field values ???
-		self.__setattr__(propName, propValue)
+		return f'<OSDetails: platform = "{self.platform}", id = "{self.id}", description = "{self.description}", release = "{self.release}", ' +\
+				f'releaseVersion = "{self.releaseVersion}", kernelVersion = "{self.kernelVersion}", buildNumber = "{self.buildNumber}", ' +\
+				f'updateRevision = "{self.updateRevision}", distributor = "{self.distributor}", codename = "{self.codename}", osType = "{self.osType}", ' +\
+				f'edition = "{self.edition}", osArchitecture = "{self.osArchitecture}", is64BitOs = "{self.is64BitOs}">'
 
 	@staticmethod
 	def GetDetails() -> "OSDetails":
 		if not OSDetails._cachedOSDetails:
 			platform = OSDetails._getPlatform()
-			if platform == OSDetails.Windows:
+			if platform == OSDetails.PlatformWindows:
 				OSDetails._cachedOSDetails = _OSDetailsWin()
-			elif platform in [OSDetails.Linux, OSDetails.BSD]:
+			elif platform.system() == OSDetails.SystemOpenBsd:
+				OSDetails._cachedOSDetails = _OSDetailsNoReleaseFiles()
+			elif platform in [OSDetails.PlatformLinux, OSDetails.PlatformBSD]:
 				OSDetails._cachedOSDetails = _OSDetailsNix()
-			elif platform == OSDetails.MacOS:
+			elif platform == OSDetails.PlatformMacOS:
 				OSDetails._cachedOSDetails = _OSDetailsMac()
 		return OSDetails._cachedOSDetails
 
@@ -121,13 +108,13 @@ class OSDetails:
 	def _getPlatform() -> str:
 		if not OSDetails._cachedPlatform:
 			if sys.platform == "win32":
-				OSDetails._cachedPlatform = OSDetails.Windows
+				OSDetails._cachedPlatform = OSDetails.PlatformWindows
 			elif sys.platform == "linux":
-				OSDetails._cachedPlatform = OSDetails.Linux
+				OSDetails._cachedPlatform = OSDetails.PlatformLinux
 			elif sys.platform == "darwin":
-				OSDetails._cachedPlatform = OSDetails.MacOS
+				OSDetails._cachedPlatform = OSDetails.PlatformMacOS
 			elif platform.system().upper().endswith("BSD"):
-				OSDetails._cachedPlatform = OSDetails.BSD
+				OSDetails._cachedPlatform = OSDetails.PlatformBSD
 			else:
 				raise NotImplementedError(f'unrecognized platform: "{sys.platform}"')
 		return OSDetails._cachedPlatform
@@ -190,6 +177,47 @@ class OSDetails:
 				result = f"{major}.{minor}{rest if rest else ''}"
 		return result,major,minor
 
+	# region methods to override
+	def _getId(self) -> str:
+		return None
+
+	def _getDescription(self) -> str:
+		return None
+
+	def _getRelease(self) -> str:
+		return None
+
+	def _getReleaseVersion(self) -> str:
+		return None
+
+	def _getKernelVersion(self) -> str:
+		return None
+
+	def _getBuildNumber(self) -> str:
+		return None
+
+	def _getUpdateRevision(self) -> int:
+		return None
+
+	def _getDistributor(self) -> str:
+		return None
+
+	def _getCodename(self) -> str:
+		return None
+
+	def _getOsType(self) -> str:
+		return None
+
+	def _getEdition(self) -> str:
+		return None
+
+	def _getOsArchitecture(self) -> str:
+		return None
+
+	def _getIs64BitOS(self) -> bool:
+		return None
+	# endregion
+
 	# region properties
 	@property
 	def platform(self) -> str:
@@ -199,100 +227,130 @@ class OSDetails:
 	@property
 	def id(self) -> str:
 		"a sorta parsable version string; e.g. 'win.10.21H2', 'win.8.1', 'linux.ubuntu'.23.04, 'mac.13', 'mac.10.15'"
-		return self._id
+		return self._getId()
 
 	@property
 	def description(self) -> str:
 		"e.g. 'Microsoft Windows 10 Pro', 'Ubuntu 23.04', 'macOS 13.3.1 (22E261)'"
-		return self._description
+		return self._getDescription()
 
 	@property
 	def release(self) -> str:
 		"e.g. 'Vista SP2', '7 SP1', '8.1', '10 1709', '11', '11 22H2'; for macOS, just the os version (13.3.1); for Linux, the distro version (e.g. for Ubuntu: '23.04')"
-		return self._release
+		return self._getRelease()
 
 	@property
 	def releaseVersion(self) -> str:
 		"e.g. '10.0.16299.723'; Linux (for Ubuntu: '23.4'), MacOS (e.g. '13.3.1') have different versions for the OS itself and for the kernel"
-		return self._releaseVersion
+		return self._getReleaseVersion()
 
 	@property
 	def kernelVersion(self) -> str:
 		"e.g. '10.0.16299.723'; for macOS, this will be the Darwin version (e.g. '22.4.0'); Linux usually has complicated versions so this has to be a string"
-		return self._kernelVersion
+		return self._getKernelVersion()
 
 	@property
 	def buildNumber(self) -> str:
 		"the OS build number, if applicable"
-		return self._buildNumber
+		return self._getBuildNumber()
 
 	@property
 	def updateRevision(self) -> int:
 		"for Windows, the UpdateBuildRevision (UBR), if available (Win10+)"
-		return self._updateRevision
+		return self._getUpdateRevision()
 
 	@property
 	def distributor(self) -> str:
 		"e.g. 'Microsoft Corporation', 'Apple', 'Ubuntu', 'Fedora', etc"
-		return self._distributor
+		return self._getDistributor()
 
 	@property
 	def codename(self) -> str:
 		"the OS release codename, if available"
-		return self._codename
+		return self._getCodename()
 
 	@property
 	def osType(self) -> str:
 		"for Windows: 'WorkStation' or 'Server'"
-		return self._osType
+		return self._getOsType()
 
 	@property
 	def edition(self) -> str:
 		"for Windows: e.g. 'Professional', 'Home', etc"
-		return self._edition
+		return self._getEdition()
 
 	@property
 	def osArchitecture(self) -> str:
 		"e.g. 'x86_64', 'Arm64'"
-		return self._osArchitecture
+		return self._getOsArchitecture()
 
 	@property
 	def is64BitOS(self) -> bool:
 		"whether or not the OS is 64 bit"
-		return self._is64BitOs
+		return self._getIs64BitOS()
 	# endregion
 
-if OSDetails._getPlatform() == OSDetails.Windows:
+if OSDetails._getPlatform() == OSDetails.PlatformWindows:
 	import winreg
 	class _OSDetailsWin(OSDetails):
 		def __init__(self):
-			base = super()
-			base.__init__()
-			base._setfield("_distributor", "Microsoft Corporation")	# super() can only call methods, can't set fields/properties (and can't call __setattr__) ???
-			buildNumber, displayVersion, editionId, installType, productName, releaseId, ubr = self._getWinRegData()
-			if buildNumber is not None:
-				base._setfield("_buildNumber", str(buildNumber))
-			cleanedUpProductName = self._cleanUpWinProductName(productName, buildNumber)
-			if cleanedUpProductName:
-				base._setfield("_description", cleanedUpProductName)
-			osType = ""
-			if installType is not None:
-				osType = "WorkStation" if installType == "Client" else "Server"
-				base._setfield("_osType", osType)
-			if ubr is not None and ubr > 0:
-				base._setfield("_updateRevision", ubr)
-			base._setfield("_kernelVersion", self._getWinKernelVersion(ubr))
-			osArch, is64BitOs = self._getWinOsArch()
-			base._setfield("_osArchitecture", osArch)
-			base._setfield("_is64BitOs", is64BitOs)
+			super().__init__()
+			self._buildNumber, self._displayVersion, self._editionId, self._installType, self._productName, self._releaseId, self._ubr = self._getWinRegData()
+			self._cleanedUpProductName = self._cleanUpWinProductName(self._productName, self._buildNumber)
+			self._osType = ""
+			if self._installType is not None:
+				self._osType = "WorkStation" if self._installType == "Client" else "Server"
+			self._osArch, self._is64BitOs = self._getWinOsArch()
 			osLookups = OSDetails._getOsInfoLookups()
-			base._setfield("_releaseVersion", self._getWinReleaseVersion(osLookups.windows.releaseVersions, buildNumber, ubr))
-			release = self._getWinRelease(osLookups.windows.versions, buildNumber, osType, displayVersion, releaseId, ubr)
-			base._setfield("_release", release)
-			base._setfield("_id", self._getWinId(release, buildNumber, osType, cleanedUpProductName))
-			base._setfield("_codename", self._getWinCodename(osLookups.windows.codenames, buildNumber))
-			base._setfield("_edition", self._getWinEdition(editionId, installType))
+			self._releaseVersion = self._getWinReleaseVersion(osLookups.windows.releaseVersions, self._buildNumber, self._ubr)
+			self._release = self._getWinRelease(osLookups.windows.versions, self._buildNumber, self._osType, self._displayVersion, self._releaseId, self._ubr)
+			self._codename = self._getWinCodename(osLookups.windows.codenames, self._buildNumber)
+			self._id = self._getWinId(self._release, self._buildNumber, self._osType, self._cleanedUpProductName)
+			self._kernelVersion = self._getWinKernelVersion(self._ubr)
+			self._edition = self._getWinEdition(self._editionId, self._installType)
 
+		# region overridden methods
+		def _getId(self) -> str:
+			return self._id
+
+		def _getDescription(self) -> str:
+			return self._cleanedUpProductName if self._cleanedUpProductName else ""
+
+		def _getRelease(self) -> str:
+			return self._release
+
+		def _getReleaseVersion(self) -> str:
+			return self._releaseVersion
+
+		def _getKernelVersion(self) -> str:
+			return self._kernelVersion
+
+		def _getBuildNumber(self) -> str:
+			return str(self._buildNumber) if self._buildNumber is not None else ""
+
+		def _getUpdateRevision(self) -> int:
+			return self._ubr if self._ubr is not None and self._ubr > 0 else None
+
+		def _getDistributor(self) -> str:
+			return "Microsoft Corporation"
+
+		def _getCodename(self) -> str:
+			return self._codename
+
+		def _getOsType(self) -> str:
+			return self._osType
+
+		def _getEdition(self) -> str:
+			return self._edition
+
+		def _getOsArchitecture(self) -> str:
+			return self._osArch
+
+		def _getIs64BitOS(self) -> bool:
+			return self._is64BitOs
+		# endregion
+
+		# region helper methods
 		def _getWinRegData(self) -> tuple[int, str, str, str, str, str, int]:
 			logging.debug(r"reading data from registry HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion")
 			buildNumber: int = 0; displayVersion: str = None; editionId: str = None; installType: str = None; productName: str = None; releaseId: str = None; ubr: int = 0;
@@ -443,43 +501,66 @@ if OSDetails._getPlatform() == OSDetails.Windows:
 			# probably others to map, but this is all i have data for
 			# for everything else, just use what the registry had:
 			return editionId
+		# endregion
 
-elif OSDetails._getPlatform() in [OSDetails.Linux, OSDetails.BSD]:
+elif OSDetails._getPlatform() in [OSDetails.PlatformLinux, OSDetails.PlatformBSD]:
 	from io import StringIO, TextIOBase
 	from shlex import shlex
 	import subprocess, shutil
 	class _OSDetailsNix(OSDetails):
 		def __init__(self):
-			base = super()
-			base.__init__()
-			distId, description, release, codename = _OSDetailsNix._getLinuxReleaseProps()
-			releaseLooksLikeVersion = OSDetails._looksLikeVersion(release)
+			super().__init__()
+			self._distId, self._description, self._release, self._codename = self._getReleaseProps()
+			self._releaseLooksLikeVersion = OSDetails._looksLikeVersion(self._release)
 			# # special case(s):
-			if distId == "debian" and re.match(r"^\d+$", release):
+			if self._distId == "debian" and re.match(r"^\d+$", self._release):
 				# Debian's os-release VERSION_ID is too simple, so let's try to get fuller debian_version:
 				debianRelPath = pathlib.Path("/etc/debian_version")
 				if debianRelPath.exists():
-					release = debianRelPath.read_text()
-					release = release.strip()
-			if distId:
-				base._setfield("_distributor", distId.title())
-			base._setfield("_description", (f"{description} {release}" if releaseLooksLikeVersion and description.find(release) < 0 else description))
-			base._setfield("_release", release)
-			base._setfield("_codename", codename)
-			if releaseLooksLikeVersion:
-				base._setfield("_id", f"{OSDetails._getPlatform().lower()}.{distId.lower()}.{release}")
-				releaseVersion,major,minor = OSDetails._convertVersion(release)
-				base._setfield("_releaseVersion", releaseVersion)
-				pass
+					self._release = debianRelPath.read_text()
+					self._release = self._release.strip()
+			self._distributor = (self._distId.title() if self.platform.find("BSD") < 0 else self._distId) if self._distId else ""
+			self._finalDescription = f"{self._description} {self._release}" if self._releaseLooksLikeVersion and self._description.find(self._release) < 0 else self._description
+			self._kernelVersion = self._getKernelVersion()
+			if self._releaseLooksLikeVersion:
+				self._id = f"{OSDetails._getPlatform().lower()}.{self._distId.lower()}.{self._release}"
+				self._releaseVersion,major,minor = OSDetails._convertVersion(self._release)
 			else:
-				base._setfield("_id", f"{OSDetails._getPlatform().lower()}.{distId.lower()}")
-			base._setfield("_kernelVersion", _OSDetailsNix._getLinuxKernelVersion())
-			osArch, is64BitOs = OSDetails._normalizeArchitecture(platform.machine())	# apparently "platform.machine()"/"uname -m" is the OS arch, not the processor/"machine" arch
-			base._setfield("_osArchitecture", osArch)
-			base._setfield("_is64BitOs", is64BitOs)
+				self._id = f"{OSDetails._getPlatform().lower()}.{self._distId.lower()}"
+				self._releaseVersion = ""
+			self._osArch, self._is64BitOs = OSDetails._normalizeArchitecture(platform.machine())	# apparently "platform.machine()"/"uname -m" is the OS arch, not the processor/"machine" arch
 
-		@staticmethod
-		def _getLinuxReleaseProps() -> tuple[str, str, str, str]:
+		# region overridden methods
+		def _getId(self) -> str:
+			return self._id
+
+		def _getDescription(self) -> str:
+			return self._finalDescription
+
+		def _getRelease(self) -> str:
+			return self._release
+
+		def _getReleaseVersion(self) -> str:
+			return self._releaseVersion
+
+		def _getKernelVersion(self) -> str:
+			return self._kernelVersion
+
+		def _getDistributor(self) -> str:
+			return self._distributor
+
+		def _getCodename(self) -> str:
+			return self._codename
+
+		def _getOsArchitecture(self) -> str:
+			return self._osArch
+
+		def _getIs64BitOS(self) -> bool:
+			return self._is64BitOs
+		# endregion
+
+		# region helper methods
+		def _getReleaseProps(self) -> tuple[str, str, str, str]:
 			distId = description = release = codename = ""
 			# try getting data from reading files before shelling out to lsb_release:
 			lsbReleasePath = pathlib.Path("/etc/lsb-release")
@@ -554,65 +635,105 @@ elif OSDetails._getPlatform() in [OSDetails.Linux, OSDetails.BSD]:
 				logging.debug("no lsb_release found")
 			return result
 
-		@staticmethod
-		def _getLinuxKernelVersion() -> str:
+		def _getKernelVersion(self) -> str:
 			result = platform.release()
-			# Debian, Kali, maybe others, are now apparently using a 'display' version that's above, but
-			# then the real version has to be parsed out of below (haven't found a better way yet...)
-			# want the fifth field if it starts with something dd.dd.d*:
-			match = re.match(r"^[\S]+\s+[\S]+\s+[\S]+\s+[\S]+\s+(?P<ver>\d+\.\d+\.\d+[\S]*).*$", platform.version())
-			if match:
-				version = match.group("ver")
-				if version and version != result:
-					result = f"{result} [{version}]"
+			if OSDetails._getPlatform() == OSDetails.PlatformLinux:
+				# Debian, Kali, maybe others, are now apparently using a 'display' version that's above, but
+				# then the real version has to be parsed out of below (haven't found a better way yet...)
+				# want the fifth field if it starts with something dd.dd.d*:
+				match = re.match(r"^[\S]+\s+[\S]+\s+[\S]+\s+[\S]+\s+(?P<ver>\d+\.\d+\.\d+[\S]*).*$", platform.version())
+				if match:
+					version = match.group("ver")
+					if version and version != result:
+						result = f"{result} [{version}]"
 			return result
+		# endregion
 
-elif OSDetails._getPlatform() == OSDetails.MacOS:
+	if platform.system() == OSDetails.SystemOpenBsd:
+		class _OSDetailsNoReleaseFiles(_OSDetailsNix):
+			def __init__(self):
+				super().__init__()
+
+			# override:
+			def _getReleaseProps(self) -> tuple[str, str, str, str]:
+				# no os-release, lsb_release, lsb-release; do what we can:
+				distId = platform.system()
+				release = platform.release()
+				description = f"{distId} {release}"
+				return distId, description, release, ""
+
+elif OSDetails._getPlatform() == OSDetails.PlatformMacOS:
 	import subprocess, shutil
 	class _OSDetailsMac(OSDetails):
 		def __init__(self):
-			base = super()
-			base.__init__()
-			base._setfield("_distributor", "Apple")	# super() can only call methods, can't set fields/properties (and can't call __setattr__) ???
-			base._setfield("_description", _OSDetailsMac._getMacDescription())
-			base._setfield("_release", _OSDetailsMac._getMacReleaseVersion())
-			releaseVersion,major,minor = OSDetails._convertVersion(base.release)
-			base._setfield("_releaseVersion", releaseVersion)
-			kern = _OSDetailsMac._getMacKernelVersion()
-			if kern:
-				base._setfield("_kernelVersion", kern)
-			base._setfield("_id", _OSDetailsMac._getMacId(major, minor))
+			super.__init__()
+			self._description = self._getMacDescription()
+			self._release = self._getMacReleaseVersion()
+			self._releaseVersion,self._major,self._minor = OSDetails._convertVersion(self._release)
+			self._id = self._getMacId(self._major, self._minor)
+			kern = self._getMacKernelVersion()
+			self._kernelVersion = kern if kern else ""
 			osLookups = OSDetails._getOsInfoLookups()
-			base._setfield("_codename", _OSDetailsMac._getMacCodename(osLookups.macos.codenames, major, minor))
-			base._setfield("_buildNumber", _OSDetailsMac._getMacBuildNumber())
-			base._setfield("_updateRevision", _OSDetailsMac._getMacRevision())
-			osArch, is64BitOs = _OSDetailsMac._getMacOSArch()
-			base._setfield("_osArchitecture", osArch)
-			base._setfield("_is64BitOs", is64BitOs)
+			self._codename = self._getMacCodename(osLookups.macos.codenames, self._major, self._minor)
+			self._buildNumber = self._getMacBuildNumber()
+			self._updateRevision = self._getMacRevision()
+			self._osArch, self._is64BitOs = self._getMacOSArch()
 
-		@staticmethod
-		def _getMacDescription() -> str:
+		# region overridden methods
+		def _getId(self) -> str:
+			return self._id
+
+		def _getDescription(self) -> str:
+			return self._description
+
+		def _getRelease(self) -> str:
+			return self._release
+
+		def _getReleaseVersion(self) -> str:
+			return self._releaseVersion
+
+		def _getKernelVersion(self) -> str:
+			return self._kernelVersion
+
+		def _getBuildNumber(self) -> str:
+			return self._buildNumber
+
+		def _getUpdateRevision(self) -> int:
+			return self._updateRevision
+
+		def _getDistributor(self) -> str:
+			return "Apple"
+
+		def _getCodename(self) -> str:
+			return self._codename
+
+		def _getOsArchitecture(self) -> str:
+			return self._osArch
+
+		def _getIs64BitOS(self) -> bool:
+			return self._is64BitOs
+		# endregion
+
+		# region helper methods
+		def _getMacDescription(self) -> str:
 			tmp = _OSDetailsMac._getCommandOutput(["system_profiler", "-json", "SPSoftwareDataType"])
 			jsonDict = json.loads(tmp)
 			#$osDetails.Description = $sysProfData.SPSoftwareDataType.os_version
 			return jsonDict["SPSoftwareDataType"][0]["os_version"]
 
-		@staticmethod
-		def _getMacReleaseVersion() -> str:
+		def _getMacReleaseVersion(self) -> str:
 			tmp = _OSDetailsMac._getCommandOutput(["sysctl", "-hin", "kern.osproductversion"])
 			if not tmp:
 				pass	# anywhere else to look ???
 			return tmp
 
-		@staticmethod
-		def _getMacKernelVersion() -> str:
+		def _getMacKernelVersion(self) -> str:
 			tmp = _OSDetailsMac._getCommandOutput(["sysctl", "-hin", "kern.osrelease"])
 			if not tmp:
 				pass	# anywhere else to look ???
 			return tmp
 
-		@staticmethod
-		def _getMacId(verMajor: int, verMinor: int) -> str:
+		def _getMacId(self, verMajor: int, verMinor: int) -> str:
 			result = ""
 			#if verMajor > 10:
 			#	result = f"mac.{verMajor}"
@@ -620,22 +741,19 @@ elif OSDetails._getPlatform() == OSDetails.MacOS:
 			result = f"mac.{verMajor}.{verMinor}"
 			return result
 
-		@staticmethod
-		def _getMacCodename(osCodenames: list["OSDetails._osCodename"], verMajor: int, verMinor: int) -> str:
+		def _getMacCodename(self, osCodenames: list["OSDetails._osCodename"], verMajor: int, verMinor: int) -> str:
 			for ver in osCodenames:
 				if verMajor == ver.major and (verMinor == ver.minor or ver.minor < 0):
 					return ver.codename
 			return ""
 
-		@staticmethod
-		def _getMacBuildNumber() -> str:
+		def _getMacBuildNumber(self) -> str:
 			tmp = _OSDetailsMac._getCommandOutput(["sysctl", "-hin", "kern.osversion"])
 			if not tmp:
 				pass	# anywhere else to look ???
 			return tmp
 
-		@staticmethod
-		def _getMacRevision() -> int:
+		def _getMacRevision(self) -> int:
 			result = -1
 			tmp = _OSDetailsMac._getCommandOutput(["sysctl", "-hin", "kern.osrevision"])
 			if not tmp:
@@ -644,8 +762,7 @@ elif OSDetails._getPlatform() == OSDetails.MacOS:
 				result = int(tmp.replace(',', ''))
 			return result
 
-		@staticmethod
-		def _getMacOSArch() -> tuple[str, int]:
+		def _getMacOSArch(self) -> tuple[str, int]:
 			archPath = shutil.which("arch")
 			if archPath:
 				tmpArch = _OSDetailsMac._getCommandOutput([archPath])
@@ -660,6 +777,7 @@ elif OSDetails._getPlatform() == OSDetails.MacOS:
 		def _getCommandOutput(args: list[str]) -> str:
 			tmp = subprocess.check_output(args, stderr=subprocess.DEVNULL)
 			return tmp.decode().strip()
+		# endregion
 
 else:
 	raise NotImplementedError(f'unrecognized platform: "{sys.platform}"')
