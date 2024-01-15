@@ -77,7 +77,6 @@ class OSDetails:
 	PlatformLinux: str = "Linux"
 	PlatformMacOS: str = "MacOS"
 	PlatformBSD: str = "BSD"
-	SystemOpenBsd: str = "OpenBSD"
 	_cachedOSDetails: "OSDetails" = None
 	_cachedPlatform: str = None
 
@@ -96,8 +95,6 @@ class OSDetails:
 			p = OSDetails._getPlatform()
 			if p == OSDetails.PlatformWindows:
 				OSDetails._cachedOSDetails = _OSDetailsWin()
-			elif platform.system() == OSDetails.SystemOpenBsd:
-				OSDetails._cachedOSDetails = _OSDetailsNoReleaseFiles()
 			elif p in [OSDetails.PlatformLinux, OSDetails.PlatformBSD]:
 				OSDetails._cachedOSDetails = _OSDetailsNix()
 			elif p == OSDetails.PlatformMacOS:
@@ -582,7 +579,8 @@ elif OSDetails._getPlatform() in [OSDetails.PlatformLinux, OSDetails.PlatformBSD
 				logging.debug(f'reading os-release from file "{osReleasePath}"')
 				with open(osReleasePath, "r", encoding="utf-8") as f:
 					osrelease = _OSDetailsNix._parseLinesToDict(f)
-				if not distId and "ID" in osrelease: distId = osrelease["ID"]
+				distIdName = "NAME" if OSDetails._getPlatform() == OSDetails.PlatformBSD else "ID"
+				if not distId and distIdName in osrelease: distId = osrelease[distIdName]
 				if not description and "NAME" in osrelease: description = osrelease["NAME"]
 				if not release and "VERSION_ID" in osrelease: release = osrelease["VERSION_ID"]
 				if not codename and "VERSION_CODENAME" in osrelease: codename = osrelease["VERSION_CODENAME"]
@@ -597,6 +595,15 @@ elif OSDetails._getPlatform() in [OSDetails.PlatformLinux, OSDetails.PlatformBSD
 				if not description and "Description" in lsb: description = lsb["Description"]
 				if not release and "Release" in lsb: release = lsb["Release"]
 				if not codename and "Codename" in lsb: codename = lsb["Codename"]
+
+			if OSDetails._getPlatform() == OSDetails.PlatformBSD:
+				# if no os-release, lsb_release, lsb-release; do what we can; so far for BSDs, these are close enough(??):
+				if not distId:
+					distId = platform.system()
+				if not description:
+					description = platform.system()
+				if not release:
+					release = platform.release()
 
 			if codename.lower() == "n/a": codename = ""	# opensuse tumbleweed
 
@@ -648,19 +655,6 @@ elif OSDetails._getPlatform() in [OSDetails.PlatformLinux, OSDetails.PlatformBSD
 						result = f"{result} [{version}]"
 			return result
 		# endregion
-
-	if platform.system() == OSDetails.SystemOpenBsd:
-		class _OSDetailsNoReleaseFiles(_OSDetailsNix):
-			def __init__(self):
-				super().__init__()
-
-			# override:
-			def _getReleaseProps(self) -> tuple[str, str, str, str]:
-				# no os-release, lsb_release, lsb-release; do what we can:
-				distId = platform.system()
-				release = platform.release()
-				description = f"{distId} {release}"
-				return distId, description, release, ""
 
 elif OSDetails._getPlatform() == OSDetails.PlatformMacOS:
 	import subprocess, shutil
