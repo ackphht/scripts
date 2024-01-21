@@ -14,7 +14,7 @@ if [[ -z "$currShell" ]]; then
 		Linux) currShell=$(ps -p $$ -o exe=) ;;		# things i found said to use 'cmd=' but that sometimes include all the args, too; think this one's more what i need
 		Darwin) currShell=$(ps -p $$ -o command=) ;;
 		MINGW*) currShell=$(ps -p $$ | tail -n 1 | awk '{print $NF}') ;;		# for git's bash; doesn't support ps -o
-		*BSD) currShell=$(ps -p $$ -o comm=) ;;
+		*BSD|DragonFly) currShell=$(ps -p $$ -o comm=) ;;
 	esac
 elif [[ "$currShell" =~ "busybox" ]]; then
 	currShell=$SHELL	# nothing else is working
@@ -69,8 +69,11 @@ case $platform in
 		alias egrep='egrep --color=auto'
 		alias diff='diff --color=auto'
 		;;
-	OpenBSD)
-		# doesn't support colors ??
+	OpenBSD|DragonFly)
+		# OpenBSD doesn't support colors ??
+		if [[ "$platform" == "DragonFly" ]]; then
+			alias ls='ls -G'
+		fi
 		alias ll='ls -AlFh'
 		alias l='ls -AF'
 		;;
@@ -205,9 +208,9 @@ case $platform in
 		alias szz='df -hY -T apfs,hfs,smbfs,ntfs,vfat'
 		alias sza='df -hlY'
 		;;
-	FreeBSD)
+	FreeBSD|DragonFly)
 		alias sz='df -TPh /'
-		alias szz='df -TPh -t ext2,ext3,ext4,btrfs,zfs,vfat,msdosfs,ntfs,apfs,hfs,smbfs'
+		alias szz='df -TPh -t ext2,ext3,ext4,btrfs,zfs,ufs,hammer1,hammer2,vfat,msdosfs,ntfs,apfs,hfs,smbfs'
 		alias sza='df -TPh'
 		;;
 	OpenBSD)
@@ -217,7 +220,7 @@ case $platform in
 		;;
 esac
 
-if [[ "$platform" == "Linux" || "$platform" =~ "BSD" ]]; then
+if [[ "$platform" == "Linux" || "$platform" =~ "BSD" || "$platform" == "DragonFly" ]]; then
 	if hasCmd python3 && [[ -f ~/scripts/zeroLinuxFreeSpace.py ]]; then
 		alias zx='sudo python3 ~/scripts/zeroLinuxFreeSpace.py'
 	elif hasCmd pwsh && [[ -f ~/scripts/zeroLinuxFreeSpace.ps1 ]]; then
