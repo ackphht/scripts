@@ -1058,6 +1058,7 @@ function CleanUpPathVars {
 		'C:\ProgramData\DockerDesktop\version-bin'
 		'*\GitHubDesktop\*'
 		'C:\Program Files (x86)\GnuPG\bin'
+		'C:\Program Files (x86)\Gpg4win\..\GnuPG\bin'
 		'*\go\bin'
 		'*\Python\Launcher\'
 		'*\TortoiseGit\bin'
@@ -1067,6 +1068,7 @@ function CleanUpPathVars {
 		"$env:LocalAppData\Microsoft\WindowsApps"
 		"$env:LocalAppData\Programs\Microsoft VS Code\bin"
 		"$env:LocalAppData\Programs\oh-my-posh\bin"
+		"$env:LocalAppData\Microsoft\WinGet\Links"
 	)
 	if ($VerbosePreference -eq 'Continue') {
 		WriteVerboseMessage 'removals:'
