@@ -82,7 +82,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 */
 #Esc::Run("procexp.exe /e")
 ^#a::Run(gOneDrive . "\Utils\RandomMusicPicker.exe randomPlaylist")
-^#b::Run(gProgramFiles . "\2BrightSparks\SyncBackPro\SyncBackPro.exe")
+^#b::Run(EnvGet("LocalAppData") . "\Programs\2BrightSparks\SyncBackPro\SyncBackPro.NE.exe")
 ^#c::Run('wt.exe --window last --profile "PowerShell"')		; https://learn.microsoft.com/en-us/windows/terminal/command-line-arguments
 ^!#c::RunElevated("wt.exe", '--window last --profile "PowerShell"')
 ^+#c::Run(FindPowerShellCore(), EnvGet("UserProfile"))
