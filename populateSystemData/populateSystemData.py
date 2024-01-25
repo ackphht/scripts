@@ -110,10 +110,10 @@ class OSDetails:
 				OSDetails._cachedPlatform = OSDetails.PlatformLinux
 			elif sys.platform == "darwin":
 				OSDetails._cachedPlatform = OSDetails.PlatformMacOS
-			elif platform.system().upper().endswith("BSD"):
+			elif platform.system().upper().endswith("BSD") or platform.system() == "DragonFly":
 				OSDetails._cachedPlatform = OSDetails.PlatformBSD
 			else:
-				raise NotImplementedError(f'unrecognized platform: "{sys.platform}"')
+				raise NotImplementedError(f'unrecognized platform: sys.platform = "{sys.platform}", platform.system() = "{platform.system()}"')
 		return OSDetails._cachedPlatform
 
 	@staticmethod
