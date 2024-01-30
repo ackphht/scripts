@@ -15,12 +15,13 @@ function Main {
 	param([string] $name)
 
 	$baseBackupFolder = 'D:\Users\michael\temp\VMs'
+	$skipsRe = [regex]::new('.+_(diff|test|beta|dev|canary)', 'Compiled')
 	#
 	# back up Hyper-V VMs:
 	$hyperVBackupFolder = Join-Path $baseBackupFolder 'HyperV'
 	Get-VM |
 		Where-Object { -not $name -or $_.Name -like $name } |
-		Where-Object { $_.Name -notlike '*_diff' -and $_.Name -notlike '*_test' } |
+		Where-Object { $_.Name -notmatch $skipsRe -and $_.Name -notlike 'Live*' } |
 		ForEach-Object { BackUpHyperVVM -vm $_ -backupFolder $hyperVBackupFolder }
 	#
 	# back up VirtualBox VMs:
@@ -29,7 +30,7 @@ function Main {
 		$virtualBoxBackupFolder = Join-Path $baseBackupFolder 'VirtualBox'
 		GetVirtualBoxVms |
 			Where-Object { -not $name -or $_.Name -like $name -or $_.Uuid -like $name } |
-			Where-Object { $_.Name -notlike '*_diff' -and $_.Name -notlike '*_test' } |
+			Where-Object { $_.Name -notmatch $skipsRe -and $_.Name -notlike 'Live*' } |
 			ForEach-Object { BackUpVirtualBoxVM -vm $_ -backupFolder $virtualBoxBackupFolder }
 	} else {
 		Write-Host "VBoxManage.exe not found, cannot back up any VirtualBox VMs" -ForegroundColor Yellow
