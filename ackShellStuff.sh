@@ -228,6 +228,8 @@ if [[ "$platform" == "Linux" || "$platform" =~ "BSD" || "$platform" == "DragonFl
 	fi
 fi
 
+hasCmd nano && alias nano='nano -lLA -T 4' || true
+
 # default prompt in case oh-my-posh (below) isn't installed
 case $currShell in
 	bash) PS1='\n\e[36m\s v\v \e[95m\u@\h \e[33m\t \e[92m\w\n\e[32mWHAT?!? \$\e[0m ' ;;
