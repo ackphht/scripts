@@ -595,7 +595,8 @@ function CleanUpStartMenuItems {
 	WriteHeaderMessage 'cleaning up StartMenu entries'
 	$applications = 'Applications'
 	$development = 'Development'
-	$systemApps = 'Maintenance'	# shown in Explorer as 'System'
+	#$systemApps = 'Maintenance'	# shown in Explorer as 'System'
+	$systemApps = 'System'
 	@(
 		# moves:
 		[StartMenuCleanupItem]::FromCommonPrograms('Access.lnk', $applications)
