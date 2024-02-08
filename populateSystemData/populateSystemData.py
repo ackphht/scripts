@@ -660,7 +660,7 @@ elif OSDetails._getPlatform() == OSDetails.PlatformMacOS:
 	import subprocess, shutil
 	class _OSDetailsMac(OSDetails):
 		def __init__(self):
-			super.__init__()
+			super().__init__()
 			self._description = self._getMacDescription()
 			self._release = self._getMacReleaseVersion()
 			self._releaseVersion,self._major,self._minor = OSDetails._convertVersion(self._release)
