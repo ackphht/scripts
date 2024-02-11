@@ -111,7 +111,7 @@ elif hasCmd zypper; then
 	alias aptc='sudo zypper clean --all'
 	alias apts='zypper search'
 	alias aptn='zypper info'
-	alias apti='sudo zypper install'
+	alias apti='sudo zypper install --no-recommends'
 	alias aptx='sudo zypper remove --clean-deps'
 	alias aptxx='sudo zypper remove --clean-deps'
 	alias aptl='zypper search --installed-only'
