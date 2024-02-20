@@ -98,8 +98,8 @@ function SetWindowsOptions {
 	# disable prefixing 'Shortcut to' when creating shortcuts
 	Set-RegistryEntry -registryPath 'HKCU:Software\Microsoft\Windows\CurrentVersion\Explorer' -valueName 'link' -valueData ([byte[]](0x00,0x00,0x00,0x00)) -valueType 'Binary'
 	# disable saving zone information in downloads
-	Set-RegistryEntry -registryPath 'HKCU:Software\Microsoft\Windows\CurrentVersion\Policies\Associations' -valueName 'DefaultFileTypeRisk' -valueData 0x1808 -valueType 'DWord'   # 0x1808 = "Low Risk"; 0x1807 = "Moderate", 0x1806 = "High Risk"
-	Set-RegistryEntry -registryPath 'HKCU:Software\Microsoft\Windows\CurrentVersion\Policies\Attachments' -valueName 'SaveZoneInformation' -valueData 1 -valueType 'DWord'         # 1 = "Do not preserve zone information", 2 = "Do preserve zone information"
+	Set-RegistryEntry -registryPath 'HKCU:Software\Microsoft\Windows\CurrentVersion\Policies\Associations' -valueName 'DefaultFileTypeRisk' -valueData 0x1808 -valueType 'DWord'	# 0x1808 = "Low Risk"; 0x1807 = "Moderate", 0x1806 = "High Risk"
+	Set-RegistryEntry -registryPath 'HKCU:Software\Microsoft\Windows\CurrentVersion\Policies\Attachments' -valueName 'SaveZoneInformation' -valueData 1 -valueType 'DWord'			# 1 = "Do not preserve zone information", 2 = "Do preserve zone information"
 }
 
 function UninstallUnwantedApps {
@@ -123,7 +123,7 @@ function UninstallUnwantedApps {
 		"NVIDIA Optimus Update *"
 		"NVIDIA Update Core"
 		"NVIDIA Install Application"
-		"NVIDIA HD Audio *"				     # keep this last because it thinks it needs a restart, and the other nVidia crap won't run because now a restart is needed
+		"NVIDIA HD Audio *"					# keep this last because it thinks it needs a restart, and the other nVidia crap won't run because now a restart is needed
 		#>
 	) | ForEach-Object { $appsList = UninstallApp -displayName $_ -cachedInstalledApps $appsList }
 }
@@ -204,7 +204,7 @@ function CleanUpNvidiaFiles {
 	#
 
 	@(
-		<#"C:\Program Files\NVIDIA Corporation\Display\nvxdsync.exe",#>     # renaming this one causes a long hang every time i right click on the desktop; thanks nVidia!
+		<#"C:\Program Files\NVIDIA Corporation\Display\nvxdsync.exe",#>		# renaming this one causes a long hang every time i right click on the desktop; thanks nVidia!
 		"C:\Program Files (x86)\NVIDIA Corporation\Update Core\NvBackend.exe"
 	) |	ForEach-Object { RenameUnwantedFiles $_; }
 }
@@ -338,8 +338,8 @@ function DisableUnwantedServices {
 		@{ Name = 'AMD External Events Utility'; Start = ''; }
 		@{ Name = 'FoxitCloudUpdateService'; Start = ''; }
 		@{ Name = 'NvNetworkService'; Start = ''; }
-		#@{ Name = 'gupdate'; Start = ''; }							# "Google Update Service (gupdate)",    # this one is set to "Automatic (Delayed Start)" when Chrome is installed for all users; probably does the check at system startup and then shuts down ???
-		#@{ Name = 'gupdatem'; Start = ''; }						# "Google Update Service (gupdatem)", # when Chrome is installed for all users, this one is started manually, think it's the one run to do a manual upgrade (like from Chrome itself) ???
+		#@{ Name = 'gupdate'; Start = ''; }							# "Google Update Service (gupdate)",	# this one is set to "Automatic (Delayed Start)" when Chrome is installed for all users; probably does the check at system startup and then shuts down ???
+		#@{ Name = 'gupdatem'; Start = ''; }						# "Google Update Service (gupdatem)",	# when Chrome is installed for all users, this one is started manually, think it's the one run to do a manual upgrade (like from Chrome itself) ???
 		@{ Name = 'Intel(R) Capability Licensing Service TCP IP Interface'; Start = ''; }
 		@{ Name = 'Intel(R) Content Protection HECI Service'; Start = ''; }
 		@{ Name = 'Intel(R) Content Protection HDCP Service'; Start = ''; }
@@ -1063,20 +1063,14 @@ function CleanUpPathVars {
 		'*\Fiddler'
 		'*\Azure Data Studio\*'
 		'*\oh-my-posh\themes'
-		'C:\ProgramData\DockerDesktop\version-bin'
+		#'C:\ProgramData\DockerDesktop\version-bin'
 		'*\GitHubDesktop\*'
-		'C:\Program Files (x86)\GnuPG\bin'
-		'C:\Program Files (x86)\Gpg4win\..\GnuPG\bin'
-		'*\go\bin'
+		#'C:\Program Files (x86)\GnuPG\bin'
+		#'C:\Program Files (x86)\Gpg4win\..\GnuPG\bin'
+		#'*\go\bin'
 		'*\Python\Launcher\'
 		'*\TortoiseGit\bin'
-		'*\gsudo\*'
-		# these i'm trying to use env vars for, but they keep getting put back in without:
-		"$env:AppData\npm"
-		"$env:LocalAppData\Microsoft\WindowsApps"
-		"$env:LocalAppData\Programs\Microsoft VS Code\bin"
-		"$env:LocalAppData\Programs\oh-my-posh\bin"
-		"$env:LocalAppData\Microsoft\WinGet\Links"
+		#'*\gsudo\*'
 	)
 	if ($VerbosePreference -eq 'Continue') {
 		WriteVerboseMessage 'removals:'
@@ -1262,13 +1256,18 @@ function RemoveUnwantedPathsForTarget {
 		if ($originalPathVar) {
 			$originalPathVar = $originalPathVar.Trim([System.IO.Path]::PathSeparator)	# ends with ';' sometimes
 		}
-		WriteVerboseMessage 'original: {0}' $originalPathVar -continuation
-		$cleanedPathVar = RemoveUnwantedPaths -pathVar $originalPathVar -targetName $targetName -removals $removals -replacements $replacements
+		$keyType = $regKey.GetValueKind($envVarName)
+		WriteVerboseMessage 'original: {0} (type: {1})' $originalPathVar,$keyType -continuation
+		if ($keyType -notin @([Microsoft.Win32.RegistryValueKind]::String, [Microsoft.Win32.RegistryValueKind]::ExpandString)) {
+			WriteStatusMessage "${script:msgIndent}$targetName $envVarName variable is type $keyType; skipping processing"
+			return
+		}
+		$cleanedPathVar = RemoveUnwantedPaths -pathValue $originalPathVar -targetName $targetName -removals $removals -replacements $replacements
 		if ($cleanedPathVar -ne $originalPathVar) {
-			WriteStatusMessage "${script:msgIndent}updating $targetName Path variable"
+			WriteStatusMessage "${script:msgIndent}updating $targetName $envVarName variable"
 			WriteVerboseMessage 'cleaned: {0}' $cleanedPathVar -continuation
-			if ($PSCmdlet.ShouldProcess("$targetName/@Path", 'SetEnvironmentVariable')) {
-				$regKey.SetValue($envVarName, $cleanedPathVar, 'ExpandString')
+			if ($PSCmdlet.ShouldProcess("$targetName/@$envVarName", 'SetEnvironmentVariable')) {
+				$regKey.SetValue($envVarName, $cleanedPathVar, [Microsoft.Win32.RegistryValueKind]::ExpandString)
 			}
 		} else {
 			WriteStatusMessageLow "${script:msgIndent}no changes for $targetName Path variable"
@@ -1280,24 +1279,25 @@ function RemoveUnwantedPathsForTarget {
 
 function RemoveUnwantedPaths {
 	param(
-		[Parameter(Mandatory=$true)] [string] $pathVar,
+		[Parameter(Mandatory=$true)] [string] $pathValue,
 		[Parameter(Mandatory=$true)] [string] $targetName,
 		[Parameter(Mandatory=$true)] [string[]] $removals,
 		[PSObject[]] $replacements
 	)
-	$results = @()
-	$ps = $pathVar -split [System.IO.Path]::PathSeparator
+	$intermedResults = @(); $results = @();
+	$ps = $pathValue -split [System.IO.Path]::PathSeparator
+	# remove any specified values, do any replacements:
 	foreach ($p in $ps) {
 		if (!$p) { continue; }
-		$match = $false
+		$matched = $false
 		foreach ($c in $removals) {
 			if ($p -like $c) {
 				WriteSubHeaderMessage "${script:msgIndent}removing $targetName path '$p'"
-				$match = $true
+				$matched = $true
 				break
 			}
 		}
-		if (!$match) {
+		if (!$matched) {
 			if ($replacements) {
 				foreach ($r in $replacements) {
 					if ($p -like $r.SearchFor) {
@@ -1308,11 +1308,72 @@ function RemoveUnwantedPaths {
 					}
 				}
 			}
-
-			$results += $p
+			$intermedResults += $p
 		}
 	}
+	# normalize all the values, use env vars as much as possible, remove dupes, non-existant paths:
+	foreach ($p in $intermedResults) {
+		$p2 = NormalizePathValue -value $p
+		if ($p2) {
+			if ($results -notcontains $p2) {
+				WriteVerboseMessage 'adding path value = |{0}|' $p2
+				$results += $p2
+			} else {
+				WriteSubHeaderMessage "${script:msgIndent}removing dupe $targetName path '$p' [normalized: '$p2']"
+			}
+		} else {
+			WriteSubHeaderMessage "${script:msgIndent}removing $targetName path value '$p': path does not exist(?)"
+		}
+	}
+
 	return $results -join ';'
+}
+
+function NormalizePathValue {
+	param(
+		[string] $value
+	)
+	WriteVerboseMessage 'input value = |{0}|' $value
+	if (-not $value) { return $value }
+	$value = [System.Environment]::ExpandEnvironmentVariables($value)			# expand it all the way out so we can replace with preferred stuff
+	WriteVerboseMessage 'expanded value = |{0}|' $value -continuation
+	$value = Convert-Path -LiteralPath $value -ErrorAction SilentlyContinue		# get rid of any relative paths
+	WriteVerboseMessage 'converted value = |{0}|' $value -continuation
+	$value = ReplaceWithEnvVars -value $value
+	WriteVerboseMessage 'returning value = |{0}|' $value -continuation
+	return $value
+}
+
+$script:cachedEnvVars = $null
+function ReplaceWithEnvVars {
+	param(
+		[string] $value
+	)
+	if (-not $value) { return $value }
+	if (-not $script:cachedEnvVars) {
+		$script:cachedEnvVars = @(
+			[PSCustomObject]@{ Name = 'LocalAppData'; Value = [System.Environment]::GetEnvironmentVariable('LocalAppData'); }
+			[PSCustomObject]@{ Name = 'AppData'; Value = [System.Environment]::GetEnvironmentVariable('AppData'); }
+			[PSCustomObject]@{ Name = 'OneDrive'; Value = [System.Environment]::GetEnvironmentVariable('OneDrive'); }
+			[PSCustomObject]@{ Name = 'UserProfile'; Value = [System.Environment]::GetEnvironmentVariable('UserProfile'); }
+			[PSCustomObject]@{ Name = 'ProgramData'; Value = [System.Environment]::GetEnvironmentVariable('ProgramData'); }
+			[PSCustomObject]@{ Name = 'ProgramFiles'; Value = [System.Environment]::GetEnvironmentVariable('ProgramFiles'); }
+			[PSCustomObject]@{ Name = 'ProgramFiles(x86)'; Value = [System.Environment]::GetEnvironmentVariable('ProgramFiles(x86)'); }
+			[PSCustomObject]@{ Name = 'SystemRoot'; Value = [System.Environment]::GetEnvironmentVariable('SystemRoot'); }
+		)
+		if ($VerbosePreference -eq 'Continue') {
+			WriteVerboseMessage 'cachedEnvVars:'
+			foreach ($nv in $script:cachedEnvVars) { WriteVerboseMessage '"{0}" = "{1}"' $nv.Name,$nv.Value -continuation }
+		}
+	}
+	foreach ($nv in $script:cachedEnvVars) {
+		# -icontains, -ireplace aren't working(?), use .net methods:
+		if ($value.StartsWith($nv.Value, [System.StringComparison]::CurrentCultureIgnoreCase)) {
+			$value = $value.Replace($nv.Value, "%$($nv.Name)%", [System.StringComparison]::CurrentCultureIgnoreCase)
+			break
+		}
+	}
+	return $value
 }
 
 function CleanUpStartMenuItem {
