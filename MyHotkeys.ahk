@@ -247,26 +247,23 @@ $^q:: {	; '$' needed so that we can do the Send below without getting in a loop?
 /*
 	functions
 */
-FindOneNote() {
-	onenotePath := CheckRegistryForAppPath("OneNote")
-	if (!FileExist(onenotePath)) {
-		onenotePath := gProgramFiles . "\Microsoft Office\OFFICE12\ONENOTE.EXE"
-		if (!FileExist(onenotePath)) {
-			onenotePath := gProgramFiles . "\Microsoft Office\OFFICE11\ONENOTE.EXE"
-			if (!FileExist(onenotePath)) {
-				; in case we're on 64bit system, check for 32bit Program Files:
-				onenotePath := gProgramFiles32 . "\Microsoft Office\OFFICE12\ONENOTE.EXE"
-				if (!FileExist(onenotePath)) {
-					onenotePath := gProgramFiles32 . "\Microsoft Office\OFFICE11\ONENOTE.EXE"
-					if (!FileExist(onenotePath)) {
-						onenotePath := ""
-					}
+FindApp(regAppPathName, programFilesRelPath := "", fallbackExe := "") {
+	appPath := CheckRegistryForAppPath(regAppPathName)
+	if (!appPath or !FileExist(appPath)) {
+		if (programFilesRelPath) {
+			appPath := gProgramFiles . programFilesRelPath
+			if (!FileExist(appPath)) {
+				appPath := gProgramFiles32 . programFilesRelPath
+				if (!FileExist(appPath)) {
+					appPath := fallbackExe
 				}
 			}
+		} else {
+			appPath := fallbackExe
 		}
 	}
-	OutputDebug('FindOneNote: returning OneNote path "' . onenotePath . '"')
-	return onenotePath
+	OutputDebug('FindApp: returning path "' . appPath . '"')
+	return appPath
 }
 
 RunOneNote() {
@@ -275,7 +272,7 @@ RunOneNote() {
 		WinActivate("ahk_exe onenote.exe")
 	} else {
 		OutputDebug('RunOneNote: no existing OneNote instance found, getting path')
-		oneNotePath := FindOneNote()
+		oneNotePath := FindApp("OneNote")
 		if (oneNotePath != "") {
 			RunAndActivate(oneNotePath)
 		} else {
@@ -297,42 +294,15 @@ FindPowerShell() {
 }
 
 FindPowerShellCore() {
-	poshPath := CheckRegistryForAppPath("pwsh")
-	if (!FileExist(poshPath)) {
-		poshPath := "pwsh.exe"		; just hope it's on the path
-	}
-	OutputDebug('FindPowerShellCore: returning pwsh path "' . poshPath . '"')
-	return poshPath
+	return FindApp("pwsh", "", "pwsh.exe")
 }
 
 FindNotepad3() {
-	np3Path := CheckRegistryForAppPath("notepad3")
-	if (!FileExist(np3Path)) {
-		np3Path := gProgramFiles . "\Notepad3\notepad3.exe"
-		if (!FileExist(np3Path)) {
-			np3Path := gProgramFiles32 . "\Notepad3\notepad3.exe"
-			if (!FileExist(np3Path)) {
-				np3Path := "notepad.exe"	; fall back to old notepad (or store app one ??)
-			}
-		}
-	}
-	OutputDebug('FindNotepad3: returning path "' . np3Path . '"')
-	return np3Path
+	return FindApp("notepad3", "\Notepad3\notepad3.exe", "notepad.exe")
 }
 
 FindNotepadPlusPus() {
-	nppPath := CheckRegistryForAppPath("notepad++")
-	if (!FileExist(nppPath)) {
-		nppPath := gProgramFiles . "\Notepad++\notepad++.exe"
-		if (!FileExist(nppPath)) {
-			nppPath := gProgramFiles32 . "\Notepad++\notepad++.exe"
-			if (!FileExist(nppPath)) {
-				nppPath := ""
-			}
-		}
-	}
-	OutputDebug('FindNotepadPlusPus: returning path "' . nppPath . '"')
-	return nppPath
+	return FindApp("notepad++", "\Notepad++\notepad++.exe")
 }
 
 RunNotepadPlusPlus() {
