@@ -82,7 +82,8 @@ GroupAdd "Explorer", gExplorerClassPostVista
 */
 #Esc::Run("procexp.exe /e")
 ^#a::Run(gOneDrive . "\Utils\RandomMusicPicker.exe randomPlaylist")
-^#b::Run(EnvGet("LocalAppData") . "\Programs\2BrightSparks\SyncBackPro\SyncBackPro.NE.exe")
+^#b::Run(FindSyncBackPro(false))
+^!#b::Run(FindSyncBackPro(true))
 ^#c::Run('wt.exe --window last --profile "PowerShell"')		; https://learn.microsoft.com/en-us/windows/terminal/command-line-arguments
 ^!#c::RunElevated("wt.exe", '--window last --profile "PowerShell"')
 ^+#c::Run(FindPowerShellCore(), EnvGet("UserProfile"))
@@ -303,6 +304,15 @@ FindNotepad3() {
 
 FindNotepadPlusPus() {
 	return FindApp("notepad++", "\Notepad++\notepad++.exe")
+}
+
+FindSyncBackPro(asAdmin := false) {
+	appPath := FindApp("SyncBackPro", "\2BrightSparks\SyncBackPro\SyncBackPro.exe")
+	if (appPath and !asAdmin) {
+		appPath := RegExReplace(appPath, "(\.exe)$", ".NE$1")
+	}
+	OutputDebug('FindSyncBackPro: returning path "' . appPath . '"')
+	return appPath
 }
 
 RunNotepadPlusPlus() {
