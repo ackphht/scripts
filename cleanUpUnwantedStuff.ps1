@@ -1039,6 +1039,7 @@ function CleanUpEnvVars {
 	@(
 		'POSH_THEMES_PATH'
 		'POSH_INSTALLER'
+		'IGCCSVC_DB'	# very long Intel connection string or whatever; don't need it
 	) | ForEach-Object { RemoveUnwantedEnvVar -envVarName $_ }
 
 	WriteHeaderMessage 'cleaning up unwanted Path variable entries'
