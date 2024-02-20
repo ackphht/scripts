@@ -28,6 +28,7 @@ $script:regUserClassesRootPath = 'HKCU:\Software\Classes'
 $script:regUserFileExtsPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts'
 $script:regDefaultPropName = '(Default)'
 $script:regDefaultIconName = 'DefaultIcon'
+$script:msgIndent = '   '
 
 function Main {
 	[CmdletBinding(SupportsShouldProcess=$true)]
@@ -398,16 +399,16 @@ function DisableService {
 			ForEach-Object {
 				## why the heck am i using WMI for this??
 				#$wmiService = Get-WmiObject -Query "SELECT * FROM Win32_Service WHERE Name='$($_.ServiceName)'";
-				#if ($wmiService -eq $null) { Write-Warning "    could not find WMI object for service |$_.DisplayName|; will try to disable anyway"; }
+				#if ($wmiService -eq $null) { Write-Warning "${script:msgIndent}could not find WMI object for service |$_.DisplayName|; will try to disable anyway"; }
 				#if (($wmiService -eq $null -or $wmiService.StartMode -ne $desiredStartMode) -or $_.Status -ne "Stopped") {
 				if ($_.StartType -ne $desiredStartMode -or $_.Status -ne 'Stopped') {
 					# can stop service and disable it at same time with Set-Service, but doesn't work right for some services, so we'll do it in two steps
-					WriteStatusMessage "    stopping service |$($_.DisplayName)|"
+					WriteStatusMessage "${script:msgIndent}stopping service |$($_.DisplayName)|"
 					Stop-Service -Name $_.Name -WhatIf:$WhatIfPreference
-					WriteStatusMessage "    setting service |$($_.DisplayName)| to '$desiredStartMode'"
+					WriteStatusMessage "${script:msgIndent}setting service |$($_.DisplayName)| to '$desiredStartMode'"
 					Set-Service -InputObject $_ -StartupType $desiredStartMode -WhatIf:$WhatIfPreference
 				} else {
-					WriteStatusMessageLow "    service |$($_.DisplayName)| already disabled; skipping..."
+					WriteStatusMessageLow "${script:msgIndent}service |$($_.DisplayName)| already disabled; skipping..."
 				}
 			}
 	} else {
@@ -462,11 +463,11 @@ function DisableScheduledTask {
 				if ($_.Settings.Enabled) {
 					# Disable-ScheduleTask does not have a -WhatIf
 					if ($PSCmdlet.ShouldProcess($_.TaskName, "Disable-ScheduledTask")) {
-						WriteStatusMessage "    disabling scheduled task |$($_.URI)|"
+						WriteStatusMessage "${script:msgIndent}disabling scheduled task |$($_.URI)|"
 						[void] (Disable-ScheduledTask -InputObject $_)
 					}
 				} else {
-					WriteStatusMessageLow "    scheduled task |$($_.URI)| already disabled; skipping..."
+					WriteStatusMessageLow "${script:msgIndent}scheduled task |$($_.URI)| already disabled; skipping..."
 				}
 			}
 	} else {
@@ -866,12 +867,12 @@ function KillBackgroundProcesses {
 		if ($p) {
 			$desc = "'$($p.ProcessName)'"
 			if ($p.Description) { $desc += "/'$($p.Description)'" } elseif ($p.Company) { $desc += "/'$($p.Company)'" }
-			WriteStatusMessage "    killing background process $desc with PID $($p.Id)"
+			WriteStatusMessage "${script:msgIndent}killing background process $desc with PID $($p.Id)"
 			if ($PSCmdlet.ShouldProcess("PID $($p.Id) [$desc]", "Kill")) {
 				$p.Kill()
 			}
 		} else {
-			WriteStatusMessageLow "    background process named '$($app.Name)' not found"
+			WriteStatusMessageLow "${script:msgIndent}background process named '$($app.Name)' not found"
 		}
 	}
 }
@@ -1228,13 +1229,13 @@ function RemoveUnwantedEnvVar {
 	)
 	WriteVerboseMessage 'removing envirnment variable |{0}|' $envVarName
 	if ([System.Environment]::GetEnvironmentVariable($envVarName, [System.EnvironmentVariableTarget]::User)) {
-		WriteSubHeaderMessage "    removing environment variable 'USER/$envVarName'"
+		WriteSubHeaderMessage "${script:msgIndent}removing environment variable 'USER/$envVarName'"
 		if ($PSCmdlet.ShouldProcess("User/$envVarName = <null>", 'SetEnvironmentVariable')) {
 			[System.Environment]::SetEnvironmentVariable($envVarName, $null, [System.EnvironmentVariableTarget]::User)
 		}
 	}
 	if ([System.Environment]::GetEnvironmentVariable($envVarName, [System.EnvironmentVariableTarget]::Machine)) {
-		WriteSubHeaderMessage "    removing environment variable 'SYSTEM/$envVarName'"
+		WriteSubHeaderMessage "${script:msgIndent}removing environment variable 'SYSTEM/$envVarName'"
 		if ($PSCmdlet.ShouldProcess("System/$envVarName = <null>", 'SetEnvironmentVariable')) {
 			[System.Environment]::SetEnvironmentVariable($envVarName, $null, [System.EnvironmentVariableTarget]::Machine)
 		}
@@ -1263,13 +1264,13 @@ function RemoveUnwantedPathsForTarget {
 		WriteVerboseMessage 'original: {0}' $originalPathVar -continuation
 		$cleanedPathVar = RemoveUnwantedPaths -pathVar $originalPathVar -targetName $targetName -removals $removals -replacements $replacements
 		if ($cleanedPathVar -ne $originalPathVar) {
-			WriteStatusMessage "    updating $targetName Path variable"
+			WriteStatusMessage "${script:msgIndent}updating $targetName Path variable"
 			WriteVerboseMessage 'cleaned: {0}' $cleanedPathVar -continuation
 			if ($PSCmdlet.ShouldProcess("$targetName/@Path", 'SetEnvironmentVariable')) {
 				$regKey.SetValue($envVarName, $cleanedPathVar, 'ExpandString')
 			}
 		} else {
-			WriteStatusMessageLow "    no changes for $targetName Path variable"
+			WriteStatusMessageLow "${script:msgIndent}no changes for $targetName Path variable"
 		}
 	} finally {
 		if ($regKey) { $regKey.Dispose() }
@@ -1290,7 +1291,7 @@ function RemoveUnwantedPaths {
 		$match = $false
 		foreach ($c in $removals) {
 			if ($p -like $c) {
-				WriteSubHeaderMessage "    removing $targetName path '$p'"
+				WriteSubHeaderMessage "${script:msgIndent}removing $targetName path '$p'"
 				$match = $true
 				break
 			}
@@ -1300,7 +1301,7 @@ function RemoveUnwantedPaths {
 				foreach ($r in $replacements) {
 					if ($p -like $r.SearchFor) {
 						$p2 = (& $r.ReplaceWith -val $p)
-						WriteSubHeaderMessage "    patching $targetName path '$p' with '$p2'"
+						WriteSubHeaderMessage "${script:msgIndent}patching $targetName path '$p' with '$p2'"
 						$p = $p2
 						break
 					}
@@ -1343,7 +1344,7 @@ function CleanUpStartMenuItem {
 			}
 			# do move (might have '*' in Source, so expand it; the move doesn't work with folders and a '*' in the source, think our exception handling move only works for single folder):
 			foreach ($srcPath in @(Convert-Path -Path $startMenuItem.Source)) {
-				WriteStatusMessage "    moving item: |$(GetStartMenuPathForLogging -path $srcPath)| to |$(GetStartMenuPathForLogging -path $trg)|"
+				WriteStatusMessage "${script:msgIndent}moving item: |$(GetStartMenuPathForLogging -path $srcPath)| to |$(GetStartMenuPathForLogging -path $trg)|"
 				$canDeleteSource = $false
 				try {
 					# telling cmdlet to make all errors 'terminating' errors so that the catch will see them
