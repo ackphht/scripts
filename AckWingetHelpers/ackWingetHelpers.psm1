@@ -204,14 +204,25 @@ function Get-AckWingetOutdatedPackages {
 	)
 	if (-not $PSBoundParameters.ContainsKey('ErrorAction')) { $ErrorActionPreference = $PSCmdlet.GetVariableValue('ErrorActionPreference') }
 	if (-not $PSBoundParameters.ContainsKey('Verbose')) { $VerbosePreference = $PSCmdlet.GetVariableValue('VerbosePreference') }
-	# no Microsoft.WinGet.Client cmdlet for this one (yet?):
-	Write-Verbose 'no WinGet.Client cmdlet for this, using winget.exe'
-	$cmd = 'winget.exe list --upgrade-available'
-	if ($source) { $cmd += " --source $source" }
+	if ($wgModuleAvailable) {
+		Write-Verbose '$wgModuleAvailable is true, using WinGet.Client cmdlets'
+		$parms = @{}
+		#$parms.Add('MatchOption', 'EqualsCaseInsensitive')		???
+		if ($source) { $parms.Add('Source', $source) }
+		$parms.Add('ErrorAction', $ErrorActionPreference)
+		$parms.Add('Verbose', $VerbosePreference)
 
-	Write-Verbose "$($MyInvocation.InvocationName): command = |$cmd|"
-	$list = _invokeWingetCommand -command $cmd
-	_sortAndWriteOutput -list $list
+		Write-Verbose "$($MyInvocation.InvocationName): Get-WinGetPackage parameters: |$($parms.GetEnumerator())|"
+		Get-WinGetPackage @parms | Where-Object { $_.IsUpdateAvailable } | Sort-Object -Property 'Name'
+	} else {
+		Write-Verbose 'no WinGet.Client cmdlet for this, using winget.exe'
+		$cmd = 'winget.exe list --upgrade-available'
+		if ($source) { $cmd += " --source $source" }
+
+		Write-Verbose "$($MyInvocation.InvocationName): command = |$cmd|"
+		$list = _invokeWingetCommand -command $cmd
+		_sortAndWriteOutput -list $list
+	}
 }
 
 function Install-AckWingetPackage {
