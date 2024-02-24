@@ -1316,7 +1316,7 @@ function RemoveUnwantedPaths {
 		$p2 = NormalizePathValue -value $p
 		if ($p2) {
 			if ($results -notcontains $p2) {
-				WriteVerboseMessage 'adding path value = |{0}|' $p2
+				WriteVerboseMessage 'keeping path value = |{0}|' $p2
 				$results += $p2
 			} else {
 				WriteSubHeaderMessage "${script:msgIndent}removing dupe $targetName path '$p' [normalized: '$p2']"
@@ -1324,6 +1324,12 @@ function RemoveUnwantedPaths {
 		} else {
 			WriteSubHeaderMessage "${script:msgIndent}removing $targetName path value '$p': path does not exist(?)"
 		}
+	}
+	if ($results -and $results[0] -like '%*' -and $results[0] -notlike '%SystemRoot%*') {
+		# the edit env vars thing for paths has a bug if first char is a '%' (https://superuser.com/a/1594989/8672),
+		# but if it starts with '%SystemRoot%', then it works
+		WriteVerboseMessage 'prepending %SystemRoot% to {0} path' $targetName
+		$results = @('%SystemRoot%') + $results		# we'll just prepend this because it's a small directory
 	}
 
 	return $results -join ';'
