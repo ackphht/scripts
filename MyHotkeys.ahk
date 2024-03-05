@@ -6,6 +6,7 @@ gHomeComputerName := "arrakis"
 
 gOSVersion := Float(RegExReplace(A_OSVersion, "(\d+\.\d+)\.\d+", "$1"))
 gOSBuild := Integer(RegExReplace(A_OSVersion, "\d+\.\d+\.(\d+)", "$1"))
+gEnableExplorerMultiTab := true
 gWin1122h2Build := 22621
 gWin1123h2Build := 22631
 
@@ -342,13 +343,13 @@ CheckRegistryForAppPath(appName) {
 }
 
 OpenFolder(folderName, asAdmin := false) {
-	;if (gOSBuild >= gWin1122h2Build) {
-	;	; with Win11 22H2 they added tabs to Explorer, but it's lame, so we have to explicitly open
-	;	; new tabs ourselves; this is not pretty and kinda janky, but it's working:
-	;	OpenFolderWithExplicitTabs(folderName)
-	;} else {
+	if (gEnableExplorerMultiTab and gOSBuild >= gWin1122h2Build) {
+		; with Win11 22H2 they added tabs to Explorer, but it's lame, so we have to explicitly open
+		; new tabs ourselves; this is not pretty and kinda janky, but it's working:
+		OpenFolderWithExplicitTabs(folderName)
+	} else {
 		OpenFolderDefault(folderName, asAdmin)
-	;}
+	}
 }
 
 OpenFolderWithExplicitTabs(folderName) {
