@@ -1541,6 +1541,7 @@ class IconsToCopy:
 				Icon("text-x-log", extensions=["log"]),
 				Icon("text-x-lua", extensions=["lua"]),
 				Icon("text-x-makefile", extensions=["mak", "mk"]),
+				Icon("text-x-nfo", extensions=["nfo"]),
 				Icon("text-x-opml+xml", ["text-x-opml"], ["opml"]),
 				Icon("text-x-pascal", extensions=["pas", "p"]),
 				Icon("text-x-python", ["text-x-python3"], ["py"]),
