@@ -352,38 +352,39 @@ OpenFolder(folderName, asAdmin := false) {
 	}
 }
 
+gMaxExplorerActivationAttempts := 20
 OpenFolderWithExplicitTabs(folderName) {
 	explorerHwnd := WinExist(gExplorerClassPostVista)
-	if (explorerHwnd) {
+	if (not explorerHwnd) {
+		; no window currently open, open a new explorer window, make sure it's activated
+		Run('"' . folderName . '"')
+		attemptNumber := 0
+		while (!WinExist(gExplorerClassPostVista) && attemptNumber < gMaxExplorerActivationAttempts) {
+			Sleep(100)
+		}
+		if (attemptNumber >= gMaxExplorerActivationAttempts) {
+			throw Error("could not find instance of Explorer to activate")
+		}
+		WinActivate(gExplorerClassPostVista)
+	} else {
 		WinActivate {Hwnd: explorerHwnd}
 		while (!WinActive(gExplorerClassPostVista)) {
 			Sleep(50)
 		}
 		Send("^t")
 		Sleep(500)
-	} else {
-		; no window currently open, open a new explorer window, make sure it's activated
-		Run("C:\")
-		attemptNumber := 0
-		while (!WinExist(gExplorerClassPostVista) && attemptNumber < 20) {
-			Sleep(100)
-		}
-		if (attemptNumber >= 10) {
-			throw Error("could not find instance of Explorer to activate")
-		}
-		WinActivate(gExplorerClassPostVista)
+		Send("{F4}") ;Send("!d")
+		Sleep(250)
+		;SendText(folderName)
+		SendInput("{Text}" . folderName)
+		Sleep(500)
+		Send("{Enter}")
+		;if (gOSBuild >= gWin1123h2Build) {	; new explorer pita
+		;	Sleep(250)
+		;	Send("{F4}")
+		;	Send("{Escape}")
+		;}
 	}
-	Send("{F4}") ;Send("!d")
-	Sleep(250)
-	;SendText(folderName)
-	SendInput("{Text}" . folderName)
-	Sleep(500)
-	Send("{Enter}")
-	;if (gOSBuild >= gWin1123h2Build) {	; new explorer pita
-	;	Sleep(250)
-	;	Send("{F4}")
-	;	Send("{Escape}")
-	;}
 }
 
 OpenFolderDefault(folderName, asAdmin := false) {
