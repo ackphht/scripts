@@ -50,17 +50,26 @@ class MusicFileProperties:
 	MGRelaseType = Mp4CustomPropertyPrefix + "Release type"
 	MGLanguage = Mp4CustomPropertyPrefix + "language"
 	MGEncodingSettings = Mp4CustomPropertyPrefix + "encoding settings"
+	# https://picard-docs.musicbrainz.org/en/appendices/tag_mapping.html
+	# https://picard-docs.musicbrainz.org/en/variables/variables.html
+	# https://musicbrainz.org/doc/MusicBrainz_Database
 	MGMusicBrainzAlbumId = Mp4CustomPropertyPrefix + "MusicBrainz Album Id"
 	MGMusicBrainzArtistId = Mp4CustomPropertyPrefix + "MusicBrainz Artist Id"
 	MGMusicBrainzAlbumArtistId = Mp4CustomPropertyPrefix + "MusicBrainz Album Artist Id"
-	MGMusicBrainzTrackId = Mp4CustomPropertyPrefix + "MUSICBRAINZ_TRACKID"	# ??? or is it "MusicBrainz Release Track Id" or just "MusicBrainz Track Id"
+	MGMusicBrainzTrackId = Mp4CustomPropertyPrefix + "MusicBrainz Release Track Id"		# https://musicbrainz.org/doc/Recording - a "recording" is higher level than a track, at least one track per recording
+	MGMusicBrainzRecordingId = Mp4CustomPropertyPrefix + "MusicBrainz Track Id"			# but Mp3tag uses this one ?? i'm confused on which of these tags is which
+	MGMusicBrainzReleaseCountry = Mp4CustomPropertyPrefix + "MusicBrainz Album Release Country"
 	MGMusicBrainzReleaseGroupId = Mp4CustomPropertyPrefix + "MusicBrainz Release Group Id"
-	MGUpc = Mp4CustomPropertyPrefix + "UPC"
+	MGUpc = Mp4CustomPropertyPrefix + "UPC"		# or BARCODE ??
+	MGBarcode = Mp4CustomPropertyPrefix + "BARCODE"
 	MGRating = Mp4CustomPropertyPrefix + "RATING"
 	MGLabel = Mp4CustomPropertyPrefix + "LABEL"
+	MGMusicianCredits = Mp4CustomPropertyPrefix + "MUSICIANCREDITS"
 	MGDigitalPurchaseFrom = Mp4CustomPropertyPrefix + "DIGITALPURCHASEFROM"		# these are my own tags, so pascal case would be nice, but mp3tag uppercases everything; sigh
 	MGDigitalPurchaseDate = Mp4CustomPropertyPrefix + "DIGITALPURCHASEDATE"
 	MGDigitalPurchaseId = Mp4CustomPropertyPrefix + "DIGITALPURCHASEID"
+	MGRecorded = Mp4CustomPropertyPrefix + "RECORDED"
+	MGReleased = Mp4CustomPropertyPrefix + "RELEASED"
 
 	def __init__(self, musicFilePath):
 		if isinstance(musicFilePath, str):

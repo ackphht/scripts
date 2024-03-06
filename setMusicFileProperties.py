@@ -151,10 +151,21 @@ class ApprovedTagsList:
 			MusicFileProperties.MGTrackTitleSort.upper(): MusicFileProperties.MGTrackTitleSort,
 			MusicFileProperties.MGAlbumArtistSort.upper(): MusicFileProperties.MGAlbumArtistSort,
 			MusicFileProperties.MGTrackArtistSort.upper(): MusicFileProperties.MGTrackArtistSort,
+			MusicFileProperties.MGMusicBrainzAlbumId.upper(): MusicFileProperties.MGMusicBrainzAlbumId,
+			MusicFileProperties.MGMusicBrainzArtistId.upper(): MusicFileProperties.MGMusicBrainzArtistId,
+			MusicFileProperties.MGMusicBrainzAlbumArtistId.upper(): MusicFileProperties.MGMusicBrainzAlbumArtistId,
+			MusicFileProperties.MGMusicBrainzTrackId.upper(): MusicFileProperties.MGMusicBrainzTrackId,
+			MusicFileProperties.MGMusicBrainzRecordingId.upper(): MusicFileProperties.MGMusicBrainzRecordingId,
+			MusicFileProperties.MGMusicBrainzReleaseCountry.upper(): MusicFileProperties.MGMusicBrainzReleaseCountry,
+			MusicFileProperties.MGMusicBrainzReleaseGroupId.upper(): MusicFileProperties.MGMusicBrainzReleaseGroupId,
 			MusicFileProperties.MGisrc.upper(): MusicFileProperties.MGisrc,
+			MusicFileProperties.MGBarcode.upper(): MusicFileProperties.MGBarcode,
+			MusicFileProperties.MGMusicianCredits.upper(): MusicFileProperties.MGMusicianCredits,
 			MusicFileProperties.MGDigitalPurchaseFrom.upper(): MusicFileProperties.MGDigitalPurchaseFrom,
 			MusicFileProperties.MGDigitalPurchaseDate.upper(): MusicFileProperties.MGDigitalPurchaseDate,
 			MusicFileProperties.MGDigitalPurchaseId.upper(): MusicFileProperties.MGDigitalPurchaseId,
+			MusicFileProperties.MGRecorded.upper(): MusicFileProperties.MGRecorded,
+			MusicFileProperties.MGReleased.upper(): MusicFileProperties.MGReleased,
 		}
 
 	def __len__(self) -> int:
