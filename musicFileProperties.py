@@ -124,9 +124,12 @@ class MusicFileProperties:
 
 	def getRawProperties(self):
 		if self._tinytag:
-			return	# not supported (yet??)
-		for tag in self._mutagen.tags:
-			yield (tag, self._mutagen[tag])
+			d = self._tinytag.as_dict()
+			for t in d:
+				yield (t, d[t])
+		else :
+			for tag in self._mutagen.tags:
+				yield (tag, self._mutagen[tag])
 
 	def setRawProperty(self, propertyName : str, value : Any):
 		if self._tinytag:
