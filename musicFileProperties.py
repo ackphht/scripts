@@ -61,7 +61,8 @@ class MusicFileProperties:
 	MGMusicBrainzReleaseCountry = Mp4CustomPropertyPrefix + "MusicBrainz Album Release Country"
 	MGMusicBrainzReleaseGroupId = Mp4CustomPropertyPrefix + "MusicBrainz Release Group Id"
 	MGUpc = Mp4CustomPropertyPrefix + "UPC"		# or BARCODE ??
-	MGBarcode = Mp4CustomPropertyPrefix + "BARCODE"
+	MGBarcode = Mp4CustomPropertyPrefix + "BARCODE"		# for CD rips
+	MGAsin = Mp4CustomPropertyPrefix + "ASIN"			# for digital ones i bought from Amazon
 	MGRating = Mp4CustomPropertyPrefix + "RATING"
 	MGLabel = Mp4CustomPropertyPrefix + "LABEL"
 	MGMusicianCredits = Mp4CustomPropertyPrefix + "MUSICIANCREDITS"

@@ -160,6 +160,7 @@ class ApprovedTagsList:
 			MusicFileProperties.MGMusicBrainzReleaseGroupId.upper(): MusicFileProperties.MGMusicBrainzReleaseGroupId,
 			MusicFileProperties.MGisrc.upper(): MusicFileProperties.MGisrc,
 			MusicFileProperties.MGBarcode.upper(): MusicFileProperties.MGBarcode,
+			MusicFileProperties.MGAsin.upper(): MusicFileProperties.MGAsin,
 			MusicFileProperties.MGMusicianCredits.upper(): MusicFileProperties.MGMusicianCredits,
 			MusicFileProperties.MGDigitalPurchaseFrom.upper(): MusicFileProperties.MGDigitalPurchaseFrom,
 			MusicFileProperties.MGDigitalPurchaseDate.upper(): MusicFileProperties.MGDigitalPurchaseDate,
@@ -450,7 +451,6 @@ class MusicFolderHandler:
 		musicFile.deleteRawProperty(MusicFileProperties.MGCover)
 		musicFile.deleteRawProperty(MusicFileProperties.MGEncoder)
 		musicFile.deleteRawProperty(MusicFileProperties.MGCodec)
-		#musicFile.deleteRawProperty(MusicFileProperties.MGisrc)
 		musicFile.deleteRawProperty(MusicFileProperties.MGEncodedBy)
 		musicFile.deleteRawProperty(MusicFileProperties.MGSource)
 		musicFile.deleteRawProperty(MusicFileProperties.MGRippingTool)
