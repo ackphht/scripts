@@ -7,7 +7,7 @@ from tabulate import tabulate	# https://pypi.org/project/tabulate/
 from operator import attrgetter
 
 from ackPyHelpers import LogHelper
-from musicFileProperties import MusicFileProperties
+from musicFileProperties import MusicFileProperties, Mp4TagNames
 
 _musicAttributesDbPath = pathlib.Path(os.path.expandvars("%UserProfile%/Music/MyMusic/musicAttributes.sqlite"))#.resolve()
 _defaultTableFormat = "presto"#"simple"
@@ -125,48 +125,48 @@ class PlaylistEntry:
 class ApprovedTagsList:
 	def __init__(self) -> None:
 		self._tags = {
-			MusicFileProperties.MGAlbumTitle.upper(): MusicFileProperties.MGAlbumTitle,
-			MusicFileProperties.MGTrackTitle.upper(): MusicFileProperties.MGTrackTitle,
-			MusicFileProperties.MGAlbumArtist.upper(): MusicFileProperties.MGAlbumArtist,
-			MusicFileProperties.MGTrackArtist.upper(): MusicFileProperties.MGTrackArtist,
-			MusicFileProperties.MGYear.upper(): MusicFileProperties.MGYear,
-			MusicFileProperties.MGComposer.upper(): MusicFileProperties.MGComposer,
-			MusicFileProperties.MGComment.upper(): MusicFileProperties.MGComment,
-			MusicFileProperties.MGTrackNumber.upper(): MusicFileProperties.MGTrackNumber,
-			MusicFileProperties.MGDiscNumber.upper(): MusicFileProperties.MGDiscNumber,
-			MusicFileProperties.MGCopyright.upper(): MusicFileProperties.MGCopyright,
-			MusicFileProperties.MGConductor.upper(): MusicFileProperties.MGConductor,
-			MusicFileProperties.MGLyrics.upper(): MusicFileProperties.MGLyrics,
-			MusicFileProperties.MGProducer.upper(): MusicFileProperties.MGProducer,
-			MusicFileProperties.MGPublisher.upper(): MusicFileProperties.MGPublisher,
-			MusicFileProperties.MGLyricist.upper(): MusicFileProperties.MGLyricist,
-			MusicFileProperties.MGOriginalAlbum.upper(): MusicFileProperties.MGOriginalAlbum,
-			MusicFileProperties.MGOriginalArtist.upper(): MusicFileProperties.MGOriginalArtist,
-			MusicFileProperties.MGOriginalYear.upper(): MusicFileProperties.MGOriginalYear,
-			MusicFileProperties.MGReplayGainTrackGain.upper(): MusicFileProperties.MGReplayGainTrackGain,
-			MusicFileProperties.MGReplayGainTrackPeak.upper(): MusicFileProperties.MGReplayGainTrackPeak,
-			MusicFileProperties.MGReplayGainAlbumGain.upper(): MusicFileProperties.MGReplayGainAlbumGain,
-			MusicFileProperties.MGReplayGainAlbumPeak.upper(): MusicFileProperties.MGReplayGainAlbumPeak,
-			MusicFileProperties.MGAlbumTitleSort.upper(): MusicFileProperties.MGAlbumTitleSort,
-			MusicFileProperties.MGTrackTitleSort.upper(): MusicFileProperties.MGTrackTitleSort,
-			MusicFileProperties.MGAlbumArtistSort.upper(): MusicFileProperties.MGAlbumArtistSort,
-			MusicFileProperties.MGTrackArtistSort.upper(): MusicFileProperties.MGTrackArtistSort,
-			MusicFileProperties.MGMusicBrainzAlbumId.upper(): MusicFileProperties.MGMusicBrainzAlbumId,
-			MusicFileProperties.MGMusicBrainzArtistId.upper(): MusicFileProperties.MGMusicBrainzArtistId,
-			MusicFileProperties.MGMusicBrainzAlbumArtistId.upper(): MusicFileProperties.MGMusicBrainzAlbumArtistId,
-			MusicFileProperties.MGMusicBrainzTrackId.upper(): MusicFileProperties.MGMusicBrainzTrackId,
-			MusicFileProperties.MGMusicBrainzRecordingId.upper(): MusicFileProperties.MGMusicBrainzRecordingId,
-			MusicFileProperties.MGMusicBrainzReleaseCountry.upper(): MusicFileProperties.MGMusicBrainzReleaseCountry,
-			MusicFileProperties.MGMusicBrainzReleaseGroupId.upper(): MusicFileProperties.MGMusicBrainzReleaseGroupId,
-			MusicFileProperties.MGisrc.upper(): MusicFileProperties.MGisrc,
-			MusicFileProperties.MGBarcode.upper(): MusicFileProperties.MGBarcode,
-			MusicFileProperties.MGAsin.upper(): MusicFileProperties.MGAsin,
-			MusicFileProperties.MGMusicianCredits.upper(): MusicFileProperties.MGMusicianCredits,
-			MusicFileProperties.MGDigitalPurchaseFrom.upper(): MusicFileProperties.MGDigitalPurchaseFrom,
-			MusicFileProperties.MGDigitalPurchaseDate.upper(): MusicFileProperties.MGDigitalPurchaseDate,
-			MusicFileProperties.MGDigitalPurchaseId.upper(): MusicFileProperties.MGDigitalPurchaseId,
-			MusicFileProperties.MGRecorded.upper(): MusicFileProperties.MGRecorded,
-			MusicFileProperties.MGReleased.upper(): MusicFileProperties.MGReleased,
+			Mp4TagNames.AlbumTitle.upper(): Mp4TagNames.AlbumTitle,
+			Mp4TagNames.TrackTitle.upper(): Mp4TagNames.TrackTitle,
+			Mp4TagNames.AlbumArtist.upper(): Mp4TagNames.AlbumArtist,
+			Mp4TagNames.TrackArtist.upper(): Mp4TagNames.TrackArtist,
+			Mp4TagNames.Year.upper(): Mp4TagNames.Year,
+			Mp4TagNames.Composer.upper(): Mp4TagNames.Composer,
+			Mp4TagNames.Comment.upper(): Mp4TagNames.Comment,
+			Mp4TagNames.TrackNumber.upper(): Mp4TagNames.TrackNumber,
+			Mp4TagNames.DiscNumber.upper(): Mp4TagNames.DiscNumber,
+			Mp4TagNames.Copyright.upper(): Mp4TagNames.Copyright,
+			Mp4TagNames.Conductor.upper(): Mp4TagNames.Conductor,
+			Mp4TagNames.Lyrics.upper(): Mp4TagNames.Lyrics,
+			Mp4TagNames.Producer.upper(): Mp4TagNames.Producer,
+			Mp4TagNames.Publisher.upper(): Mp4TagNames.Publisher,
+			Mp4TagNames.Lyricist.upper(): Mp4TagNames.Lyricist,
+			Mp4TagNames.OriginalAlbum.upper(): Mp4TagNames.OriginalAlbum,
+			Mp4TagNames.OriginalArtist.upper(): Mp4TagNames.OriginalArtist,
+			Mp4TagNames.OriginalYear.upper(): Mp4TagNames.OriginalYear,
+			Mp4TagNames.ReplayGainTrackGain.upper(): Mp4TagNames.ReplayGainTrackGain,
+			Mp4TagNames.ReplayGainTrackPeak.upper(): Mp4TagNames.ReplayGainTrackPeak,
+			Mp4TagNames.ReplayGainAlbumGain.upper(): Mp4TagNames.ReplayGainAlbumGain,
+			Mp4TagNames.ReplayGainAlbumPeak.upper(): Mp4TagNames.ReplayGainAlbumPeak,
+			Mp4TagNames.AlbumTitleSort.upper(): Mp4TagNames.AlbumTitleSort,
+			Mp4TagNames.TrackTitleSort.upper(): Mp4TagNames.TrackTitleSort,
+			Mp4TagNames.AlbumArtistSort.upper(): Mp4TagNames.AlbumArtistSort,
+			Mp4TagNames.TrackArtistSort.upper(): Mp4TagNames.TrackArtistSort,
+			Mp4TagNames.MusicBrainzAlbumId.upper(): Mp4TagNames.MusicBrainzAlbumId,
+			Mp4TagNames.MusicBrainzArtistId.upper(): Mp4TagNames.MusicBrainzArtistId,
+			Mp4TagNames.MusicBrainzAlbumArtistId.upper(): Mp4TagNames.MusicBrainzAlbumArtistId,
+			Mp4TagNames.MusicBrainzTrackId.upper(): Mp4TagNames.MusicBrainzTrackId,
+			Mp4TagNames.MusicBrainzRecordingId.upper(): Mp4TagNames.MusicBrainzRecordingId,
+			Mp4TagNames.MusicBrainzReleaseCountry.upper(): Mp4TagNames.MusicBrainzReleaseCountry,
+			Mp4TagNames.MusicBrainzReleaseGroupId.upper(): Mp4TagNames.MusicBrainzReleaseGroupId,
+			Mp4TagNames.Isrc.upper(): Mp4TagNames.Isrc,
+			Mp4TagNames.Barcode.upper(): Mp4TagNames.Barcode,
+			Mp4TagNames.Asin.upper(): Mp4TagNames.Asin,
+			Mp4TagNames.MusicianCredits.upper(): Mp4TagNames.MusicianCredits,
+			Mp4TagNames.DigitalPurchaseFrom.upper(): Mp4TagNames.DigitalPurchaseFrom,
+			Mp4TagNames.DigitalPurchaseDate.upper(): Mp4TagNames.DigitalPurchaseDate,
+			Mp4TagNames.DigitalPurchaseId.upper(): Mp4TagNames.DigitalPurchaseId,
+			Mp4TagNames.Recorded.upper(): Mp4TagNames.Recorded,
+			Mp4TagNames.Released.upper(): Mp4TagNames.Released,
 		}
 
 	def __len__(self) -> int:
@@ -446,21 +446,21 @@ class MusicFolderHandler:
 			os.chmod(musicFile.FilePath, stat.S_IREAD)
 
 	def _cleanJunkProperties(self, musicFile : MusicFileProperties):
-		musicFile.deleteRawProperty(MusicFileProperties.MGiTunSMPB)
-		musicFile.deleteRawProperty(MusicFileProperties.MGGenre)
-		musicFile.deleteRawProperty(MusicFileProperties.MGCover)
-		musicFile.deleteRawProperty(MusicFileProperties.MGEncoder)
-		musicFile.deleteRawProperty(MusicFileProperties.MGCodec)
-		musicFile.deleteRawProperty(MusicFileProperties.MGEncodedBy)
-		musicFile.deleteRawProperty(MusicFileProperties.MGSource)
-		musicFile.deleteRawProperty(MusicFileProperties.MGRippingTool)
-		musicFile.deleteRawProperty(MusicFileProperties.MGRipDate)
-		musicFile.deleteRawProperty(MusicFileProperties.MGRelaseType)
-		musicFile.deleteRawProperty(MusicFileProperties.MGLanguage)
-		musicFile.deleteRawProperty(MusicFileProperties.MGEncodingSettings)
-		musicFile.deleteRawProperty(MusicFileProperties.MGUpc)
-		musicFile.deleteRawProperty(MusicFileProperties.MGRating)
-		musicFile.deleteRawProperty(MusicFileProperties.MGLabel)
+		musicFile.deleteRawProperty(Mp4TagNames.iTunSMPB)
+		musicFile.deleteRawProperty(Mp4TagNames.Genre)
+		musicFile.deleteRawProperty(Mp4TagNames.Cover)
+		musicFile.deleteRawProperty(Mp4TagNames.Encoder)
+		musicFile.deleteRawProperty(Mp4TagNames.Codec)
+		musicFile.deleteRawProperty(Mp4TagNames.EncodedBy)
+		musicFile.deleteRawProperty(Mp4TagNames.Source)
+		musicFile.deleteRawProperty(Mp4TagNames.RippingTool)
+		musicFile.deleteRawProperty(Mp4TagNames.RipDate)
+		musicFile.deleteRawProperty(Mp4TagNames.RelaseType)
+		musicFile.deleteRawProperty(Mp4TagNames.Language)
+		musicFile.deleteRawProperty(Mp4TagNames.EncodingSettings)
+		musicFile.deleteRawProperty(Mp4TagNames.Upc)
+		musicFile.deleteRawProperty(Mp4TagNames.Rating)
+		musicFile.deleteRawProperty(Mp4TagNames.Label)
 
 		unexpectedTags = []
 		for t,v in musicFile.getRawProperties():
@@ -776,7 +776,7 @@ def showFilePropertiesCommand(args : argparse.Namespace):
 	printData = []
 	if args.raw:
 		for p,v in props.getRawProperties():
-			if p != MusicFileProperties.MGCover:
+			if p != Mp4TagNames.Cover:
 				printData.append([p,v])
 			else:
 				printData.append([p,'<some bytes>'])

@@ -1,77 +1,76 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import sys
-import os
 import pathlib
 from typing import Any, List
 import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
 from tinytag import TinyTag		# mutagen doesn't support WMA files
 
-class MusicFileProperties:
+class Mp4TagNames:
 	Mp4CustomPropertyPrefix = "----:com.apple.iTunes:"
-	MGAlbumTitle = "©alb"
-	MGTrackTitle = "©nam"
-	MGAlbumArtist = "aART"
-	MGTrackArtist = "©ART"
-	MGYear = "©day"
-	MGComposer = "©wrt"
-	MGComment = "©cmt"
-	MGGenre = "©gen"
-	MGTrackNumber = "trkn"
-	MGDiscNumber = "disk"
-	MGCopyright = "cprt"
-	MGConductor = "©con"
-	MGLyrics = "©lyr"
-	MGEncoder = "©too"
-	MGCover = "covr"
-	MGAlbumTitleSort = "soal"
-	MGTrackTitleSort = "sonm"
-	MGAlbumArtistSort = "soaa"
-	MGTrackArtistSort = "soar"
-	MGComposerSort = "soco"
-	MGProducer = Mp4CustomPropertyPrefix + "PRODUCER"
-	MGPublisher = Mp4CustomPropertyPrefix + "PUBLISHER"
-	MGLyricist = Mp4CustomPropertyPrefix + "LYRICIST"
-	MGOriginalAlbum = Mp4CustomPropertyPrefix + "ORIGALBUM"
-	MGOriginalArtist = Mp4CustomPropertyPrefix + "ORIGARTIST"
-	MGOriginalYear = Mp4CustomPropertyPrefix + "ORIGYEAR"
-	MGCodec = Mp4CustomPropertyPrefix + "cdec"
-	MGiTunSMPB = Mp4CustomPropertyPrefix + "iTunSMPB"
-	MGisrc = Mp4CustomPropertyPrefix + "isrc"		# "International Standard Recording Code"; https://musicbrainz.org/doc/ISRC
-	MGEncodedBy = Mp4CustomPropertyPrefix + "encoded by"
-	MGReplayGainTrackGain = Mp4CustomPropertyPrefix + "replaygain_track_gain"
-	MGReplayGainTrackPeak = Mp4CustomPropertyPrefix + "replaygain_track_peak"
-	MGReplayGainAlbumGain = Mp4CustomPropertyPrefix + "replaygain_album_gain"
-	MGReplayGainAlbumPeak = Mp4CustomPropertyPrefix + "replaygain_album_peak"
-	MGSource = Mp4CustomPropertyPrefix + "Source"
-	MGRippingTool = Mp4CustomPropertyPrefix + "Ripping tool"
-	MGRipDate = Mp4CustomPropertyPrefix + "Rip date"
-	MGRelaseType = Mp4CustomPropertyPrefix + "Release type"
-	MGLanguage = Mp4CustomPropertyPrefix + "language"
-	MGEncodingSettings = Mp4CustomPropertyPrefix + "encoding settings"
+	AlbumTitle = "©alb"
+	TrackTitle = "©nam"
+	AlbumArtist = "aART"
+	TrackArtist = "©ART"
+	Year = "©day"
+	Composer = "©wrt"
+	Comment = "©cmt"
+	Genre = "©gen"
+	TrackNumber = "trkn"
+	DiscNumber = "disk"
+	Copyright = "cprt"
+	Conductor = "©con"
+	Lyrics = "©lyr"
+	Encoder = "©too"
+	Cover = "covr"
+	AlbumTitleSort = "soal"
+	TrackTitleSort = "sonm"
+	AlbumArtistSort = "soaa"
+	TrackArtistSort = "soar"
+	ComposerSort = "soco"
+	Producer = Mp4CustomPropertyPrefix + "PRODUCER"
+	Publisher = Mp4CustomPropertyPrefix + "PUBLISHER"
+	Lyricist = Mp4CustomPropertyPrefix + "LYRICIST"
+	OriginalAlbum = Mp4CustomPropertyPrefix + "ORIGALBUM"
+	OriginalArtist = Mp4CustomPropertyPrefix + "ORIGARTIST"
+	OriginalYear = Mp4CustomPropertyPrefix + "ORIGYEAR"
+	Codec = Mp4CustomPropertyPrefix + "cdec"
+	iTunSMPB = Mp4CustomPropertyPrefix + "iTunSMPB"
+	Isrc = Mp4CustomPropertyPrefix + "ISRC"		# "International Standard Recording Code"; https://musicbrainz.org/doc/ISRC
+	EncodedBy = Mp4CustomPropertyPrefix + "encoded by"
+	ReplayGainTrackGain = Mp4CustomPropertyPrefix + "replaygain_track_gain"
+	ReplayGainTrackPeak = Mp4CustomPropertyPrefix + "replaygain_track_peak"
+	ReplayGainAlbumGain = Mp4CustomPropertyPrefix + "replaygain_album_gain"
+	ReplayGainAlbumPeak = Mp4CustomPropertyPrefix + "replaygain_album_peak"
+	Source = Mp4CustomPropertyPrefix + "Source"
+	RippingTool = Mp4CustomPropertyPrefix + "Ripping tool"
+	RipDate = Mp4CustomPropertyPrefix + "Rip date"
+	RelaseType = Mp4CustomPropertyPrefix + "Release type"
+	Language = Mp4CustomPropertyPrefix + "language"
+	EncodingSettings = Mp4CustomPropertyPrefix + "encoding settings"
 	# https://picard-docs.musicbrainz.org/en/appendices/tag_mapping.html
 	# https://picard-docs.musicbrainz.org/en/variables/variables.html
 	# https://musicbrainz.org/doc/MusicBrainz_Database
-	MGMusicBrainzAlbumId = Mp4CustomPropertyPrefix + "MusicBrainz Album Id"
-	MGMusicBrainzArtistId = Mp4CustomPropertyPrefix + "MusicBrainz Artist Id"
-	MGMusicBrainzAlbumArtistId = Mp4CustomPropertyPrefix + "MusicBrainz Album Artist Id"
-	MGMusicBrainzTrackId = Mp4CustomPropertyPrefix + "MusicBrainz Release Track Id"		# https://musicbrainz.org/doc/Recording - a "recording" is higher level than a track, at least one track per recording
-	MGMusicBrainzRecordingId = Mp4CustomPropertyPrefix + "MusicBrainz Track Id"			# but Mp3tag uses this one ?? i'm confused on which of these tags is which
-	MGMusicBrainzReleaseCountry = Mp4CustomPropertyPrefix + "MusicBrainz Album Release Country"
-	MGMusicBrainzReleaseGroupId = Mp4CustomPropertyPrefix + "MusicBrainz Release Group Id"
-	MGUpc = Mp4CustomPropertyPrefix + "UPC"		# or BARCODE ??
-	MGBarcode = Mp4CustomPropertyPrefix + "BARCODE"		# for CD rips
-	MGAsin = Mp4CustomPropertyPrefix + "ASIN"			# for digital ones i bought from Amazon
-	MGRating = Mp4CustomPropertyPrefix + "RATING"
-	MGLabel = Mp4CustomPropertyPrefix + "LABEL"
-	MGMusicianCredits = Mp4CustomPropertyPrefix + "MUSICIANCREDITS"
-	MGDigitalPurchaseFrom = Mp4CustomPropertyPrefix + "DIGITALPURCHASEFROM"		# these are my own tags, so pascal case would be nice, but mp3tag uppercases everything; sigh
-	MGDigitalPurchaseDate = Mp4CustomPropertyPrefix + "DIGITALPURCHASEDATE"
-	MGDigitalPurchaseId = Mp4CustomPropertyPrefix + "DIGITALPURCHASEID"
-	MGRecorded = Mp4CustomPropertyPrefix + "RECORDED"
-	MGReleased = Mp4CustomPropertyPrefix + "RELEASED"
+	MusicBrainzAlbumId = Mp4CustomPropertyPrefix + "MusicBrainz Album Id"
+	MusicBrainzArtistId = Mp4CustomPropertyPrefix + "MusicBrainz Artist Id"
+	MusicBrainzAlbumArtistId = Mp4CustomPropertyPrefix + "MusicBrainz Album Artist Id"
+	MusicBrainzTrackId = Mp4CustomPropertyPrefix + "MusicBrainz Release Track Id"		# https://musicbrainz.org/doc/Recording - a "recording" is higher level than a track, at least one track per recording
+	MusicBrainzRecordingId = Mp4CustomPropertyPrefix + "MusicBrainz Track Id"			# but Mp3tag uses this one ?? i'm confused on which of these tags is which
+	MusicBrainzReleaseCountry = Mp4CustomPropertyPrefix + "MusicBrainz Album Release Country"
+	MusicBrainzReleaseGroupId = Mp4CustomPropertyPrefix + "MusicBrainz Release Group Id"
+	Upc = Mp4CustomPropertyPrefix + "UPC"		# or BARCODE ??
+	Barcode = Mp4CustomPropertyPrefix + "BARCODE"		# for CD rips
+	Asin = Mp4CustomPropertyPrefix + "ASIN"			# for digital ones i bought from Amazon
+	Rating = Mp4CustomPropertyPrefix + "RATING"
+	Label = Mp4CustomPropertyPrefix + "LABEL"
+	MusicianCredits = Mp4CustomPropertyPrefix + "MUSICIANCREDITS"
+	DigitalPurchaseFrom = Mp4CustomPropertyPrefix + "DIGITALPURCHASEFROM"		# these are my own tags, so pascal case would be nice, but mp3tag uppercases everything; sigh
+	DigitalPurchaseDate = Mp4CustomPropertyPrefix + "DIGITALPURCHASEDATE"
+	DigitalPurchaseId = Mp4CustomPropertyPrefix + "DIGITALPURCHASEID"
+	Recorded = Mp4CustomPropertyPrefix + "RECORDED"
+	Released = Mp4CustomPropertyPrefix + "RELEASED"
 
+class MusicFileProperties:
 	def __init__(self, musicFilePath):
 		if isinstance(musicFilePath, str):
 			musicFilePath = pathlib.Path(musicFilePath)
@@ -166,7 +165,7 @@ class MusicFileProperties:
 				del self._mutagen[propertyName]
 				self._dirty = True
 			return
-		if not propertyName.startswith(MusicFileProperties.Mp4CustomPropertyPrefix):
+		if not propertyName.startswith(Mp4TagNames.Mp4CustomPropertyPrefix):
 			self._mutagen[propertyName] = value
 		else:
 			if not isinstance(value, str):
@@ -215,17 +214,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.album
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGAlbumTitle)
+			return self._getMutagenProperty(Mp4TagNames.AlbumTitle)
 
 	@AlbumTitle.setter
 	def AlbumTitle(self, value : str):
 		self._verifyCanSet('AlbumTitle')
-		self._setMutagenProperty(MusicFileProperties.MGAlbumTitle, value)
+		self._setMutagenProperty(Mp4TagNames.AlbumTitle, value)
 
 	@AlbumTitle.deleter
 	def AlbumTitle(self):
 		self._verifyCanDelete('AlbumTitle')
-		self._deleteMutagenProperty(MusicFileProperties.MGAlbumTitle)
+		self._deleteMutagenProperty(Mp4TagNames.AlbumTitle)
 	# endregion
 
 	# region property TrackTitle
@@ -234,17 +233,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.title
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGTrackTitle)
+			return self._getMutagenProperty(Mp4TagNames.TrackTitle)
 
 	@TrackTitle.setter
 	def TrackTitle(self, value : str):
 		self._verifyCanSet('TrackTitle')
-		self._setMutagenProperty(MusicFileProperties.MGTrackTitle, value)
+		self._setMutagenProperty(Mp4TagNames.TrackTitle, value)
 
 	@TrackTitle.deleter
 	def TrackTitle(self):
 		self._verifyCanDelete('TrackTitle')
-		self._deleteMutagenProperty(MusicFileProperties.MGTrackTitle)
+		self._deleteMutagenProperty(Mp4TagNames.TrackTitle)
 	# endregion
 
 	# region property AlbumArtist
@@ -253,17 +252,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.albumartist
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGAlbumArtist)
+			return self._getMutagenProperty(Mp4TagNames.AlbumArtist)
 
 	@AlbumArtist.setter
 	def AlbumArtist(self, value : str):
 		self._verifyCanSet('AlbumArtist')
-		self._setMutagenProperty(MusicFileProperties.MGAlbumArtist, value)
+		self._setMutagenProperty(Mp4TagNames.AlbumArtist, value)
 
 	@AlbumArtist.deleter
 	def AlbumArtist(self):
 		self._verifyCanDelete('AlbumArtist')
-		self._deleteMutagenProperty(MusicFileProperties.MGAlbumArtist)
+		self._deleteMutagenProperty(Mp4TagNames.AlbumArtist)
 	# endregion
 
 	# region property TrackArtist
@@ -272,17 +271,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.artist
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGTrackArtist)
+			return self._getMutagenProperty(Mp4TagNames.TrackArtist)
 
 	@TrackArtist.setter
 	def TrackArtist(self, value : str):
 		self._verifyCanSet('TrackArtist')
-		self._setMutagenProperty(MusicFileProperties.MGTrackArtist, value)
+		self._setMutagenProperty(Mp4TagNames.TrackArtist, value)
 
 	@TrackArtist.deleter
 	def TrackArtist(self):
 		self._verifyCanDelete('TrackArtist')
-		self._deleteMutagenProperty(MusicFileProperties.MGTrackArtist)
+		self._deleteMutagenProperty(Mp4TagNames.TrackArtist)
 	# endregion
 
 	# region property Year
@@ -291,17 +290,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.year
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGYear)
+			return self._getMutagenProperty(Mp4TagNames.Year)
 
 	@Year.setter
 	def Year(self, value : int):
 		self._verifyCanSet('Year')
-		self._setMutagenProperty(MusicFileProperties.MGYear, value)
+		self._setMutagenProperty(Mp4TagNames.Year, value)
 
 	@Year.deleter
 	def Year(self):
 		self._verifyCanDelete('Year')
-		self._deleteMutagenProperty(MusicFileProperties.MGYear)
+		self._deleteMutagenProperty(Mp4TagNames.Year)
 	# endregion
 
 	# region property Composer
@@ -310,17 +309,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.composer
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGComposer)
+			return self._getMutagenProperty(Mp4TagNames.Composer)
 
 	@Composer.setter
 	def Composer(self, value : str):
 		self._verifyCanSet('Composer')
-		self._setMutagenProperty(MusicFileProperties.MGComposer, value)
+		self._setMutagenProperty(Mp4TagNames.Composer, value)
 
 	@Composer.deleter
 	def Composer(self):
 		self._verifyCanDelete('Composer')
-		self._deleteMutagenProperty(MusicFileProperties.MGComposer)
+		self._deleteMutagenProperty(Mp4TagNames.Composer)
 	# endregion
 
 	# region property Comments
@@ -329,17 +328,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.comment
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGComment)
+			return self._getMutagenProperty(Mp4TagNames.Comment)
 
 	@Comments.setter
 	def Comments(self, value : str):
 		self._verifyCanSet('Comments')
-		self._setMutagenProperty(MusicFileProperties.MGComment, value)
+		self._setMutagenProperty(Mp4TagNames.Comment, value)
 
 	@Comments.deleter
 	def Comments(self):
 		self._verifyCanDelete('Comments')
-		self._deleteMutagenProperty(MusicFileProperties.MGComment)
+		self._deleteMutagenProperty(Mp4TagNames.Comment)
 	# endregion
 
 	# region property Genre
@@ -348,17 +347,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.genre
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGGenre)
+			return self._getMutagenProperty(Mp4TagNames.Genre)
 
 	@Genre.setter
 	def Genre(self, value : str):
 		self._verifyCanSet('Genre')
-		self._setMutagenProperty(MusicFileProperties.MGGenre, value)
+		self._setMutagenProperty(Mp4TagNames.Genre, value)
 
 	@Genre.deleter
 	def Genre(self):
 		self._verifyCanDelete('Genre')
-		self._deleteMutagenProperty(MusicFileProperties.MGGenre)
+		self._deleteMutagenProperty(Mp4TagNames.Genre)
 	# endregion
 
 	# region property TrackNumber
@@ -367,19 +366,19 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.track
 		else:
-			trackInfo= self._getMutagenProperty(MusicFileProperties.MGTrackNumber)
+			trackInfo= self._getMutagenProperty(Mp4TagNames.TrackNumber)
 			# if no track info at all, will not return anything; otherwise it always returns a tuple; if one value is missing, it will be 0 in the tuple
 			return trackInfo[0] if trackInfo and trackInfo[0] > 0 else None
 
 	@TrackNumber.setter
 	def TrackNumber(self, value : int):
 		self._verifyCanSet('TrackNumber')
-		self._setTrackOrDisc(MusicFileProperties.MGTrackNumber, value, self.TotalTracks)
+		self._setTrackOrDisc(Mp4TagNames.TrackNumber, value, self.TotalTracks)
 
 	@TrackNumber.deleter
 	def TrackNumber(self):
 		self._verifyCanDelete('TrackNumber')
-		self._setTrackOrDisc(MusicFileProperties.MGTrackNumber, 0, self.TotalTracks)
+		self._setTrackOrDisc(Mp4TagNames.TrackNumber, 0, self.TotalTracks)
 	# endregion
 
 	# region property TotalTracks
@@ -388,18 +387,18 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.track_total
 		else:
-			trackInfo= self._getMutagenProperty(MusicFileProperties.MGTrackNumber)
+			trackInfo= self._getMutagenProperty(Mp4TagNames.TrackNumber)
 			return trackInfo[1] if trackInfo and trackInfo[1] > 0 else None
 
 	@TotalTracks.setter
 	def TotalTracks(self, value : int):
 		self._verifyCanSet('TotalTracks')
-		self._setTrackOrDisc(MusicFileProperties.MGTrackNumber, self.TrackNumber, value)
+		self._setTrackOrDisc(Mp4TagNames.TrackNumber, self.TrackNumber, value)
 
 	@TotalTracks.deleter
 	def TotalTracks(self):
 		self._verifyCanDelete('TotalTracks')
-		self._setTrackOrDisc(MusicFileProperties.MGTrackNumber, self.TrackNumber, 0)
+		self._setTrackOrDisc(Mp4TagNames.TrackNumber, self.TrackNumber, 0)
 	# endregion
 
 	# region property DiscNumber
@@ -408,19 +407,19 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.disc
 		else:
-			discInfo= self._getMutagenProperty(MusicFileProperties.MGDiscNumber)
+			discInfo= self._getMutagenProperty(Mp4TagNames.DiscNumber)
 			return discInfo[0] if discInfo and discInfo[0] > 0 else None
 
 	@DiscNumber.setter
 	def DiscNumber(self, value : int):
 		self._verifyCanSet('DiscNumber')
-		self._setTrackOrDisc(MusicFileProperties.MGDiscNumber, value, self.TotalDiscs)
+		self._setTrackOrDisc(Mp4TagNames.DiscNumber, value, self.TotalDiscs)
 		pass
 
 	@DiscNumber.deleter
 	def DiscNumber(self):
 		self._verifyCanDelete('DiscNumber')
-		self._setTrackOrDisc(MusicFileProperties.MGDiscNumber, 0, self.TotalDiscs)
+		self._setTrackOrDisc(Mp4TagNames.DiscNumber, 0, self.TotalDiscs)
 	# endregion
 
 	# region property TotalDiscs
@@ -429,19 +428,19 @@ class MusicFileProperties:
 		if self._tinytag:
 			return self._tinytag.disc_total
 		else:
-			discInfo= self._getMutagenProperty(MusicFileProperties.MGDiscNumber)
+			discInfo= self._getMutagenProperty(Mp4TagNames.DiscNumber)
 			return discInfo[1] if discInfo and discInfo[1] > 0 else None
 
 	@TotalDiscs.setter
 	def TotalDiscs(self, value : int):
 		self._verifyCanSet('TotalDiscs')
-		self._setTrackOrDisc(MusicFileProperties.MGDiscNumber, self.DiscNumber, value)
+		self._setTrackOrDisc(Mp4TagNames.DiscNumber, self.DiscNumber, value)
 		pass
 
 	@TotalDiscs.deleter
 	def TotalDiscs(self):
 		self._verifyCanDelete('TotalDiscs')
-		self._setTrackOrDisc(MusicFileProperties.MGDiscNumber, self.DiscNumber, 0)
+		self._setTrackOrDisc(Mp4TagNames.DiscNumber, self.DiscNumber, 0)
 	# endregion
 
 	# region property Producer
@@ -450,17 +449,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return None
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGProducer)
+			return self._getMutagenProperty(Mp4TagNames.Producer)
 
 	@Producer.setter
 	def Producer(self, value : str):
 		self._verifyCanSet('Producer')
-		self._setMutagenProperty(MusicFileProperties.MGProducer, value)
+		self._setMutagenProperty(Mp4TagNames.Producer, value)
 
 	@Producer.deleter
 	def Producer(self):
 		self._verifyCanDelete('Producer')
-		self._deleteMutagenProperty(MusicFileProperties.MGProducer)
+		self._deleteMutagenProperty(Mp4TagNames.Producer)
 	# endregion
 
 	# region property Conductor
@@ -469,17 +468,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return None
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGConductor)
+			return self._getMutagenProperty(Mp4TagNames.Conductor)
 
 	@Conductor.setter
 	def Conductor(self, value : str):
 		self._verifyCanSet('Conductor')
-		self._setMutagenProperty(MusicFileProperties.MGConductor, value)
+		self._setMutagenProperty(Mp4TagNames.Conductor, value)
 
 	@Conductor.deleter
 	def Conductor(self):
 		self._verifyCanDelete('Conductor')
-		self._deleteMutagenProperty(MusicFileProperties.MGConductor)
+		self._deleteMutagenProperty(Mp4TagNames.Conductor)
 	# endregion
 
 	# region property Copyright
@@ -488,17 +487,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return None
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGCopyright)
+			return self._getMutagenProperty(Mp4TagNames.Copyright)
 
 	@Copyright.setter
 	def Copyright(self, value : str):
 		self._verifyCanSet('Copyright')
-		self._setMutagenProperty(MusicFileProperties.MGCopyright, value)
+		self._setMutagenProperty(Mp4TagNames.Copyright, value)
 
 	@Copyright.deleter
 	def Copyright(self):
 		self._verifyCanDelete('Copyright')
-		self._deleteMutagenProperty(MusicFileProperties.MGCopyright)
+		self._deleteMutagenProperty(Mp4TagNames.Copyright)
 	# endregion
 
 	# region property Publisher
@@ -507,17 +506,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return None
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGPublisher)
+			return self._getMutagenProperty(Mp4TagNames.Publisher)
 
 	@Publisher.setter
 	def Publisher(self, value : str):
 		self._verifyCanSet('Publisher')
-		self._setMutagenProperty(MusicFileProperties.MGPublisher, value)
+		self._setMutagenProperty(Mp4TagNames.Publisher, value)
 
 	@Publisher.deleter
 	def Publisher(self):
 		self._verifyCanDelete('Publisher')
-		self._deleteMutagenProperty(MusicFileProperties.MGPublisher)
+		self._deleteMutagenProperty(Mp4TagNames.Publisher)
 	# endregion
 
 	# region property Lyrics
@@ -526,17 +525,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return None
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGLyrics)
+			return self._getMutagenProperty(Mp4TagNames.Lyrics)
 
 	@Lyrics.setter
 	def Lyrics(self, value : str):
 		self._verifyCanSet('Lyrics')
-		self._setMutagenProperty(MusicFileProperties.MGLyrics, value)
+		self._setMutagenProperty(Mp4TagNames.Lyrics, value)
 
 	@Lyrics.deleter
 	def Lyrics(self):
 		self._verifyCanDelete('Lyrics')
-		self._deleteMutagenProperty(MusicFileProperties.MGLyrics)
+		self._deleteMutagenProperty(Mp4TagNames.Lyrics)
 	# endregion
 
 	# region property Lyricist
@@ -545,17 +544,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return None
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGLyricist)
+			return self._getMutagenProperty(Mp4TagNames.Lyricist)
 
 	@Lyricist.setter
 	def Lyricist(self, value : str):
 		self._verifyCanSet('Lyricist')
-		self._setMutagenProperty(MusicFileProperties.MGLyricist, value)
+		self._setMutagenProperty(Mp4TagNames.Lyricist, value)
 
 	@Lyricist.deleter
 	def Lyricist(self):
 		self._verifyCanDelete('Lyricist')
-		self._deleteMutagenProperty(MusicFileProperties.MGLyricist)
+		self._deleteMutagenProperty(Mp4TagNames.Lyricist)
 	# endregion
 
 	# region property OriginalArtist
@@ -564,17 +563,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return None
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGOriginalArtist)
+			return self._getMutagenProperty(Mp4TagNames.OriginalArtist)
 
 	@OriginalArtist.setter
 	def OriginalArtist(self, value : str):
 		self._verifyCanSet('OriginalArtist')
-		self._setMutagenProperty(MusicFileProperties.MGOriginalArtist, value)
+		self._setMutagenProperty(Mp4TagNames.OriginalArtist, value)
 
 	@OriginalArtist.deleter
 	def OriginalArtist(self):
 		self._verifyCanDelete('OriginalArtist')
-		self._deleteMutagenProperty(MusicFileProperties.MGOriginalArtist)
+		self._deleteMutagenProperty(Mp4TagNames.OriginalArtist)
 	# endregion
 
 	# region property OriginalAlbum
@@ -583,17 +582,17 @@ class MusicFileProperties:
 		if self._tinytag:
 			return None
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGOriginalAlbum)
+			return self._getMutagenProperty(Mp4TagNames.OriginalAlbum)
 
 	@OriginalAlbum.setter
 	def OriginalAlbum(self, value : str):
 		self._verifyCanSet('OriginalAlbum')
-		self._setMutagenProperty(MusicFileProperties.MGOriginalAlbum, value)
+		self._setMutagenProperty(Mp4TagNames.OriginalAlbum, value)
 
 	@OriginalAlbum.deleter
 	def OriginalAlbum(self):
 		self._verifyCanDelete('OriginalAlbum')
-		self._deleteMutagenProperty(MusicFileProperties.MGOriginalAlbum)
+		self._deleteMutagenProperty(Mp4TagNames.OriginalAlbum)
 	# endregion
 
 	# region property OriginalYear
@@ -602,15 +601,15 @@ class MusicFileProperties:
 		if self._tinytag:
 			return None
 		else:
-			return self._getMutagenProperty(MusicFileProperties.MGOriginalYear)
+			return self._getMutagenProperty(Mp4TagNames.OriginalYear)
 
 	@OriginalYear.setter
 	def OriginalYear(self, value : str):
 		self._verifyCanSet('OriginalYear')
-		self._setMutagenProperty(MusicFileProperties.MGOriginalYear, value)
+		self._setMutagenProperty(Mp4TagNames.OriginalYear, value)
 
 	@OriginalYear.deleter
 	def OriginalYear(self):
 		self._verifyCanDelete('OriginalYear')
-		self._deleteMutagenProperty(MusicFileProperties.MGOriginalYear)
+		self._deleteMutagenProperty(Mp4TagNames.OriginalYear)
 	# endregion
