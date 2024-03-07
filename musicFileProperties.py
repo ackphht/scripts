@@ -60,6 +60,7 @@ class Mp4TagNames:
 	MusicBrainzReleaseGroupId = "----:com.apple.iTunes:MusicBrainz Release Group Id"
 	Upc = "----:com.apple.iTunes:UPC"				# or BARCODE ??
 	Barcode = "----:com.apple.iTunes:BARCODE"		# for CD rips
+	CatalogNumber = "----:com.apple.iTunes:CATALOGNUMBER"
 	Asin = "----:com.apple.iTunes:ASIN"				# for digital ones i bought from Amazon
 	Rating = "----:com.apple.iTunes:RATING"
 	Label = "----:com.apple.iTunes:LABEL"

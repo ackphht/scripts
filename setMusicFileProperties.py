@@ -160,6 +160,7 @@ class ApprovedTagsList:
 			Mp4TagNames.MusicBrainzReleaseGroupId.upper(): Mp4TagNames.MusicBrainzReleaseGroupId,
 			Mp4TagNames.Isrc.upper(): Mp4TagNames.Isrc,
 			Mp4TagNames.Barcode.upper(): Mp4TagNames.Barcode,
+			Mp4TagNames.CatalogNumber.upper(): Mp4TagNames.CatalogNumber,
 			Mp4TagNames.Asin.upper(): Mp4TagNames.Asin,
 			Mp4TagNames.MusicianCredits.upper(): Mp4TagNames.MusicianCredits,
 			Mp4TagNames.DigitalPurchaseFrom.upper(): Mp4TagNames.DigitalPurchaseFrom,
