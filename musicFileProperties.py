@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pathlib
-from typing import Any, List
+from typing import Any, List, Iterator
 import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
 from tinytag import TinyTag		# mutagen doesn't support WMA files
 
@@ -105,7 +105,7 @@ class MusicFileProperties:
 		self._dirty = False
 		return True
 
-	def getProperties(self) -> iter[(str, Any)]:
+	def getProperties(self) -> Iterator[tuple[str, Any]]:
 		yield ("AlbumArtist", self.AlbumArtist)
 		yield ("AlbumTitle", self.AlbumTitle)
 		yield ("TrackArtist", self.TrackArtist)
@@ -128,16 +128,19 @@ class MusicFileProperties:
 		yield ("OriginalAlbum", self.OriginalAlbum)
 		yield ("OriginalYear", self.OriginalYear)
 
-	def getRawProperties(self) -> iter[(str, Any)]:
+	def getRawProperties(self) -> Iterator[tuple[str, Any]]:
 		if self._tinytag:
 			d = self._tinytag.as_dict()
 			for t in d:
 				yield (t, d[t])
 		else :
 			for tag in self._mutagen.tags:
-				yield (tag, self._mutagen[tag])
+				if isinstance(tag, tuple):
+					yield tag
+				else:
+					yield (tag, self._mutagen[tag])
 
-	def getRawPropertyNames(self) -> iter[str]:
+	def getRawPropertyNames(self) -> Iterator[str]:
 		if self._tinytag:
 			for tag in self._tinytag.as_dict():
 				yield tag
