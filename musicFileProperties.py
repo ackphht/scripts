@@ -137,6 +137,14 @@ class MusicFileProperties:
 			for tag in self._mutagen.tags:
 				yield (tag, self._mutagen[tag])
 
+	def getRawPropertyNames(self) -> iter[str]:
+		if self._tinytag:
+			for tag in self._tinytag.as_dict():
+				yield tag
+		else :
+			for tag in self._mutagen.tags:
+				yield tag
+
 	def setRawProperty(self, propertyName : str, value : Any):
 		if self._tinytag:
 			raise NotImplementedError("modifying files using tinytag (e.g. WMA files) is not supported")
