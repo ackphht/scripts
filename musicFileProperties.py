@@ -29,6 +29,9 @@ class Mp4TagNames:
 	TrackArtistSort = "soar"
 	ComposerSort = "soco"
 	Producer = "----:com.apple.iTunes:PRODUCER"
+	Engineer = "----:com.apple.iTunes:ENGINEER"
+	Mixer = "----:com.apple.iTunes:MIXER"
+	ReMixer = "----:com.apple.iTunes:MIXARTIST"
 	Publisher = "----:com.apple.iTunes:PUBLISHER"
 	Lyricist = "----:com.apple.iTunes:LYRICIST"
 	OriginalAlbum = "----:com.apple.iTunes:ORIGALBUM"
@@ -58,6 +61,7 @@ class Mp4TagNames:
 	MusicBrainzRecordingId = "----:com.apple.iTunes:MusicBrainz Track Id"			# but Mp3tag uses this one ?? i'm confused on which of these tags is which
 	MusicBrainzReleaseCountry = "----:com.apple.iTunes:MusicBrainz Album Release Country"
 	MusicBrainzReleaseGroupId = "----:com.apple.iTunes:MusicBrainz Release Group Id"
+	AcoustId = "----:com.apple.iTunes:Acoustid Id"
 	Upc = "----:com.apple.iTunes:UPC"				# or BARCODE ??
 	Barcode = "----:com.apple.iTunes:BARCODE"		# for CD rips
 	CatalogNumber = "----:com.apple.iTunes:CATALOGNUMBER"
@@ -65,6 +69,7 @@ class Mp4TagNames:
 	Rating = "----:com.apple.iTunes:RATING"
 	Label = "----:com.apple.iTunes:LABEL"
 	MusicianCredits = "----:com.apple.iTunes:MUSICIANCREDITS"
+	InvolvedPeople = "----:com.apple.iTunes:INVOLVEDPEOPLE"
 	DigitalPurchaseFrom = "----:com.apple.iTunes:DIGITALPURCHASEFROM"		# these are my own tags, so pascal case would be nice, but mp3tag uppercases everything; sigh
 	DigitalPurchaseDate = "----:com.apple.iTunes:DIGITALPURCHASEDATE"
 	DigitalPurchaseId = "----:com.apple.iTunes:DIGITALPURCHASEID"
