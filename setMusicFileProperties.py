@@ -254,7 +254,21 @@ class MusicFolderHandler:
 		mf = MusicFileProperties(filePath)
 		self._cleanFile(mf)
 
-	def _copyFileProperties(self, targetMusicFile : MusicFileProperties, sourceMusicFile : MusicFileProperties):
+	def _saveFile(self, musicFile: MusicFileProperties, originalLastModTime: float, originalLastAccessTime: float, quiet: bool, ignoreOnlyTimestamp: bool):
+		if self._whatIf:
+			LogHelper.WhatIf(f'saving changes to file "{musicFile.FilePath.name}"')
+		else:
+			if quiet:
+				LogHelper.Verbose(f'saving change to file "{musicFile.FilePath.name}"')
+			else:
+				LogHelper.Message(f'saving change to file "{musicFile.FilePath.name}"')
+			os.chmod(musicFile.FilePath, stat.S_IWRITE)		# make sure it's NOT readonly
+			if ignoreOnlyTimestamp or not self._onlyTimestamp:
+				musicFile.save(True)
+			os.utime(musicFile.FilePath, (originalLastAccessTime, originalLastModTime))
+			os.chmod(musicFile.FilePath, stat.S_IREAD)		# now make sure it IS readonly
+
+	def _copyFileProperties(self, targetMusicFile : MusicFileProperties, sourceMusicFile : MusicFileProperties, forceOverwrite: bool):
 		lastModTime = os.path.getmtime(sourceMusicFile.FilePath)
 		currLastAccessTime = os.path.getatime(targetMusicFile.FilePath)
 		self._cleanJunkProperties(targetMusicFile)
@@ -279,14 +293,7 @@ class MusicFolderHandler:
 		targetMusicFile.DiscNumber = sourceMusicFile.DiscNumber
 		targetMusicFile.TotalDiscs = sourceMusicFile.TotalDiscs
 
-		if self._whatIf:
-			LogHelper.WhatIf(f'saving changes to file "{targetMusicFile.FilePath.name}"')
-		else:
-			LogHelper.Message(f'saving change to file "{targetMusicFile.FilePath.name}"')
-			os.chmod(targetMusicFile.FilePath, stat.S_IWRITE)
-			targetMusicFile.save(True)
-			os.utime(targetMusicFile.FilePath, (currLastAccessTime, lastModTime))
-			os.chmod(targetMusicFile.FilePath, stat.S_IREAD)
+		self._saveFile(targetMusicFile, lastModTime, currLastAccessTime, False, True)
 
 	def _setMusicFileFromDb(self, musicFile : MusicFileProperties, sqliteConn : sqlite3.Connection):
 		lastModTime = os.path.getmtime(musicFile.FilePath)
@@ -328,14 +335,7 @@ class MusicFolderHandler:
 			if row.ModifyTimeUTC:
 				lastModTime = MusicFolderHandler._dbModifyTimeToTimestamp(row.ModifyTimeUTC)
 
-		if self._whatIf:
-			LogHelper.WhatIf(f"saving changes to file '{musicFile.FilePath.name}'")
-		else:
-			os.chmod(musicFile.FilePath, stat.S_IWRITE)
-			if not self._onlyTimestamp:
-				musicFile.save(True)
-			os.utime(musicFile.FilePath, (currLastAccessTime, lastModTime))
-			os.chmod(musicFile.FilePath, stat.S_IREAD)
+		self._saveFile(musicFile, lastModTime, currLastAccessTime, True, False)
 
 	def _setFileProperties(self, musicFile : MusicFileProperties, dbRow : DbRowHelper):
 		LogHelper.Verbose(f"setting properties on file '{musicFile.FilePath.stem}'")
@@ -442,14 +442,7 @@ class MusicFolderHandler:
 
 		self._cleanJunkProperties(musicFile)
 
-		if self._whatIf:
-			LogHelper.WhatIf(f"saving changes to file '{musicFile.FilePath.name}'")
-		else:
-			LogHelper.Message(f"saving change to file '{musicFile.FilePath.name}'")
-			os.chmod(musicFile.FilePath, stat.S_IWRITE)
-			musicFile.save(True)
-			os.utime(musicFile.FilePath, (currLastAccessTime, lastModTime))
-			os.chmod(musicFile.FilePath, stat.S_IREAD)
+		self._saveFile(musicFile, lastModTime, currLastAccessTime, False, True)
 
 	def _cleanJunkProperties(self, musicFile : MusicFileProperties):
 		musicFile.deleteRawProperty(Mp4TagNames.iTunSMPB)
