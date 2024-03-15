@@ -774,7 +774,7 @@ def showFilePropertiesCommand(args : argparse.Namespace):
 	props = MusicFileProperties(file)
 	printData = []
 	if args.raw:
-		for p,v in props.getRawProperties():
+		for p,v in (sorted(props.getRawProperties(), key=lambda p: p[0]) if args.sort else props.getRawProperties()):
 			if p != Mp4TagNames.Cover:
 				printData.append([p,v])
 			else:
@@ -827,7 +827,8 @@ def buildArguments():
 
 	setFolderCmd = subparsers.add_parser("showFileProperties", aliases=["file", "fil"], help="show music properties for the given file")
 	setFolderCmd.add_argument("filePath")
-	setFolderCmd.add_argument("-r", "--raw", action="store_true", help="show raw (i.e. mutagen) properties")
+	setFolderCmd.add_argument("-r", "--raw", action="store_true", help="show raw properties without mapping to friendly names")
+	setFolderCmd.add_argument("-s", "--sort", action="store_true", help="if --raw, also sort the names")
 	setFolderCmd.set_defaults(func=showFilePropertiesCommand)
 
 	return parser
