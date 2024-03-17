@@ -140,6 +140,16 @@ class LogHelper:
 		LogHelper.MessageYellow(message, *posargs, **kwargs)
 
 	@staticmethod
+	def MessageCustom(message : str, color: str, style: str, /, *posargs, **kwargs) -> None:
+		"""prints a regular message to the console in the specified style and color"""
+		LogHelper._writeMessage(message, style, color, "", *posargs, **kwargs)
+
+	@staticmethod
+	def MessageBlue(message : str, /, *posargs, **kwargs) -> None:
+		"""prints a regular message to the console in blue"""
+		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.Blue, "", *posargs, **kwargs)
+
+	@staticmethod
 	def MessageCyan(message : str, /, *posargs, **kwargs) -> None:
 		"""prints a regular message to the console in cyan"""
 		LogHelper._writeMessage(message, LogHelper.Style.Normal, LogHelper.Fore.Cyan, "", *posargs, **kwargs)
