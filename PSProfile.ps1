@@ -234,5 +234,8 @@ if ($ackIsWindows) {
 
 Remove-Variable -Name 'ackIsWindows'
 
+function Get-EncodedCommand { param([Parameter(Mandatory=$true)][string]$c) return ([System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($c))) }
+function Get-DecodedCommand { param([Parameter(Mandatory=$true)][string]$c) return ([System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($c))) }
+
 # some more aliases:
 New-Alias -Name 'll' -Value 'Get-ChildItem'
