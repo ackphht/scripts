@@ -6,7 +6,7 @@ gHomeComputerName := "arrakis"
 
 gOSVersion := Float(RegExReplace(A_OSVersion, "(\d+\.\d+)\.\d+", "$1"))
 gOSBuild := Integer(RegExReplace(A_OSVersion, "\d+\.\d+\.(\d+)", "$1"))
-gEnableExplorerMultiTab := true
+gEnableExplorerMultiTab := false
 gWin1122h2Build := 22621
 gWin1123h2Build := 22631
 
