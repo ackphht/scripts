@@ -1052,7 +1052,7 @@ function CleanUpPathVars {
 
 	$crap = @(
 		'*\javapath'
-		'*\Microsoft SQL Server\*'
+		#'*\Microsoft SQL Server\*'
 		#'*\Windows Performance Toolkit\'
 		'*\Windows Kits\*'
 		'*\UltraEdit'
