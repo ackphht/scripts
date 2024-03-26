@@ -24,7 +24,7 @@ for f in $(find $backupFolder -type f -print); do
 		#echo "skipping /dconf file '$justName'"
 		# skip dconf settings files here; have to be handled separately below
 		continue
-	elif [[ $justName == ".bash_profile" || $justName == ".bashrc" || $justName == ".profile" || $justName == ".inputrc" ]]; then
+	elif [[ $justName == ".bash_profile" || $justName == ".bashrc" || $justName == ".profile" || $justName == ".inputrc" || $justName == ".zshrc" || $justName == ".zprofile" ]]; then
 		#echo "handling profile file '$justName'"
 		# don't want to overwrite the existing files for these, so copy to another name, then we can manually diff them:
 		newName="${HOME}/${justName}.fromBackup"
