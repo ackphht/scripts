@@ -190,18 +190,21 @@ fi
 
 case $platform in
 	Linux|MINGW*|MSYS*|CYGWIN*)
-		dfRoot='df -TPh --sync /'
-		alias sz=$dfRoot
+		dfBase='df -TPh --sync'
+		if [[ $(readlink $(which df)) =~ "busybox" ]]; then
+			dfBase='df -TPh'
+		fi
+		alias sz="${dfBase} /"
 		# can't use which or type for sbin stuff on openSuse:
 		if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
 			alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
 			if [[ -x /usr/bin/compsize || -x /usr/sbin/compsize ]]; then
-				alias sz="${dfRoot}; echo; sudo compsize -x /"
+				alias sz="${dfBase} /; echo; sudo compsize -x /"
 			fi
 		fi
-		unset dfRoot
-		alias szz='df -TPh --sync --type=ext2 --type=ext3 --type=ext4 --type=btrfs --type=zfs --type=vfat --type=ntfs'
-		alias sza='df -TPh --sync'
+		alias szz="${dfBase} --type=ext2 --type=ext3 --type=ext4 --type=btrfs --type=zfs --type=vfat --type=ntfs"
+		alias sza=$dfBase
+		unset dfBase
 		;;
 	Darwin)
 		alias sz='df -hY /'
