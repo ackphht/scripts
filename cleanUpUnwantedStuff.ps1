@@ -739,6 +739,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 17', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 18', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 19', $development)
+		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 20', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('PostSharp*', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Python 2.7', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Python 3.*', $development)
