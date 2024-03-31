@@ -56,7 +56,7 @@ if hasCmd uname; then
 	source $scriptRoot/showUnameInfo.sh > uname.log
 fi
 
-env | sort --ignore-case > envVars_env.log
+env | sort -f > envVars_env.log
 #set > envVars_set.txt	# TODO?: is there a way to run this from lower shell level ??
 echo
 echo "you'll need to get 'set' output outside the script to get proper value; run the following:"
