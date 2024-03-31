@@ -69,8 +69,8 @@ case $platform in
 		alias egrep='egrep --color=auto'
 		alias diff='diff --color=auto'
 		;;
-	OpenBSD|DragonFly)
-		# OpenBSD doesn't support colors ??
+	OpenBSD|NetBSD|DragonFly)
+		# OpenBSD/NetBSD don't support colors ??
 		if [[ "$platform" == "DragonFly" ]]; then
 			alias ls='ls -G'
 		fi
@@ -216,8 +216,8 @@ case $platform in
 		alias szz='df -TPh -t ext2,ext3,ext4,btrfs,zfs,ufs,hammer1,hammer2,vfat,msdosfs,ntfs,apfs,hfs,smbfs'
 		alias sza='df -TPh'
 		;;
-	OpenBSD)
-		alias sz='df -hl'
+	OpenBSD|NetBSD)
+		alias sz='df -hl /'
 		alias szz='df -h -t ext2,ext3,ext4,btrfs,zfs,ffs,vfat,msdosfs,ntfs,apfs,hfs,smbfs'
 		alias sza='df -h'
 		;;
