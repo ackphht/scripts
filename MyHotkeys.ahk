@@ -1,4 +1,5 @@
-﻿#SingleInstance force	; if script is launched while a previous instance is already running, automatically reload
+﻿#Requires AutoHotkey >=2.0
+#SingleInstance force	; if script is launched while a previous instance is already running, automatically reload
 
 gHomeComputerName := "arrakis"
 ;gWorkComputerName := "corrin"
@@ -18,7 +19,10 @@ gProgramFiles32 := EnvGet("ProgramFiles(x86)")	; explicit for 32 bit
 if (!gProgramFiles32)							; 32bit OS won't have above
 	gProgramFiles32 := gProgramFiles
 OutputDebug(gProgramFiles . ' is equal to "' . gProgramFiles . '", gProgramFiles32 is equal to "' . gProgramFiles32 . '"')
-gOneDrive := EnvGet("OneDrive")
+
+gOneDrive := EnvGet("OneDriveConsumer")
+if (!gOneDrive)
+	gOneDrive := EnvGet("OneDrive")
 if (!gOneDrive)
 	gOneDrive := EnvGet("UserProfile") . "\OneDrive"
 
