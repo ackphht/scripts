@@ -76,6 +76,22 @@ function WriteVerboseMessage {
 	}
 }
 
+function VerifyFolderExists {
+	[CmdletBinding(SupportsShouldProcess=$true)]
+	[OutputType([void])]
+	param(
+		[Parameter(Mandatory=$true)] [string] $path
+	)
+	# preference vars don't propagate into module cmdlets/functions, so have to do a hacky check to read them from caller in each cmdlet/function that needs it...
+	if (-not $PSBoundParameters.ContainsKey('ErrorAction')) { $ErrorActionPreference = $PSCmdlet.GetVariableValue('ErrorActionPreference') }
+	if (-not $PSBoundParameters.ContainsKey('Verbose')) { $VerbosePreference = $PSCmdlet.GetVariableValue('VerbosePreference') }
+
+	if (-not (Test-Path -Path $path -PathType Container)) {
+		WriteVerboseMessage -message 'creating folder = |{0}|' -formatParams $path
+		[void](New-Item -Path $path -ItemType Directory -Force)
+	}
+}
+
 function GetSortedPropertyNames {
 	param(
 		[PSObject] $object

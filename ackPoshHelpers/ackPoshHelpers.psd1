@@ -33,7 +33,7 @@ CompatiblePSEditions = 'Desktop', 'Core'
 # NestedModules = @()
 # Functions to export from this module
 #FunctionsToExport = '*'
-FunctionsToExport = @('Write*', 'Get*', 'Convert*', 'Parse*', 'Map*', 'Has*', 'Coalesce')
+FunctionsToExport = @('Write*', 'Get*', 'Convert*', 'Parse*', 'Map*', 'Has*', 'Coalesce', 'VerifyFolderExists')
 # Cmdlets to export from this module
 #CmdletsToExport = '*'
 # Variables to export from this module
