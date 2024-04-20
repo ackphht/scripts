@@ -39,6 +39,7 @@ if hasCmd hostnamectl ; then
 else
 	echo "WARNING: hostnamectl not found"
 fi
+hasCmd inxi && inxi -Fr > inxi.log 2>/dev/null || true
 
 hasCmd bash && test -f $scriptRoot/showAppVersions.sh && bash $scriptRoot/showAppVersions.sh > showAppVersions.log
 hasCmd python3 && test -f $scriptRoot/showSomeProps.py && python3 $scriptRoot/showSomeProps.py > pythonProperties.log
