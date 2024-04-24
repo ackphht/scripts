@@ -775,10 +775,12 @@ def showFilePropertiesCommand(args : argparse.Namespace):
 	printData = []
 	if args.raw:
 		for p,v in (sorted(props.getRawProperties(), key=lambda p: p[0]) if args.sort else props.getRawProperties()):
-			if p != Mp4TagNames.Cover:
-				printData.append([p,v])
-			else:
+			if p == Mp4TagNames.Cover:
 				printData.append([p,'<some bytes>'])
+			elif p == Mp4TagNames.Lyrics:
+				printData.append([p,'<lyrics>'])
+			else:
+				printData.append([p,v])
 	else:
 		for p,v in props.getProperties():
 			printData.append([p,v])
