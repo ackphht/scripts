@@ -774,6 +774,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('Nearby Share from Google.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('NSIS.lnk', $development)
 		[StartMenuCleanupItem]::FromUserPrograms('Outlook.lnk', $applications)
+		[StartMenuCleanupItem]::FromUserPrograms('Quick Share from Google.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserStartMenu('SumatraPDF.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('SumatraPDF.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('SyncBackSE.lnk', $applications)
@@ -1376,7 +1377,9 @@ function ReplaceWithEnvVars {
 	foreach ($nv in $script:cachedEnvVars) {
 		# -icontains, -ireplace aren't working(?), use .net methods:
 		if ($value.StartsWith($nv.Value, [System.StringComparison]::CurrentCultureIgnoreCase)) {
-			$value = $value.Replace($nv.Value, "%$($nv.Name)%", [System.StringComparison]::CurrentCultureIgnoreCase)
+			# and need this to be case-insensitive, but old .net's String.Replace doesn't support that, so regex it is
+			$re = [regex]::new(('^{0}' -f [regex]::Escape($nv.Value)), [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+			$value = $re.Replace($value, ('%{0}%' -f $nv.Name))
 			break
 		}
 	}
