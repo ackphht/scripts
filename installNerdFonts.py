@@ -266,6 +266,7 @@ def initFontsToInstall(ghRelease : GithubRelease) -> NerdFontCollection:
 	# second name(s) (the "fontFilenameBase"s) are the filenames to look for/extract/install in the downloaded archive
 	#    name in the archive will be "{basename}-*.(t|o)tf"
 	fontsToInstall.addFontDefn("FantasqueSansMono", ["FantasqueSansMNerdFont"])#, "FantasqueSansMNerdFontMono"])
+	fontsToInstall.addFontDefn("CascadiaCode", ["CaskaydiaCoveNerdFont"])#, "CaskaydiaCoveNerdFontMono"])
 	fontsToInstall.addFontDefn("Meslo", ["MesloLGSNerdFont"])#, "MesloLGSDZNerdFont"])
 	if sys.platform == "win32":
 		fontsToInstall.addFontDefn("ComicShannsMono", ["ComicShannsMonoNerdFont"])
@@ -278,8 +279,6 @@ def initFontsToInstall(ghRelease : GithubRelease) -> NerdFontCollection:
 		fontsToInstall.addFontDefn("SpaceMono", ["SpaceMonoNerdFont"])
 		#fontsToInstall.addFontDefn("ShareTechMono", ["ShureTechMonoNerdFont"])
 		#fontsToInstall.addFontDefn("XXXXXXXX", ["XXXXXXXX"])
-	else:
-		fontsToInstall.addFontDefn("CascadiaCode", ["CaskaydiaCoveNerdFont"])#, "CaskaydiaCoveNerdFontMono"])
 	for a in ghRelease.assets:
 		fontsToInstall.processAsset(a)
 	return fontsToInstall
