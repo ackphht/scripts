@@ -86,7 +86,7 @@
 						"folder_separator_icon": "/",
 						"mapped_locations": {
 							"~/Desktop": "~/󰟀 ",	// 󰟀 (f07c0)
-							"~/Documents": "~/ ",	// 󰈙 (f0219),  (f0f6),  (f15c),  (f40e)
+							"~/Documents": "~/ ",	// 󰈙 (f0219),  (f0f6),  (f15c), 󱧷 (f19f7), 󱧶 (f19f6),  (f40e?? think this got changed at some point)
 							"~/Downloads": "~/ ",	// 󰉍 (f024d),  (f0ed), 󰅢 (f0162),   (f019), 󰇚 (f01da),   (f409)
 							"~/Music": "~/󰝚 ",		// 󰎈 (f0388),  (f001), 󰝚 (f075a), 󰈣 (f0223), 󰎄 (f0384), 󰎅 (f0385), 󰎆 (f0386)
 							"~/OneDrive": "~/ ",	//  (e762), 󰏊 (f03ca)
