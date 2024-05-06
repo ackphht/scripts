@@ -14,7 +14,7 @@ function Main {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	param([string] $name)
 
-	$baseBackupFolder = 'D:\Users\michael\temp\VMs'
+	$baseBackupFolder = 'D:\Users\michael\VMBackups'
 	$skipsRe = [regex]::new('.+_(diff|test|beta|dev|canary)', 'Compiled')
 	#
 	# back up Hyper-V VMs:
