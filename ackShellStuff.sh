@@ -36,6 +36,7 @@ fi
 alias cls='clear'
 hasCmd screenfetch && alias sf='screenfetch' || true
 hasCmd neofetch && alias nf='neofetch' || true
+hasCmd fastfetch && alias ff='fastfetch' || true
 (hasCmd python3 || hasCmd pwsh) && test -f ~/scripts/ackfetch.sh && alias af='bash ~/scripts/ackfetch.sh' || true
 #hasCmd git && test -d ~/scripts && test -z "$WSL_DISTRO_NAME" && alias scup='pushd ~/scripts && git pull && popd' || true
 if hasCmd git; then
