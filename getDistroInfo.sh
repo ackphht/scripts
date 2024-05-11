@@ -23,9 +23,12 @@ test -f /etc/issue && cp /etc/issue .
 
 # sysctl needs sudo to access everything it wants, but also on some OSes (e.g. opensuse) need sudo just to see it:
 sudo which sysctl >/dev/null 2>&1 && sudo sysctl -a | sort --ignore-case > sysctl.log || echo "WARNING: sysctl not found"
-hasCmd lsb_release && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
+if [[ $(uname -s) == "Linux" ]]; then
+	hasCmd lsb_release && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
+fi
 hasCmd screenfetch && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
 hasCmd neofetch && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
+hasCmd fastfetch && fastfetch -N > fastfetch.log 2>/dev/null || true
 hasCmd python3 && test -f $scriptRoot/ackfetch.py && python3 $scriptRoot/ackfetch.py -an > ackfetch.log 2>/dev/null || true
 if hasCmd hostnamectl ; then
 	# two formats, slightly different info, only supported if systemd used, and json format not always supported:
