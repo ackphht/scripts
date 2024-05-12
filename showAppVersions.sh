@@ -25,6 +25,6 @@ hasCmd java    && echo "java    = |$(java --version 2>/dev/null | head -n 1)|" |
 hasCmd perl    && echo "perl    = |$(perl --version | head -n 2 | tail -n 1 | sed -E 's/^(.+)\(v([\.0-9]+)\)(.+)$/\2/')|" || echo 'perl    = |<n/a>|'
 hasCmd ruby    && echo "ruby    = |$(ruby --version | awk '{print $2}')|" ||				echo "ruby    = |<n/a>|"
 hasCmd go      && echo "go      = |$(go version | awk '{print $3}' | sed -E 's/^go//')|" ||	echo "go      = |<n/a>|"
-hasCmd rustc   && echo "rustc   = |$(rustc version | awk '{print $2}')|" ||					echo "rustc   = |<n/a>|"
+hasCmd rustc   && echo "rustc   = |$(rustc --version | awk '{print $2}')|" ||					echo "rustc   = |<n/a>|"
 hasCmd pwsh    && echo "pwsh    = |$(pwsh --version | awk '{print $2}')|" ||				echo "pwsh    = |<n/a>|"
 hasCmd code    && echo "code    = |$(code --version | head -n 1)|" ||						echo "code    = |<n/a>|"
