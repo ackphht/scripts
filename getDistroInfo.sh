@@ -13,6 +13,7 @@ fi
 cd $targetFolder
 
 cp -Lr /etc/*-release .		# os-release, lsb-release, manjaro-release, redhat-release, etc
+cp -Lr /etc/*-version .		# some use this instead of *-release (e.g. Slackware) ?
 test -f /etc/mime.types && cp /etc/mime.types .
 test -d /etc/lsb-release.d && mkdir ./lsb-release.d && cp /etc/lsb-release.d/* ./lsb-release.d/
 test -f /etc/debian_version && cp /etc/debian_version .
