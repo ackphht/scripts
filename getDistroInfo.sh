@@ -13,13 +13,12 @@ fi
 cd $targetFolder
 
 cp -Lr /etc/*-release .		# os-release, lsb-release, manjaro-release, redhat-release, etc
-cp -Lr /etc/*-version .		# some use this instead of *-release (e.g. Slackware) ?
+cp -Lr /etc/*-version .		# some use this instead of *-release (e.g. MX, Slackware)
 test -f /etc/mime.types && cp /etc/mime.types .
 test -d /etc/lsb-release.d && mkdir ./lsb-release.d && cp /etc/lsb-release.d/* ./lsb-release.d/
 test -f /etc/debian_version && cp /etc/debian_version .
 test -f /etc/SUSE-brand && cp /etc/SUSE-brand .
 test -f /etc/linuxmint/info && cp /etc/linuxmint/info linuxmint_info
-test -f /etc/mx-version && cp /etc/mx-version .
 test -f /etc/issue && cp /etc/issue .
 
 # sysctl needs sudo to access everything it wants, but also on some OSes (e.g. opensuse) need sudo just to see it:
@@ -54,7 +53,6 @@ hasCmd pwsh && test -f $scriptRoot/getSystemInformation.ps1 && pwsh -command "& 
 hasCmd system_profiler && system_profiler -json SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.json && \
 	system_profiler SPHardwareDataType SPSoftwareDataType SPMemoryDataType SPStorageDataType SPNVMeDataType > system_profiler.log
 hasCmd sw_vers && sw_vers > sw_vers.log || true
-
 #uname -a > uname.txt
 echo -n '' > uname.log
 if hasCmd uname; then
