@@ -28,7 +28,7 @@ if [[ $(uname -s) == "Linux" ]]; then
 fi
 hasCmd screenfetch && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
 hasCmd neofetch && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
-hasCmd fastfetch && fastfetch -N > fastfetch.log 2>/dev/null || true
+hasCmd fastfetch && fastfetch > fastfetch.log 2>/dev/null || true
 hasCmd python3 && test -f $scriptRoot/ackfetch.py && python3 $scriptRoot/ackfetch.py -an > ackfetch.log 2>/dev/null || true
 if hasCmd hostnamectl ; then
 	# two formats, slightly different info, only supported if systemd used, and json format not always supported:
