@@ -823,10 +823,11 @@ def showFilePropertiesCommand(args : argparse.Namespace):
 	props = MusicFileProperties(file)
 	printData = []
 	if args.raw:
-		for p,v in (sorted(props.getRawProperties(), key=lambda p: p[0]) if args.sort else props.getRawProperties()):
-			if p == Mp4TagNames.Cover:
-				printData.append([p,'<some bytes>'])
-			elif p == Mp4TagNames.Lyrics:
+		for p,v in (sorted(props.getRawProperties(), key=lambda p: p[0].upper()) if args.sort else props.getRawProperties()):
+			# 'APIC' if MP3 (no idea why mutagen is putting ':' in there); 'Cover Art XXX' for APE; 'METADATA_BLOCK_PICTURE' for Vorbis; 'WM/Picture' is WMA;
+			if p == Mp4TagNames.Cover or p == 'APIC:' or p.startswith('Cover Art') or p == 'METADATA_BLOCK_PICTURE' or p == 'WM/Picture':
+				printData.append([p,'<binary (cover)>'])
+			elif p == Mp4TagNames.Lyrics or p.startswith('USLT::') or p.upper() == 'LYRICS' or p.upper() == 'UNSYNCEDLYRICS' or p == 'WM/Lyrics':
 				printData.append([p,'<lyrics>'])
 			else:
 				printData.append([p,v])
