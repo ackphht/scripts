@@ -188,13 +188,18 @@ class MusicFileProperties:
 			raise NotImplementedError("deleting properties in files using tinytag (e.g. WMA files) is not supported. Property = " + property)
 
 	def _setMutagenProperty(self, propertyName : str, value : Any) -> None:
+		LogHelper.Verbose('setting mutagen property named "{0}"', propertyName)
 		if value == None or (isinstance(value, str) and len(value) == 0):
 			if propertyName in self._mutagen:
 				del self._mutagen[propertyName]
 				self._dirty = True
 			return
+		# TODO: this is all kinda specific to mp4 files; if we want this to work other types of files...
 		if not propertyName.startswith(Mp4TagNames.Mp4CustomPropertyPrefix):
 			self._mutagen[propertyName] = value
+		else:
+			if type(value) is list and len(value) == 1 and type(value[0]) is mutagen.mp4.MP4FreeForm:
+				self._mutagen[propertyName] = value[0]		# probably should check that the file is actually an mp4...
 		else:
 			if not isinstance(value, str):
 				raise NotImplementedError("only currently know how to set string values")
