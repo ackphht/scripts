@@ -50,11 +50,13 @@ class Mp4TagNames:
 	RippingTool = "----:com.apple.iTunes:Ripping tool"
 	RipDate = "----:com.apple.iTunes:Rip date"
 	RelaseType = "----:com.apple.iTunes:Release type"
-	Language = "----:com.apple.iTunes:language"
+	Language = "----:com.apple.iTunes:LANGUAGE"
+	Script = "----:com.apple.iTunes:SCRIPT"
 	EncodingSettings = "----:com.apple.iTunes:encoding settings"
 	# https://picard-docs.musicbrainz.org/en/appendices/tag_mapping.html
 	# https://picard-docs.musicbrainz.org/en/variables/variables.html
 	# https://musicbrainz.org/doc/MusicBrainz_Database
+	MusicBrainzDiscId = "----:com.apple.iTunes:MusicBrainz Disc Id"
 	MusicBrainzAlbumId = "----:com.apple.iTunes:MusicBrainz Album Id"
 	MusicBrainzArtistId = "----:com.apple.iTunes:MusicBrainz Artist Id"
 	MusicBrainzAlbumArtistId = "----:com.apple.iTunes:MusicBrainz Album Artist Id"
@@ -62,6 +64,13 @@ class Mp4TagNames:
 	MusicBrainzRecordingId = "----:com.apple.iTunes:MusicBrainz Track Id"			# but Mp3tag uses this one ?? i'm confused on which of these tags is which
 	MusicBrainzReleaseCountry = "----:com.apple.iTunes:MusicBrainz Album Release Country"
 	MusicBrainzReleaseGroupId = "----:com.apple.iTunes:MusicBrainz Release Group Id"
+	MusicBrainzReleaseType = "----:com.apple.iTunes:MusicBrainz Album Type"
+	MusicBrainzReleaseStatus = "----:com.apple.iTunes:MusicBrainz Album Status"
+	MusicBrainzWorkId = "----:com.apple.iTunes:MusicBrainz Work Id"
+	WorkTitle = "©wrk"
+	Mp3tagMediaType = "----:com.apple.iTunes:MEDIATYPE"
+	MusicBrainzMediaType = "----:com.apple.iTunes:MEDIA"
+	MusicBrainzMediaArtists = "----:com.apple.iTunes:ARTISTS"
 	AcoustId = "----:com.apple.iTunes:Acoustid Id"
 	Upc = "----:com.apple.iTunes:UPC"				# or BARCODE ??
 	Barcode = "----:com.apple.iTunes:BARCODE"		# for CD rips
@@ -76,6 +85,21 @@ class Mp4TagNames:
 	DigitalPurchaseId = "----:com.apple.iTunes:DIGITALPURCHASEID"
 	Recorded = "----:com.apple.iTunes:RECORDED"
 	Released = "----:com.apple.iTunes:RELEASED"
+	# foobar2000 just blindly copies properties when it converts files, so if, e.g., we got from FLAC to M4A, we get FLAC property names:
+	MusicBrainzOriginalYearFromConvert = "----:com.apple.iTunes:ORIGINALYEAR"
+	MusicBrainzOriginalDateFromConvert = "----:com.apple.iTunes:ORIGINALDATE"
+	MusicBrainzWorkIdFromConvert = "----:com.apple.iTunes:MUSICBRAINZ_WORKID"
+	MusicBrainzRecordingIdFromConvert = "----:com.apple.iTunes:MUSICBRAINZ_TRACKID"
+	MusicBrainzTrackIdFromConvert = "----:com.apple.iTunes:MUSICBRAINZ_RELEASETRACKID"
+	MusicBrainzReleaseGroupIdFromConvert = "----:com.apple.iTunes:MUSICBRAINZ_RELEASEGROUPID"
+	MusicBrainzDiscIdFromConvert = "----:com.apple.iTunes:MUSICBRAINZ_DISCID"
+	MusicBrainzArtistIdFromConvert = "----:com.apple.iTunes:MUSICBRAINZ_ARTISTID"
+	MusicBrainzAlbumIdFromConvert = "----:com.apple.iTunes:MUSICBRAINZ_ALBUMID"
+	MusicBrainzAlbumArtistIdFromConvert = "----:com.apple.iTunes:MUSICBRAINZ_ALBUMARTISTID"
+	MusicBrainzPerformerFromConvert = "----:com.apple.iTunes:PERFORMER"
+	MusicBrainzMediaReleaseTypeFromConvert = "----:com.apple.iTunes:RELEASETYPE"
+	MusicBrainzReleaseStatusFromConvert = "----:com.apple.iTunes:RELEASESTATUS"
+	MusicBrainzReleaseCountryFromConvert = "----:com.apple.iTunes:RELEASECOUNTRY"
 
 class MusicFileProperties:
 	def __init__(self, musicFilePath):
@@ -200,10 +224,10 @@ class MusicFileProperties:
 		else:
 			if type(value) is list and len(value) == 1 and type(value[0]) is mutagen.mp4.MP4FreeForm:
 				self._mutagen[propertyName] = value[0]		# probably should check that the file is actually an mp4...
-		else:
-			if not isinstance(value, str):
-				raise NotImplementedError("only currently know how to set string values")
-			self._mutagen[propertyName] = mutagen.mp4.MP4FreeForm(value.encode(), dataformat=mutagen.mp4.AtomDataType.UTF8)
+			else:
+				if not isinstance(value, str):
+					raise NotImplementedError("only currently know how to set string values")
+				self._mutagen[propertyName] = mutagen.mp4.MP4FreeForm(value.encode(), dataformat=mutagen.mp4.AtomDataType.UTF8)
 		self._dirty = True
 
 	def _deleteMutagenProperty(self, propertyName : str) -> None:
