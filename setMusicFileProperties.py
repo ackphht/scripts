@@ -463,6 +463,7 @@ class MusicFolderHandler:
 
 		unexpectedTags = []
 		for t,v in musicFile.getRawProperties():
+			if t.startswith('$$'): continue
 			if t not in MusicFolderHandler._approvedTags:
 				strV = str(v)
 				if len(strV) > 120:
