@@ -3,7 +3,7 @@
 
 import sys, os, pathlib, argparse, time, concurrent.futures
 from tracemalloc import start
-from ackPyHelpers import LogHelper, FileHelpers
+from ackPyHelpers import LogHelper, FileHelpers, DateTimeHelpers
 try:
 	import xxhash
 	hashFactory = lambda: xxhash.xxh3_128()
@@ -56,7 +56,10 @@ def validateCommandHandler(args : argparse.Namespace):
 				totalHashSecs += secsTaken
 				LogHelper.Verbose('calculating hashes took {0} secs', secsTaken)
 				if sourceHash != targetHash:
-					LogHelper.Warning('hash mismatch for files{0}    source: "{1}"{0}    target: "{2}"', os.linesep, sourceFile, targetFile)
+					LogHelper.Warning('hash mismatch for files{0}  source: [{3}] {1}{0}  target: [{4}] {2}',
+						os.linesep, sourceFile.as_posix(), targetFile.as_posix(),
+						DateTimeHelpers.FromTimestamp(sourceFile.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S'),
+						DateTimeHelpers.FromTimestamp(targetFile.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S'))
 				else:
 					LogHelper.Verbose('hashes of source file "{0}" and target file "{1}" match', sourceFile, targetFile)
 			else:
