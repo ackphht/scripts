@@ -131,10 +131,12 @@ class MusicFileProperties:
 
 	def getRawProperties(self) -> Iterator[tuple[str, Any]]:
 		if self._tinytag:
+			yield ('$$TagType', 'WMA')
 			d = self._tinytag.as_dict()
 			for t in d:
 				yield (t, d[t])
 		else :
+			yield ('$$TagType', self._mutagen.tags.__class__.__name__)
 			for tag in self._mutagen.tags:
 				if isinstance(tag, tuple):
 					yield tag
