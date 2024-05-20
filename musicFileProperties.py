@@ -4,7 +4,8 @@
 import pathlib
 from typing import Any, List, Iterator
 import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
-from tinytag import TinyTag		# mutagen doesn't support WMA files
+from tinytag import TinyTag
+from ackPyHelpers import LogHelper
 
 class Mp4TagNames:
 	Mp4CustomPropertyPrefix = "----:com.apple.iTunes:"
