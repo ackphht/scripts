@@ -278,7 +278,7 @@ class MusicFolderHandler:
 			os.utime(musicFile.FilePath, (originalLastAccessTime, originalLastModTime))
 			os.chmod(musicFile.FilePath, stat.S_IREAD)		# now make sure it IS readonly
 
-	def _copyFileProperties(self, targetMusicFile : MusicFileProperties, sourceMusicFile : MusicFileProperties, forceOverwrite: bool):
+	def _copyFileProperties(self, targetMusicFile : MusicFileProperties, sourceMusicFile : MusicFileProperties, forceOverwrite: bool = False):
 		lastModTime = os.path.getmtime(sourceMusicFile.FilePath)
 		currLastAccessTime = os.path.getatime(targetMusicFile.FilePath)
 		self._cleanJunkProperties(targetMusicFile)
