@@ -300,6 +300,7 @@ function CleanUpDesktopIcons {
 		'DVDFab*'
 		'Kobo*'
 		'Logi Options+'
+		'Quick Share from Google'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -499,6 +500,7 @@ function CleanUpRegistryAutoruns {
 		@{ Name = 'IDrive Background process'; Value = '' }
 		#@{ Name = 'IDrive Tray'; Value = '' }
 		@{ Name = 'Docker Desktop'; Value = '' }
+		@{ Name = 'KeePass 2 PreLoad'; Value = '' }
 		@{ Name = ''; Value = '*\DVDFab\*\LiveUpdate.exe*'; FriendlyName = 'DVDFab LiveUpdate' }	# uses a random name, grrrrr
 	);
 	$placesToCheck = @(
