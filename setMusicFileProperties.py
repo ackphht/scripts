@@ -143,6 +143,7 @@ class ApprovedTagsList:
 			Mp4TagNames.ReMixer.upper(): Mp4TagNames.ReMixer,
 			Mp4TagNames.Publisher.upper(): Mp4TagNames.Publisher,
 			Mp4TagNames.Lyricist.upper(): Mp4TagNames.Lyricist,
+			Mp4TagNames.Language.upper(): Mp4TagNames.Language,
 			Mp4TagNames.OriginalAlbum.upper(): Mp4TagNames.OriginalAlbum,
 			Mp4TagNames.OriginalArtist.upper(): Mp4TagNames.OriginalArtist,
 			Mp4TagNames.OriginalYear.upper(): Mp4TagNames.OriginalYear,
@@ -154,6 +155,8 @@ class ApprovedTagsList:
 			Mp4TagNames.TrackTitleSort.upper(): Mp4TagNames.TrackTitleSort,
 			Mp4TagNames.AlbumArtistSort.upper(): Mp4TagNames.AlbumArtistSort,
 			Mp4TagNames.TrackArtistSort.upper(): Mp4TagNames.TrackArtistSort,
+			Mp4TagNames.ComposerSort.upper(): Mp4TagNames.ComposerSort,
+			Mp4TagNames.MusicBrainzDiscId.upper(): Mp4TagNames.MusicBrainzDiscId,
 			Mp4TagNames.MusicBrainzAlbumId.upper(): Mp4TagNames.MusicBrainzAlbumId,
 			Mp4TagNames.MusicBrainzArtistId.upper(): Mp4TagNames.MusicBrainzArtistId,
 			Mp4TagNames.MusicBrainzAlbumArtistId.upper(): Mp4TagNames.MusicBrainzAlbumArtistId,
@@ -161,11 +164,18 @@ class ApprovedTagsList:
 			Mp4TagNames.MusicBrainzRecordingId.upper(): Mp4TagNames.MusicBrainzRecordingId,
 			Mp4TagNames.MusicBrainzReleaseCountry.upper(): Mp4TagNames.MusicBrainzReleaseCountry,
 			Mp4TagNames.MusicBrainzReleaseGroupId.upper(): Mp4TagNames.MusicBrainzReleaseGroupId,
+			Mp4TagNames.MusicBrainzReleaseType.upper(): Mp4TagNames.MusicBrainzReleaseType,
+			Mp4TagNames.MusicBrainzReleaseStatus.upper(): Mp4TagNames.MusicBrainzReleaseStatus,
+			Mp4TagNames.Mp3tagMediaType.upper(): Mp4TagNames.Mp3tagMediaType,
+			Mp4TagNames.MusicBrainzMediaType.upper(): Mp4TagNames.MusicBrainzMediaType,
+			Mp4TagNames.MusicBrainzWorkId.upper(): Mp4TagNames.MusicBrainzWorkId,
+			Mp4TagNames.WorkTitle.upper(): Mp4TagNames.WorkTitle,
 			Mp4TagNames.AcoustId.upper(): Mp4TagNames.AcoustId,
 			Mp4TagNames.Isrc.upper(): Mp4TagNames.Isrc,
 			Mp4TagNames.Barcode.upper(): Mp4TagNames.Barcode,
 			Mp4TagNames.CatalogNumber.upper(): Mp4TagNames.CatalogNumber,
 			Mp4TagNames.Asin.upper(): Mp4TagNames.Asin,
+			Mp4TagNames.Label.upper(): Mp4TagNames.Label,
 			Mp4TagNames.MusicianCredits.upper(): Mp4TagNames.MusicianCredits,
 			Mp4TagNames.InvolvedPeople.upper(): Mp4TagNames.InvolvedPeople,
 			Mp4TagNames.DigitalPurchaseFrom.upper(): Mp4TagNames.DigitalPurchaseFrom,
@@ -292,6 +302,14 @@ class MusicFolderHandler:
 		targetMusicFile.TotalTracks = sourceMusicFile.TotalTracks
 		targetMusicFile.DiscNumber = sourceMusicFile.DiscNumber
 		targetMusicFile.TotalDiscs = sourceMusicFile.TotalDiscs
+		# tags i haven't or don't want to make properties for:
+		self._copyTag(Mp4TagNames.Recorded, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.Released, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.MusicianCredits, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.Lyricist, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.DigitalPurchaseFrom, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.DigitalPurchaseDate, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.DigitalPurchaseId, sourceMusicFile, targetMusicFile)
 
 		self._saveFile(targetMusicFile, lastModTime, currLastAccessTime, False, True)
 
@@ -455,11 +473,26 @@ class MusicFolderHandler:
 		musicFile.deleteRawProperty(Mp4TagNames.RippingTool)
 		musicFile.deleteRawProperty(Mp4TagNames.RipDate)
 		musicFile.deleteRawProperty(Mp4TagNames.RelaseType)
-		musicFile.deleteRawProperty(Mp4TagNames.Language)
 		musicFile.deleteRawProperty(Mp4TagNames.EncodingSettings)
 		musicFile.deleteRawProperty(Mp4TagNames.Upc)
 		musicFile.deleteRawProperty(Mp4TagNames.Rating)
-		musicFile.deleteRawProperty(Mp4TagNames.Label)
+		musicFile.deleteRawProperty(Mp4TagNames.Script)
+		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzMediaArtists)
+		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzPerformerFromConvert)
+		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzOriginalYearFromConvert)
+		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzOriginalDateFromConvert)
+
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzMediaReleaseTypeFromConvert, Mp4TagNames.MusicBrainzReleaseType, musicFile)
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzReleaseStatusFromConvert, Mp4TagNames.MusicBrainzReleaseStatus, musicFile)
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzReleaseCountryFromConvert, Mp4TagNames.MusicBrainzReleaseCountry, musicFile)
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzWorkIdFromConvert, Mp4TagNames.MusicBrainzWorkId, musicFile)
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzRecordingIdFromConvert, Mp4TagNames.MusicBrainzRecordingId, musicFile)
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzTrackIdFromConvert, Mp4TagNames.MusicBrainzTrackId, musicFile)
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzReleaseGroupIdFromConvert, Mp4TagNames.MusicBrainzReleaseGroupId, musicFile)
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzDiscIdFromConvert, Mp4TagNames.MusicBrainzDiscId, musicFile)
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzArtistIdFromConvert, Mp4TagNames.MusicBrainzArtistId, musicFile)
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzAlbumIdFromConvert, Mp4TagNames.MusicBrainzAlbumId, musicFile)
+		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzAlbumArtistIdFromConvert, Mp4TagNames.MusicBrainzAlbumArtistId, musicFile)
 
 		unexpectedTags = []
 		for t,v in musicFile.getRawProperties():
@@ -590,6 +623,21 @@ class MusicFolderHandler:
 	@staticmethod
 	def _addFancyChars(value : str):
 		return value.replace("'", "’").replace("...", "…")
+
+	@staticmethod
+	def _copyTag(tagName: str, source: MusicFileProperties, target: MusicFileProperties):
+		val = source.getRawProperty(tagName)
+		if val:
+			target.setRawProperty(tagName, val)
+
+	@staticmethod
+	def _renameTag(oldTagName: str, newTagName: str, target: MusicFileProperties):
+		val = target.getRawProperty(oldTagName)
+		if not val: return
+		if target.getRawProperty(newTagName):
+			LogHelper.Warning('for file = "{0}", cannot rename tag "{1}" to "{2}": new name already exists', target.FilePath.name, oldTagName, newTagName)
+		target.setRawProperty(newTagName, val)
+		target.deleteRawProperty(oldTagName)
 
 class sqliteConnHelper:
 	def __init__(self, sqliteFilename : str):
