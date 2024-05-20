@@ -81,6 +81,8 @@ call :CleanTempFileType MTShell.m3u8	:: not a file type, just a file
 
 call :CleanTempFolder ActivityVisualCache
 call :CleanTempFolder Adobe
+call :CleanTempFolder ai_prompt_builder_tmp
+call :CleanTempFolder com.logi.optionsplus.agent.logs
 call :CleanTempFolder Deployment
 call :CleanTempFolder Diagnostics
 call :CleanTempFolder FrontPageTempDir
@@ -103,13 +105,16 @@ call :CleanTempFolder "Outlook Logging"
 call :CleanTempFolder PdnSetup
 call :CleanTempFolder PhotoCache
 call :CleanTempFolder RazorVSFeedbackLogs
+call :CleanTempFolder RemoteHelp
 call :CleanTempFolder servicehub
+call :CleanTempFolder SmartScreen
 call :CleanTempFolder Ssms
 call :CleanTempFolder SsmsSetup
 call :CleanTempFolder SymbolCache
 call :CleanTempFolder symbols
 call :CleanTempFolder system-commandline-sentinel-files
 call :CleanTempFolder TFSTemp
+call :CleanTempFolder TortoiseGit
 call :CleanTempFolder VBCSCompiler
 call :CleanTempFolder VBE
 call :CleanTempFolder windowssdk
