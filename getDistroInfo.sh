@@ -22,7 +22,7 @@ test -f /etc/linuxmint/info && cp /etc/linuxmint/info linuxmint_info
 test -f /etc/issue && cp /etc/issue .
 
 # sysctl needs sudo to access everything it wants, but also on some OSes (e.g. opensuse) need sudo just to see it:
-sudo which sysctl >/dev/null 2>&1 && sudo sysctl -a | sort --ignore-case > sysctl.log || echo "WARNING: sysctl not found"
+sudo which sysctl >/dev/null 2>&1 && sudo sysctl -a | sort -f > sysctl.log || echo "WARNING: sysctl not found"
 if [[ $(uname -s) == "Linux" ]]; then
 	hasCmd lsb_release && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
 fi
