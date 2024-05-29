@@ -84,6 +84,7 @@ if [[ "$platform" != "Darwin" ]] && hasCmd apt; then	# macOs (at least version i
 	alias aptr='sudo apt update'
 	alias aptul='apt list --upgradable'
 	alias aptu='sudo apt upgrade --yes'
+	alias aptuu='sudo apt dist-upgrade'
 	alias aptc='sudo apt-get autoremove --yes && sudo apt-get autoclean --yes && sudo apt-get clean --yes'
 	alias apts='apt-cache search'
 	alias aptn='apt show'
@@ -105,11 +106,11 @@ elif hasCmd dnf; then
 	alias aptxx='sudo dnf remove'	# but to keep the same aliases available...
 	alias aptl='dnf list --installed'
 elif hasCmd zypper; then
-	alias aptr='sudo zypper refresh --force'	# if output is piped into, e.g. grep, it displays a warning about not having a 'stable CLI interface', 'use with caution'; ???
+	alias aptr='sudo zypper refresh' # --force'	# if output is piped into, e.g. grep, it displays a warning about not having a 'stable CLI interface', 'use with caution'; ???
 	alias aptul='sudo zypper list-updates'		# no idea why this requires sudo now...
 	alias aptu='sudo zypper update --no-confirm --no-recommends'
 	#alias aptc='sudo zypper remove --clean-deps && sudo zypper clean --all'
-	alias aptc='sudo zypper clean --all'
+	alias aptc='sudo zypper clean' # --all'
 	alias apts='zypper search'
 	alias aptn='zypper info'
 	alias apti='sudo zypper install --no-recommends'
