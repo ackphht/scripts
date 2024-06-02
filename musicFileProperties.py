@@ -33,6 +33,7 @@ class Mp4TagNames:
 	Engineer = "----:com.apple.iTunes:ENGINEER"
 	Mixer = "----:com.apple.iTunes:MIXER"
 	ReMixer = "----:com.apple.iTunes:MIXARTIST"
+	Arranger = "----:com.apple.iTunes:ARRANGER"
 	Publisher = "----:com.apple.iTunes:PUBLISHER"
 	Lyricist = "----:com.apple.iTunes:LYRICIST"
 	OriginalAlbum = "----:com.apple.iTunes:ORIGALBUM"

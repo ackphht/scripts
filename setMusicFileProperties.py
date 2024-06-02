@@ -141,6 +141,7 @@ class ApprovedTagsList:
 			Mp4TagNames.Engineer.upper(): Mp4TagNames.Engineer,
 			Mp4TagNames.Mixer.upper(): Mp4TagNames.Mixer,
 			Mp4TagNames.ReMixer.upper(): Mp4TagNames.ReMixer,
+			Mp4TagNames.Arranger.upper(): Mp4TagNames.Arranger,
 			Mp4TagNames.Publisher.upper(): Mp4TagNames.Publisher,
 			Mp4TagNames.Lyricist.upper(): Mp4TagNames.Lyricist,
 			Mp4TagNames.Language.upper(): Mp4TagNames.Language,
@@ -151,11 +152,6 @@ class ApprovedTagsList:
 			Mp4TagNames.ReplayGainTrackPeak.upper(): Mp4TagNames.ReplayGainTrackPeak,
 			Mp4TagNames.ReplayGainAlbumGain.upper(): Mp4TagNames.ReplayGainAlbumGain,
 			Mp4TagNames.ReplayGainAlbumPeak.upper(): Mp4TagNames.ReplayGainAlbumPeak,
-			Mp4TagNames.AlbumTitleSort.upper(): Mp4TagNames.AlbumTitleSort,
-			Mp4TagNames.TrackTitleSort.upper(): Mp4TagNames.TrackTitleSort,
-			Mp4TagNames.AlbumArtistSort.upper(): Mp4TagNames.AlbumArtistSort,
-			Mp4TagNames.TrackArtistSort.upper(): Mp4TagNames.TrackArtistSort,
-			Mp4TagNames.ComposerSort.upper(): Mp4TagNames.ComposerSort,
 			Mp4TagNames.MusicBrainzDiscId.upper(): Mp4TagNames.MusicBrainzDiscId,
 			Mp4TagNames.MusicBrainzAlbumId.upper(): Mp4TagNames.MusicBrainzAlbumId,
 			Mp4TagNames.MusicBrainzArtistId.upper(): Mp4TagNames.MusicBrainzArtistId,
@@ -307,6 +303,9 @@ class MusicFolderHandler:
 		self._copyTag(Mp4TagNames.Released, sourceMusicFile, targetMusicFile)
 		self._copyTag(Mp4TagNames.MusicianCredits, sourceMusicFile, targetMusicFile)
 		self._copyTag(Mp4TagNames.Lyricist, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.Engineer, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.Mixer, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.Arranger, sourceMusicFile, targetMusicFile)
 		self._copyTag(Mp4TagNames.DigitalPurchaseFrom, sourceMusicFile, targetMusicFile)
 		self._copyTag(Mp4TagNames.DigitalPurchaseDate, sourceMusicFile, targetMusicFile)
 		self._copyTag(Mp4TagNames.DigitalPurchaseId, sourceMusicFile, targetMusicFile)
@@ -481,6 +480,11 @@ class MusicFolderHandler:
 		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzPerformerFromConvert)
 		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzOriginalYearFromConvert)
 		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzOriginalDateFromConvert)
+		musicFile.deleteRawProperty(Mp4TagNames.AlbumTitleSort)
+		musicFile.deleteRawProperty(Mp4TagNames.TrackTitleSort)
+		musicFile.deleteRawProperty(Mp4TagNames.AlbumArtistSort)
+		musicFile.deleteRawProperty(Mp4TagNames.TrackArtistSort)
+		musicFile.deleteRawProperty(Mp4TagNames.ComposerSort)
 
 		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzMediaReleaseTypeFromConvert, Mp4TagNames.MusicBrainzReleaseType, musicFile)
 		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzReleaseStatusFromConvert, Mp4TagNames.MusicBrainzReleaseStatus, musicFile)
