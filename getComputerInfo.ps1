@@ -34,6 +34,8 @@ function Main {
 	_dumpCimProperties -cn 'ComputerSystem' -a:$writeAll -p  @('Manufacturer', 'Model', 'SystemFamily', 'SystemSKUNumber', 'SystemType', 'NumberOfProcessors', @{ name='TotalPhysicalMemory'; expression={ GetFriendlyBytes -value $_.TotalPhysicalMemory }; }, 'Name', 'Domain')
 	_dumpCimProperties -cn 'BIOSElement' -a:$writeAll -p  @('Manufacturer', @{ name='BIOSVersion'; expression={ Coalesce -object $_ -props @('SMBIOSBIOSVersion', 'SoftwareElementID', 'Name', 'Description', 'Caption') }; }, 'ReleaseDate', 'SerialNumber') -wmiClass 'BIOS'
 	_dumpCimProperties -cn 'Chassis' -a:$writeAll -p  @('Manufacturer', @{ name='Name'; expression={ Coalesce -object $_ -props @('Name', 'Description', 'Caption') }; }, 'SerialNumber') -wmiClass 'SystemEnclosure'
+	_dumpCimProperties -cn 'Battery' -a:$writeAll -p  @('Name','Description','Status','BatteryStatus','Chemistry','DesignVoltage','DesignCapacity','FullChargeCapacity','EstimatedChargeRemaining','EstimatedRunTime','MaxRechargeTime','ExpectedLife','ExpectedBatteryLife','DeviceID') -forceWmi
+	_dumpCimProperties -cn 'PortableBattery' -a:$writeAll -p  @('Name','Description','Location','Manufacturer','ManufactureDate','SmartBatteryVersion','Status','BatteryStatus','Chemistry','MaxBatteryError','DesignVoltage','DesignCapacity','FullChargeCapacity','EstimatedChargeRemaining','EstimatedRunTime','MaxRechargeTime','ExpectedLife','DeviceID') -forceWmi
 	_dumpCimProperties -cn 'Processor' -a:$writeAll -p  @('Manufacturer', 'Name', 'Description', 'ProcessorId', @{ name='Architecture'; expression={ MapCimProcArch $_.Architecture }; }, 'NumberOfCores', 'NumberOfLogicalProcessors', 'AddressWidth', 'DataWidth', 'MaxClockSpeed', 'SocketDesignation', 'L2CacheSize', 'L3CacheSize', 'Family', 'Level')
 	_dumpCimProperties -cn 'OperatingSystem' -a:$writeAll -p  @('Manufacturer', 'Caption', 'Description', 'Version', 'BuildNumber', 'OSArchitecture', @{ name='OperatingSystemSKU'; expression={ MapCimOsSku -cimOsSku $_.OperatingSystemSKU -cimOsCaption $_.Caption }; }, 'CurrentTimeZone', 'InstallDate', 'LastBootUpTime')
 	_dumpCimProperties -cn 'DiskDrive' -a:$writeAll -p  @('Manufacturer', 'Model', @{ name='Size'; expression={ GetFriendlyBytes -value $_.Size }; }, 'MediaType', 'Partitions', 'Status', 'Index', 'CapabilityDescriptions', 'InterfaceType', 'FirmwareRevision', 'SerialNumber', 'PNPDeviceID') -sortBy 'Index'
@@ -53,9 +55,10 @@ function _dumpCimProperties {
 		[Parameter(Mandatory=$true)] [Alias('p')] [PSObject[]] $stdPropList,
 		[switch] [Alias('a')] $writeAllProps,
 		[string] $wmiClass,
-		[string[]] $sortBy
+		[string[]] $sortBy,
+		[switch] $forceWmi
 	)
-	if ($script:cimAvailable) {
+	if ($script:cimAvailable -and -not $forceWmi) {
 		$info = Get-CimInstance -ClassName ('CIM_' + $className)
 	} else {
 		$info = Get-WmiObject -Class ('Win32_' + $(if ($wmiClass) { $wmiClass } else { $className }))
