@@ -44,6 +44,7 @@ function Main {
 		_dumpCimProperties -cn 'StorageVolume' -a:$writeAll -p  @('Name' ,'DriveLetter', 'Label', 'FileSystem', @{ name='Capacity'; expression={ GetFriendlyBytes -value $_.Capacity }; }, @{ name='FreeSpace'; expression={ GetFriendlyBytes -value $_.FreeSpace }; }, 'BlockSize', 'SerialNumber', 'DeviceId')
 	}
 	_dumpCimProperties -cn 'VideoController' -a:$writeAll -p @('Name', 'VideoProcessor', 'DriverVersion', 'Status', @{ name='AdapterRAM'; expression={ GetFriendlyBytes -value $_.AdapterRAM }; }, 'VideoModeDescription', 'CurrentRefreshRate', 'PNPDeviceID')
+	_dumpCimProperties -cn 'NetworkAdapter' -a:$writeAll -p @('Name'<#,'Description'#>,'Manufacturer','ProductName','ServiceName','AdapterType','Speed','MACAddress','PhysicalAdapter','NetEnabled','NetConnectionID','NetConnectionStatus'<#,'NetworkAddresses'#>,'PNPDeviceID'<#,'Index','DeviceID','InterfaceIndex'#>) -sortBy 'Index'
 }
 
 function _dumpCimProperties {
