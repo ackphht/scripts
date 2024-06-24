@@ -137,6 +137,7 @@ class ApprovedTagsList:
 			Mp4TagNames.Copyright.upper(): Mp4TagNames.Copyright,
 			Mp4TagNames.Conductor.upper(): Mp4TagNames.Conductor,
 			Mp4TagNames.Lyrics.upper(): Mp4TagNames.Lyrics,
+			Mp4TagNames.Writer.upper(): Mp4TagNames.Writer,
 			Mp4TagNames.Producer.upper(): Mp4TagNames.Producer,
 			Mp4TagNames.Engineer.upper(): Mp4TagNames.Engineer,
 			Mp4TagNames.Mixer.upper(): Mp4TagNames.Mixer,

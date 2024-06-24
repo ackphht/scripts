@@ -29,6 +29,7 @@ class Mp4TagNames:
 	AlbumArtistSort = "soaa"
 	TrackArtistSort = "soar"
 	ComposerSort = "soco"
+	Writer = "----:com.apple.iTunes:WRITER"
 	Producer = "----:com.apple.iTunes:PRODUCER"
 	Engineer = "----:com.apple.iTunes:ENGINEER"
 	Mixer = "----:com.apple.iTunes:MIXER"
