@@ -64,7 +64,7 @@ function Main {
 	$onMacOs = [bool](_getVariableValue -n 'IsMacOS')
 
 	#region uname
-	if ($unameAvail) {
+	if ($unameAvail -and -not $onWindows) {
 		WriteVerboseMessage 'getting uname info'
 		$allResults.UnameVals =  @(@{ nm = 'kernel-name'; op = 's'; }, @{ nm = 'kernel-release'; op = 'r'; }, @{ nm = 'kernel-version'; op = 'v'; },
 		@{ nm = 'machine'; op = 'm'; }, @{ nm = 'processor'; op = 'p'; }, @{ nm = 'hardware-platform'; op = 'i'; },
