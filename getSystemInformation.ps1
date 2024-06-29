@@ -298,7 +298,7 @@ function Main {
 		}
 		if ($saveText) {
 			$encoding = if ($PSEdition -ne 'Core') { 'UTF8' } else { 'UTF8NoBOM' }
-			$parms = @{ LiteralPath = "$outputBaseName.txt"; Encoding = $encoding; Width = 4096; }
+			$parms = @{ LiteralPath = "$outputBaseName.log"; Encoding = $encoding; Width = 4096; }
 			WriteHeader -text 'Environment Variables' -includeExtraSpace $false | Out-File @parms
 			$allResults.EnvVars | Format-Table -AutoSize -Wrap | Out-File -Append @parms
 			WriteHeader -text 'PowerShell Variables' -includeExtraSpace $false | Out-File -Append @parms
