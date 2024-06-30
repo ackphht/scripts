@@ -12,12 +12,14 @@
 					and append to name after a period
 			*/
 			"client": [
-				{ "build": 25000, "name": "11.canary" /*'11.canary.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
-				{ "build": 23000, "name": "11.dev" /*'11.dev.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				{ "build": 26200, "name": "11.canary" /*'11.canary.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				{ "build": 26120, "name": "11.dev" /*'11.dev.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				// remove next one once beta advances to higher build number:
+				{ "build": 26100, "name": "11" /*'11.24H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
 				{ "build": 22635, "name": "11.beta" /*'11.beta.1234'*/, "addRegRelease": false, "addBuildNumber": true, "addBuildLab": false, "addUbr": true },
 				{ "build": 22621, "name": "11" /*'11.22H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
 				{ "build": 22429, "name": "11.dev", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
-				{ "build": 22000, "name": "11" /*'11'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 22000, "name": "11" /*'11 RTM'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
 				{ "build": 19500, "name": "11.dev", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
 				{ "build": 10586, "name": "10" /*'10.20H1'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
 				{ "build": 10240, "name": "10" /*'10'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
@@ -61,9 +63,11 @@
 			]
 		},
 		"codenames": [
+			// same codenames apply to server ?? or do we need to have separate list ??
+			{ "build": 26100, "codename": "" /* Sun Valley 4? Germanium? */, "major": 0, "minor": 0 },		// Win 11 24H2
 			{ "build": 22631, "codename": "Sun Valley 3", "major": 0, "minor": 0 },	// Win 11 23H2
 			{ "build": 22621, "codename": "Sun Valley 2", "major": 0, "minor": 0 },	// Win 11 22H2
-			{ "build": 22000, "codename": "Sun Valley 3", "major": 0, "minor": 0 },	// Win 11 RTM/21H2
+			{ "build": 22000, "codename": "Sun Valley", "major": 0, "minor": 0 },	// Win 11 RTM/21H2
 			{ "build": 19041, "codename": "Vibranium", "major": 0, "minor": 0 },	// codename includes Win10 2004, 20H2, 21H1, 21H2, 22H2:
 			{ "build": 18363, "codename": "Vanadium", "major": 0, "minor": 0 },		// Win 10 1909
 			{ "build": 18362, "codename": "19H1", "major": 0, "minor": 0 },			// Win 10 1903
@@ -284,6 +288,7 @@
 		"names": {},
 		"versions": [],
 		"codenames": [
+			{ "major": 15, "minor": -1, "codename": "Sequoia", "build": 0 },
 			{ "major": 14, "minor": -1, "codename": "Sonoma", "build": 0 },
 			{ "major": 13, "minor": -1, "codename": "Ventura", "build": 0 },
 			{ "major": 12, "minor": -1, "codename": "Monterey", "build": 0 },
