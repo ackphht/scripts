@@ -76,6 +76,8 @@ function _populateWindowsInfo {
 		$osinfo = Get-WmiObject -Class 'Win32_OperatingSystem'
 	}
 
+	$osInfoLookups = (_loadOsInfoLookups).windows
+
 	$osDetails.Description = $osinfo.Caption
 	$osDetails.Distributor = $osinfo.Manufacturer
 	$osDetails.BuildNumber = $osinfo.BuildNumber.ToString()
@@ -85,16 +87,16 @@ function _populateWindowsInfo {
 	$kernelVersion = _getWindowsKernelVersion
 	$osDetails.KernelVersion = $kernelVersion.ToString()
 	$osDetails.UpdateRevision = $kernelVersion.Revision
-	$release = _getWindowsRelease -wmios $osinfo -ubr $kernelVersion.Revision
+	$release = _getWindowsRelease -wmios $osinfo -ubr $kernelVersion.Revision -lookups $osInfoLookups
 	# TODO: right now, we're setting $osDetails.Release like '11.22H2', '11', '10.2009', '8.1', '7.SP1', etc;
 	# is that really how we want it? other OSes are just the release version, maybe for Win, should be simpler
 	# or maybe other OSes should include more?
 	$osDetails.Release = $release
 	$osDetails.Id = _getWindowsId -wmios $osinfo -release $release
-	$osDetails.Edition = MapCimOsSku -cimOsSku $osinfo.OperatingSystemSKU -cimOsCaption $osinfo.Caption
-	$osDetails.ReleaseVersion = _getWindowsVersion -kernelVersion $kernelVersion
+	$osDetails.Edition = _getWindowsEdition -cimOsSku $osinfo.OperatingSystemSKU -cimOsCaption $osinfo.Caption -lookups $osInfoLookups
+	$osDetails.ReleaseVersion = _getWindowsVersion -kernelVersion $kernelVersion -lookups $osInfoLookups
 	#$osDetails.MajorMinor = $osDetails.KernelVersion.ToString(2)
-	$osDetails.Codename = _getWindowsCodename -wmios $osinfo
+	$osDetails.Codename = _getWindowsCodename -wmios $osinfo -lookups $osInfoLookups
 }
 
 function _populateLinuxInfo {
@@ -148,6 +150,8 @@ function _populateMacOSInfo {
 
 	$sysProfData = (system_profiler -json SPHardwareDataType SPSoftwareDataType) | ConvertFrom-Json
 
+	$osInfoLookups = (_loadOsInfoLookups).macos
+
 	$osDetails.Distributor = 'Apple'
 	$osDetails.Description = $sysProfData.SPSoftwareDataType.os_version
 	$osDetails.Release = _getMacReleaseVersion
@@ -155,7 +159,7 @@ function _populateMacOSInfo {
 	$kern = _getMacKernelVersion
 	if ($kern) { $osDetails.KernelVersion = $kern }
 	$osDetails.Id = _getMacId -osVersion $osDetails.ReleaseVersion
-	$osDetails.Codename = _getMacCodename -osVersion $osDetails.ReleaseVersion
+	$osDetails.Codename = _getMacCodename -osVersion $osDetails.ReleaseVersion -lookups $osInfoLookups
 	$osDetails.BuildNumber = _getMacBuildNumber
 	$osDetails.UpdateRevision = _getMacRevision
 	#$osDetails.OSInstallTime = _getMacInstallTime
@@ -180,6 +184,18 @@ function _getPlatform {
 	} else {
 		Write-Error 'could not determine OS platform' -ErrorAction Stop
 	}
+}
+
+function _getPSEdition {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string])]
+	param()
+	# $PSEdition was added for PowerShellCore 6/PowerShell Desktop 5.1,
+	# so if it doesn't exist, then it has to be old powershell, which means 'Desktop'
+	if (-not [bool](Get-Variable -Name 'PSEdition' -ErrorAction Ignore)) {
+		return 'Desktop'
+	}
+	return $PSEdition
 }
 
 function _getOSArchitecture {
@@ -232,6 +248,20 @@ function _convertVersion {
 	}
 	return $result
 }
+
+function _loadOsInfoLookups {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([PSObject])]
+	param()
+	$json = Get-Content -Path $PSScriptRoot/osInfoLookups.jsonc -Raw
+	if ((_getPSEdition) -eq 'Desktop') {
+		# old posh's ConvertFrom-Json can't handle comments 😖 so strip them out
+		# (these regexes will break things if there's '//' or '/*' inside a string in the json but that's okay for this file because i didn't do that):
+		$json = $json -replace '//.*[\r\n]+', ''		# line comments
+		$json = $json -replace '/\*[\s\S]+?\*/', ''		# block comments
+	}
+	return ($json | ConvertFrom-Json)
+}
 #endregion
 
 #region windows parsing helpers
@@ -282,48 +312,28 @@ function _getWindowsId {
 function _getWindowsRelease {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
-	param($wmios, $ubr)
+	param($wmios, $ubr, [PSObject] $lookups)
 	$build = [int]$wmios.BuildNumber
 	$type = [int]$wmios.ProductType
 	WriteVerboseMessage 'mapping OS release: build = "{0}", type = "{1}"' $build,$type
 	$result = '<unknown>'
 	switch ($type) {
 		1 {
-			switch ($build) {
-				# ??? haven't really found anything better than build number for canary/dev/beta flights:
-				#		in registry under HKLM\WindowsNT\CurrentVersion, there's a BuildBranch that's different
-				#		from release for cancary and dev, but not for beta, so not sure that's helpful ???
-				{ $_ -ge 25000 } { $result = '11.canary.{0}' -f (_getWindowsBuildLab); break; }
-				{ $_ -ge 23000 } { $result = '11.dev.{0}' -f (_getWindowsBuildLab); break; }
-				{ $_ -ge 22635 } { $result = '11.beta.{0}.{1}' -f $build,$ubr; break; }	# ???
-				{ $_ -ge 22000 } {
-					if ($build -ge 22621) { $result = '11.{0}' -f (_getWinReleaseFromReg) }
-					elseif ($build -ge 22449) { $result = '11.dev.{0}' -f $build }	# Win11 22H2 dev builds
-					else { $result = '11' }
-					break
-				}
-				{ $_ -ge 19500 } { $result = '11.dev.{0}' -f $build; break; }	# Win 11 dev builds (or beta ??)
-				{ $_ -ge 10240 } {
-					if ($build -ge 10586) { $result = '10.{0}' -f (_getWinReleaseFromReg) }
-					elseif ($build -ge 10240) { $result = '10' }
-					break
-				}
-				{ $_ -ge 9600 } { $result = '8.1'; break; }
-				{ $_ -ge 9200 } { $result = '8'; break; }
-				{ $_ -ge 7600 } {
-					if ($build -gt 7601) { $result = '7.SP1' }
-					else { $result = '7' }
-					break
-				}
-				{ $_ -ge 6000 } {
-					if ($build -gt 6002) { $result = 'Vista.SP2' }
-					if ($build -eq 6001) { $result = 'Vista.SP1' }
-					else { $result = 'Vista' }
+			foreach ($info in ($lookups.names.client | Sort-Object -Property build -Descending)) {
+				if ($build -ge $info.build) {
+					$result = $info.name
+					if ($info.addRegRelease) { $result += '.{0}' -f (_getWinReleaseFromReg) }
+					if ($info.addBuildNumber) { $result += '.{0}' -f $build }
+					if ($info.addUbr) { $result += '.{0}' -f $ubr }
+					if ($info.addBuildLab) { $result += '.{0}' -f (_getWindowsBuildLab) }
 					break
 				}
 			}
 		}
 		3 {
+			#
+			# TODO: convert to using $lookups (once we get that populated)
+			#
 			switch ($build) {
 				#
 				#TODO: this needs to be updated; have not kept up with Server versions
@@ -361,32 +371,16 @@ function _getWindowsRelease {
 function _getWindowsVersion {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([System.Version])]
-	param([System.Version] $kernelVersion)
+	param([System.Version] $kernelVersion, [PSObject] $lookups)
 	$result = $kernelVersion
-	switch ($kernelVersion.Build) {
-		{ $_ -ge 22000 } {
-			$result = [System.Version]::new(11, 0, $kernelVersion.Build, $kernelVersion.Revision)
-			break
-		}
-		{ $_ -ge 10240 } {
-			if ($kernelVersion.Build -ge 10586) { $rev = $kernelVersion.Revision }
-			else { $rev = 0 }
-			$result = [System.Version]::new(10, 0, $kernelVersion.Build, $rev)
-			break
-		}
-		{ $_ -ge 9600 } { $result = [System.Version]::new(8, 1, $kernelVersion.Build, 0); break; }
-		{ $_ -ge 9200 } { $result = [System.Version]::new(8, 0, $kernelVersion.Build, 0); break; }
-		{ $_ -ge 7600 } {
-			if ($kernelVersion.Build -gt 7601) { $min = 1 }
-			else { $result = $min = 0 }
-			$result = [System.Version]::new(7, $min, $kernelVersion.Build, 0)
-			break
-		}
-		{ $_ -ge 6000 } {
-			if ($kernelVersion.Build -gt 6002) { $min = 2 }
-			if ($kernelVersion.Build -eq 6001) { $min = 1 }
-			else { $result = $min = 0 }
-			$result = [System.Version]::new(6, $min, $kernelVersion.Build, 0)
+	foreach ($info in ($lookups.versions | Sort-Object -Property build -Descending)) {
+		if ($kernelVersion.Build -ge $info.build) {
+			$result = if ($info.includeUbr) {
+				$val = '{0}.{1}.{2}.{3}' -f $info.major, $info.minor, $kernelVersion.Build, $kernelVersion.Revision
+			} else {
+				$val = '{0}.{1}.{2}.0' -f $info.major, $info.minor, $kernelVersion.Build
+			}
+			$result = [System.Version]::new($val)
 			break
 		}
 	}
@@ -408,49 +402,34 @@ function _getWindowsKernelVersion {
 function _getWindowsCodename {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
-	param($wmios)
+	param($wmios, [PSObject] $lookups)
 	$result = ''
 	$bld = [int]$wmios.BuildNumber
 	if ($osinfo.ProductType -eq '1') {	# client
-		if ($bld -ge 22631) {
-			$result = 'Sun Valley 3'
-		} elseif ($bld -ge 22621) {
-			$result = 'Sun Valley 2'
-		} elseif ($bld -ge 22000) {
-			$result = 'Sun Valley'
-		} elseif ($bld -ge 19041) {	# codename includes Win10 2004, 20H2, 21H1, 21H2, 22H2
-			$result = 'Vibranium'
-		} elseif ($bld -ge 18363) {	# 1909
-			$result = 'Vanadium'
-		} elseif ($bld -ge 18362) {	# 1903
-			$result = '19H1'
-		} elseif ($bld -ge 17763) {	# 1809
-			$result = 'Redstone 5'
-		} elseif ($bld -ge 17134) {	# 1803
-			$result = 'Redstone 4'
-		} elseif ($bld -ge 16299) {	# 1709
-			$result = 'Redstone 3'
-		} elseif ($bld -ge 15063) {	# 1703
-			$result = 'Redstone 2'
-		} elseif ($bld -ge 14393) {	# 1607
-			$result = 'Redstone 1'
-		} elseif ($bld -ge 10586) { # 1511
-			$result = 'Threshold 2'
-		} elseif ($bld -ge 10240) { # RTM
-			$result = 'Threshold'
-		} elseif ($bld -ge 9600) {	# Win 8.1
-			$result = 'Blue'
-		} elseif ($bld -ge 7600) {	# Win 7 and 8 didn't have codenames ?
-			$result = ''
-		} elseif ($bld -ge 6000) {	# Vista
-			$result = 'Longhorn'
-		} elseif ($bld -ge 2600) {	# WinXP
-			$result = 'Whistler'
-		#} elseif ($bld -ge XXXX) {	#
-		#	$result = 'XXXXXXXX'
+		foreach ($info in ($lookups.codenames | Sort-Object -Property build -Descending)) {
+			if ($bld -ge $info.build) {
+				$result = $info.codename
+				break
+			}
 		}
 	} elseif ($osinfo.ProductType -eq '3') {	# server
 		# ???
+	}
+	return $result
+}
+function _getWindowsEdition {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([string])]
+	param([System.UInt32] $cimOsSku, [string] $cimOsCaption, [PSObject] $lookups)
+	$result = '<unknown>'
+	# skus is a psobject rather than a dictionary, so have to look for value by 'reflection':
+	$prop = $lookups.skus.PSObject.Properties | Where-Object { $_.Name -eq $cimOsSku }
+	if ($prop) {
+		$result = $prop.Value
+		# special case: Pro Education originally had same SKU as Pro; a real SKU for it was added later...
+		if (($result -eq 'Professional' -or $result -eq 'ProfessionalN') -and $cimOsCaption -like '*Education*') {
+			$result = if ($result -eq 'Professional') { 'ProfessionalEducation' } else { 'ProfessionalEducationN' }
+		}
 	}
 	return $result
 }
@@ -647,32 +626,11 @@ function _getMacId {
 function _getMacCodename {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
-	param([System.Version] $osVersion)
+	param([System.Version] $osVersion, [PSObject] $lookups)
 	$result = ''
-	switch ($osVersion.Major) {
-		14 { $result = 'Sonoma'; break; }
-		13 { $result = 'Ventura'; break; }
-		12 { $result = 'Monterey'; break; }
-		11 { $result = 'Big Sur'; break; }
-		10 {
-			switch ($osVersion.Minor) {
-				15 { $result = 'Catalina'; break; }
-				14 { $result = 'Mojave'; break; }
-				13 { $result = 'High Sierra'; break; }
-				12 { $result = 'Sierra'; break; }
-				11 { $result = 'El Capitan'; break; }
-				10 { $result = 'Yosemite'; break; }
-				9 { $result = 'Mavericks'; break; }
-				8 { $result = 'Mountain Lion'; break; }
-				7 { $result = 'Lion'; break; }
-				6 { $result = 'Snow Leopard'; break; }
-				5 { $result = 'Leopard'; break; }
-				4 { $result = 'Tiger'; break; }
-				3 { $result = 'Panther'; break; }
-				2 { $result = 'Jaguar'; break; }
-				1 { $result = 'Puma'; break; }
-				0 { $result = 'Cheetah'; break; }
-			}
+	foreach ($info in $lookups.codenames) {
+		if ($info.major -eq $osVersion.Major -and ($info.minor -lt 0 -or $info.minor -eq $osVersion.Minor)) {
+			$result = $info.codename
 		}
 	}
 	return $result
