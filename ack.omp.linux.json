@@ -14,7 +14,7 @@
 					"type": "text",
 					"style": "plain",
 					"foreground": "darkGray",
-					"template": "┏━ "		// ┏ (250f) ━ (2501)
+					"template": "╭─ "		// ┏ (250f) ━ (2501) ╭ (256d) ─ (2500) ╼ (257c)
 				},
 				{
 					"type": "os",
@@ -145,7 +145,7 @@
 					"type": "text",
 					"style": "plain",
 					"foreground": "darkGray",
-					"template": "┗━"			// ┗ (2517) ━ (2501)
+					"template": "╰─"			// ┗ (2517) ━ (2501) ╰ (2570) ─ (2500)
 				},
 				{
 					"type": "text",
