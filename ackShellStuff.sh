@@ -109,6 +109,7 @@ elif hasCmd zypper; then
 	alias aptr='sudo zypper refresh' # --force'	# if output is piped into, e.g. grep, it displays a warning about not having a 'stable CLI interface', 'use with caution'; ???
 	alias aptul='sudo zypper list-updates'		# no idea why this requires sudo now...
 	alias aptu='sudo zypper update --no-confirm --no-recommends'
+	alias aptuu='sudo zypper dist-upgrade --no-recommends'	# --no-confirm
 	#alias aptc='sudo zypper remove --clean-deps && sudo zypper clean --all'
 	alias aptc='sudo zypper clean' # --all'
 	alias apts='zypper search'
