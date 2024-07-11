@@ -244,7 +244,7 @@ case $currShell in
 esac
 
 if hasCmd oh-my-posh && test -n $currShell ; then
-	eval "$(oh-my-posh init $currShell --config ~/scripts/ack.omp.linux.json)"
+	eval "$(oh-my-posh init $currShell --config ~/scripts/ack.omp.linux.toml)"
 	alias omp='oh-my-posh'
 	if hasCmd python3; then
 		alias ompu='python3 ~/scripts/installOhMyPosh.py'

@@ -1,0 +1,142 @@
+#:schema https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json
+# oh-my-posh doc: https://ohmyposh.dev/docs/
+# nerd font icons: https://www.nerdfonts.com/cheat-sheet
+
+version = 2
+disable_notice = true		# disable upgrade notice (>= v19.27.0)
+
+[[blocks]]
+type = 'prompt'
+newline = true
+alignment = 'left'
+
+[[blocks.segments]]
+	type = 'text'
+	style = 'plain'
+	foreground = 'darkGray'
+	template = '<b>╭─</b> '		# ┏ (250f) ━ (2501) ╭ (256d) ─ (2500) ╼ (257c)
+
+[[blocks.segments]]
+	type = 'os'
+	style = 'plain'
+	foreground = 'cyan'
+	template = '{{ if .WSL }}WSL at {{ end }}{{.Icon}} '
+
+[[blocks.segments]]
+	type = 'shell'
+	style = 'plain'
+	foreground = 'cyan'
+	template = '{{ .Name }}{{ if .Version }} v{{ .Version }}{{ end }}'
+
+[[blocks.segments]]
+	type = 'root'
+	style = 'plain'
+	foreground = 'red'
+	template = ' 󰞀'		# 󰞀 (f0780); also 󰒘 (f0498) 󰒙 (f0449), default:  (f0e7)
+
+[[blocks.segments]]
+	type = 'session'
+	style = 'plain'
+	foreground = 'lightMagenta'
+	template = ' {{ if .SSHSession }}󰌘 {{ end }}{{ .UserName }}<i>@</i>{{ .HostName }}'		# 󰌘 (f0318)
+	[blocks.segments.properties]
+		display_host = true
+
+#[[blocks.segments]]
+#	type = 'ipify'
+#	style = 'plain'
+#	foreground = 'lightMagenta'
+#	template = ' [{{ .IP }}]'
+#	[blocks.segments.properties]
+#		cache_timeout = 30
+#		http_timeout = 1000
+
+[[blocks.segments]]
+	type = 'time'
+	style = 'plain'
+	foreground = 'yellow'
+	template = ' 󰅐 {{ .CurrentDate | date .Format }}'			# 󰅐 (f0150),  (f017),  (f43a)
+	[blocks.segments.properties]
+		time_format = '15:04:05'
+
+[[blocks.segments]]
+	type = 'battery'
+	style = 'plain'
+	foreground = '#193549'
+	foreground_templates = [
+		'{{ if eq "Full" .State.String }}#66BB6A{{ end }}',
+		'{{ if eq "Charging" .State.String }}#64B5F6{{ end }}',
+		'{{ if eq "Discharging" .State.String }}#E36464{{ end }}',
+	]
+	template = ' [{{ if not .Error }}{{.Percentage}}󰏰{{ end }}{{.Icon}}{{.Error}}]'		# 󰏰 (f03f0)
+	[blocks.segments.properties]
+		charged_icon = '  '		# 󰁹 (f0079),   (f240)
+		charging_icon = ' '		# 󰂄 (f0084),  (f0e7)
+		discharging_icon = '  '	# 󰁿 (f007f),   (f242)
+
+[[blocks.segments]]
+	type = 'path'
+	style = 'plain'
+	foreground = 'green'
+	template = '   {{ .Path }} '			#  (e5ff), 󰉋 (f024b),  (f07b),  (f114),   (f115),  (e5fe),  (f07c), 󰝰 (f0770)
+	[blocks.segments.properties]
+		style = 'full'
+		# home_icon = "\uf7db"
+		folder_separator_icon = '/'
+		[blocks.segments.properties.mapped_locations]
+			'~/Desktop' = '~/󰟀 '	# 󰟀 (f07c0)
+			'~/Documents' = '~/ '	# 󰈙 (f0219),  (f0f6),  (f15c), 󱧷 (f19f7), 󱧶 (f19f6),  (f40e?? think this got changed at some point)
+			'~/Downloads' = '~/ '	# 󰉍 (f024d),  (f0ed), 󰅢 (f0162),   (f019), 󰇚 (f01da),   (f409), 󱃩 (f10e9)
+			'~/Music' = '~/󰝚 '		# 󰎈 (f0388),  (f001), 󰝚 (f075a), 󰈣 (f0223), 󰎄 (f0384), 󰎅 (f0385), 󰎆 (f0386), 󱍙 (f1359)
+			'~/OneDrive' = '~/ '	#  (e762), 󰏊 (f03ca)
+			'~/Pictures' = '~/ '	# 󰉏 (f024f),   (f03e),  (f1c5), 󰈟 (f021f), 󰋩 (f02e9), 󰋫 (f02eb)
+			'~/Videos' = '~/ '		# 󰕧 (f0567),   (f447),   (f03d),  (f1c8), 󰈫 (f022b)
+
+[[blocks.segments]]
+	type = 'python'
+	style = 'plain'
+	foreground = 'yellow'
+	template = ' {{ if .Error }}{{ .Error }}{{ else }}{{ if .Venv }}{{ .Venv }} {{ end }}{{ .Full }}{{ end }} '	#  (e235);  (e73c); 󰌠 (f0320);  (e606)
+	[blocks.segments.properties]
+		display_mode = 'context'
+
+[[blocks.segments]]
+	type = 'git'
+	style = 'plain'
+	foreground = 'lightBlue'
+	template = '{{ .HEAD }} {{ .BranchStatus }}{{ if .Working.Changed }}  {{ .Working.String }}{{ end }}{{ if and (.Staging.Changed) (.Working.Changed) }} |{{ end }}{{ if .Staging.Changed }}  {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0}}  {{ .StashCount }}{{ end }}{{ if gt .WorktreeCount 0}}  {{ .WorktreeCount }}{{ end }} '		#  (f044);  (f046); 󰆓 (f0193);  (f1bb)
+	[blocks.segments.properties]
+		fetch_stash_count = true
+		fetch_upstream_icon = true
+
+[[blocks.segments]]
+	type = 'status'
+	style = 'diamond'
+	foreground = '#ffffff'
+	background = 'transparent'	# '#00897b',
+	background_templates = [
+		# '{{ if .Error }}#e91e63{{ end }}',
+		'{{ if .Error }}lightRed{{ end }}',
+	]
+	[blocks.segments.properties]
+		always_enabled = false
+		# status_template = '{{ if eq .Code 0 }}\uf00c{{ else }}\uf071 {{ reason .Code }}{{ end }}'
+		status_template = '{{ if eq .Code 0 }}\uf00c{{ else }}\uf071 {{ .Code }}{{ end }}'
+
+[[blocks]]
+type = 'prompt'
+newline = true
+alignment = 'left'
+
+[[blocks.segments]]
+	type = 'text'
+	style = 'plain'
+	foreground = 'darkGray'
+	template = '<b>╰─</b>'			# ┗ (2517) ━ (2501) ╰ (2570) ─ (2500)
+
+[[blocks.segments]]
+	type = 'text'
+	style = 'plain'
+	foreground = 'green'
+	# possibilities for end: ❯ (\u276f), 〉 》 ▶ ▷ ❯ ❱ ➜ ➤
+	template = ' WHAT?!? {{ if .Root }}<red>#</>{{ else }}❯❯{{ end }} '
