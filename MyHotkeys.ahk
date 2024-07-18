@@ -7,7 +7,7 @@ gHomeComputerName := "arrakis"
 
 gOSVersion := Float(RegExReplace(A_OSVersion, "(\d+\.\d+)\.\d+", "$1"))
 gOSBuild := Integer(RegExReplace(A_OSVersion, "\d+\.\d+\.(\d+)", "$1"))
-gEnableExplorerMultiTab := false
+gEnableExplorerMultiTab := true
 gWin1122h2Build := 22621
 gWin1123h2Build := 22631
 
@@ -32,6 +32,7 @@ WS_EX_APPWINDOW := 0x40000
 WS_EX_TOOLWINDOW := 0x80
 GW_OWNER := 4
 
+gExplorerMyComputerGuid := "::{20d04fe0-3aea-1069-a2d8-08002b30309d}"
 ; used in OpenFolderXxxxx() below for opening Explorer windows:
 gExplorerClassPostVista := "ahk_class CabinetWClass"
 GroupAdd "Explorer", "ahk_class ExploreWClass" ; Unused on Vista and later
@@ -142,7 +143,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^+#v::OpenFolder(EnvGet("UserProfile") . "\Videos")
 +#w::LookForAndOpenWarezFolder()
 ^+#w::LookForAndOpenWorkProjectsFolder()
-+#y::OpenFolder("::{20d04fe0-3aea-1069-a2d8-08002b30309d}")	; open My Computer
++#y::OpenFolder(gExplorerMyComputerGuid)	; open My Computer
 +#1::OpenFolder("C:\")
 +#2::OpenFolder("D:\")
 +#3::OpenFolder("E:\")
@@ -372,22 +373,37 @@ OpenFolderWithExplicitTabs(folderName) {
 		WinActivate(gExplorerClassPostVista)
 	} else {
 		WinActivate {Hwnd: explorerHwnd}
-		while (!WinActive(gExplorerClassPostVista)) {
-			Sleep(50)
-		}
-		Send("^t")
-		Sleep(500)
-		Send("{F4}") ;Send("!d")
-		Sleep(250)
-		;SendText(folderName)
-		SendInput("{Text}" . folderName)
-		Sleep(500)
-		Send("{Enter}")
-		;if (gOSBuild >= gWin1123h2Build) {	; new explorer pita
-		;	Sleep(250)
-		;	Send("{F4}")
-		;	Send("{Escape}")
+		;while (!WinActive(gExplorerClassPostVista)) {
+		;	Sleep(50)
 		;}
+		WinWaitActive(gExplorerClassPostVista)
+		Sleep(250)
+		Send("^t")
+		Sleep(250)
+		;Sleep(500)
+		;Send("{F4}") ;Send("!d")
+		;Sleep(250)
+		;;SendText(folderName)
+		;SendInput("{Text}" . folderName)
+		;Sleep(500)
+		;Send("{Enter}")
+		;;if (gOSBuild >= gWin1123h2Build) {	; new explorer pita
+		;;	Sleep(250)
+		;;	Send("{F4}")
+		;;	Send("{Escape}")
+		;;}
+		; .Navigate() doesn't work with the guid thing, but we're only using one for MyComputer and that should be what opens by default anyway, so:
+		if (folderName != gExplorerMyComputerGuid) {
+			; from https://www.reddit.com/r/AutoHotkey/comments/ybumnu/windows_11_launch_a_directory_in_windows_explorer/
+			explorerWin := ComObject("Shell.Application").Windows()
+			if (explorerWin.Count > 0) {
+				last := explorerWin.Item(explorerWin.Count - 1)
+				;MsgBox(last.LocationName " :: " last.LocationURL)
+				last.Navigate(folderName)
+			} else {
+				MsgBox("no Windows")
+			}
+		}
 	}
 }
 
