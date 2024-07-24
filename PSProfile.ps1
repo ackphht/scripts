@@ -98,6 +98,7 @@ if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 	}
 	Remove-Variable -Name 'maybeAckTheme'
 	Remove-Variable -Name 'themePaths'
+	Remove-Variable -Name 't'
 	if ($ackIsWindows) { Set-Alias -Name 'omp' -Value 'oh-my-posh.exe'}
 	else { Set-Alias -Name 'omp' -Value 'oh-my-posh' }
 }
@@ -237,6 +238,35 @@ Remove-Variable -Name 'ackIsWindows'
 
 function Get-EncodedCommand { param([Parameter(Mandatory=$true)][string]$c) return ([System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($c))) }
 function Get-DecodedCommand { param([Parameter(Mandatory=$true)][string]$c) return ([System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($c))) }
+
+#
+# some tab completions:
+#
+# dotnet CLI (https://learn.microsoft.com/en-us/dotnet/core/tools/enable-tab-autocomplete#powershell)
+if ((Get-Command -Name 'dotnet' -CommandType Application -ErrorAction Ignore)) {
+	Register-ArgumentCompleter -Native -CommandName 'dotnet' -ScriptBlock {
+		param($wordToComplete, $commandAst, $cursorPosition)
+		dotnet complete --position $cursorPosition "$commandAst" |
+			ForEach-Object {
+				[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+			}
+	}
+}
+
+# winget (https://github.com/microsoft/winget-cli/blob/master/doc/Completion.md#powershell)
+if ((Get-Command -Name 'winget' -CommandType Application -ErrorAction Ignore)) {
+	Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
+		param($wordToComplete, $commandAst, $cursorPosition)
+		# don't think we need to tweak encodings for this:
+		#[Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
+		$local:word = $wordToComplete.Replace('"', '""')
+		$local:ast = $commandAst.ToString().Replace('"', '""')
+		winget complete --word="$local:word" --commandline "$local:ast" --position $cursorPosition |
+			ForEach-Object {
+				[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+			}
+	}
+}
 
 # some more aliases:
 New-Alias -Name 'll' -Value 'Get-ChildItem'
