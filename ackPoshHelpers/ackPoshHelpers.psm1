@@ -177,25 +177,30 @@ function ParseLinesToLookup {
 	end { return $results }
 }
 
-$script:_formatSizes = @('', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB' <# ulong can't hold anything this big, but including just to be a nerd #>, 'YB')
-$script:_formatBase = 1024
+$script:_binaryFormatSizes = @('', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB',
+							'ZiB' <# ulong can't hold anything this big, but including just to be a nerd #>, 'YiB', 'RiB'<# tentative #>, 'QiB')
+$script:_decimalFormatSizes = @('', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB', 'RB', 'QB')
 function GetFriendlyBytes {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([string])]
 	param(
-		[Parameter(Mandatory = $true, ValueFromPipeline = $true)] [System.Uint64] $value
+		[Parameter(Mandatory = $true, ValueFromPipeline = $true)] [ulong] $value,
+		[Parameter(Mandatory = $false)] [ValidateSet(1000, 1024)] [int] $base = 1024
 	)
 	process {
-		if ($value -eq 0) { return '0' }
-		$exp = [Math]::Floor([Math]::Log($value, $script:_formatBase))
-		$coeff = $value / [Math]::Pow($script:_formatBase, $exp)
-		$dispValue = $(
-				if ($value -lt $script:_formatBase) { '{0:n0}' }
-				elseif ($coeff -ge 100.0) { '{0:n0} ' }
-				elseif ($coeff -ge 10.0) { '{0:n1} ' }
-				else { '{0:n2} ' }
-			) -f $coeff
-		return "$dispValue$($script:_formatSizes[$exp])"
+		if ($value -lt $base) { return ($value.ToString()) }
+
+		$exp = [Math]::Floor([Math]::Log($value, $base))
+		$coeff = $value / [Math]::Pow($base, $exp)
+
+		if ($coeff -ge 100.0) { $dispValue = '{0:f0}' -f $coeff }
+		elseif ($coeff -ge 10.0) { $dispValue = '{0:f1}' -f $coeff }
+		else { $dispValue = '{0:f2}' -f $coeff }
+
+		if ($base -eq 1000) { $suffix = $script:_decimalFormatSizes[$exp]
+		} else { $suffix = $script:_binaryFormatSizes[$exp] }
+
+		return "${dispValue} ${suffix}"
 	}
 }
 
