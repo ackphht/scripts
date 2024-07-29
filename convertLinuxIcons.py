@@ -860,11 +860,11 @@ class PngFilesHelper:
 			if not Helpers.EnableWhatIf or pngFilePath.exists():
 				# if we're WhatIf'ing and the file didn't exist, we would not have actually copied it above, so nothing to hash;
 				# just pretend it's changed; could also just use an all zeroes hash and pass that to SourceImagesCache, but meh
-			pngFileHash = Helpers.GetMd5(pngFilePath)
-			if not SourceImagesCache.HasPngFileChanged(pngFilePath, pngFileHash):
-				pngFileUnchanged = True
-			else:
-				SourceImagesCache.UpsertPngFileData(pngFilePath, pngFileHash)
+				pngFileHash = Helpers.GetMd5(pngFilePath)
+				if not SourceImagesCache.HasPngFileChanged(pngFilePath, pngFileHash):
+					pngFileUnchanged = True
+				else:
+					SourceImagesCache.UpsertPngFileData(pngFilePath, pngFileHash)
 			results.addIfSizeIncluded(pngFilePath, sourceFileUnchanged, pngFileUnchanged, f.targetSize)
 		return results
 
@@ -1426,16 +1426,16 @@ class IconsToCopy:
 			#IconThemeDefinition("Zorin", "NA", "_oss/zorin-icon-themes/Zorin", Constants.FldrScheme_SizeType,
 			#	SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32", "16x16@2x"], ["48x48", "24x24@2x"], ["32x32@2x"], ["48x48@2x"], None, None, None, ["512x512"], ["512x512@2x"])),
 			# found repo for 'Adwaita', but it's weird: bigger filesize, but much fewer files, so ??
-			IconThemeDefinition("Adwaita", "fedora_39", None, Constants.FldrScheme_SizeType,
+			IconThemeDefinition("Adwaita", "fedora_40", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], ["96x96"], None, None, ["256x256"], ["512x512"], None)),
-			IconThemeDefinition("gnome", "mint_21.3", None, Constants.FldrScheme_SizeType,
+			IconThemeDefinition("gnome", "mint_22.0", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], None, ["128x128"], None, ["256x256"], ["512x512"], None)),
 			# found repo for 'mate', but it seems to have less in it ??
-			IconThemeDefinition("mate", "mint_21.3", None, Constants.FldrScheme_SizeType,
+			IconThemeDefinition("mate", "mint_22.0", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], None, None, None, None, ["256x256"], None, None)),
-			IconThemeDefinition("Numix", "mint_21.3", None, Constants.FldrScheme_SizeType,
+			IconThemeDefinition("Numix", "mint_22.0", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16"], ["24", "22"], ["32"], ["48"], ["64"], None, None, None, None, None, None)),
-			IconThemeDefinition("Humanity", "ubuntu_23.10", None, Constants.FldrScheme_TypeSize,
+			IconThemeDefinition("Humanity", "ubuntu_24.04", None, Constants.FldrScheme_TypeSize,
 				SourceImageSizeFolderMap(["16"], ["24"], ["32"], ["48"], ["64"], None, ["128"], ["192"], ["256"], None, None)),
 		]
 		self._iconTypeLists : List[IconTypeList] = [
