@@ -869,7 +869,7 @@ class PngFilesHelper:
 		return results
 
 	@staticmethod
-	def _copyPngToTarget(sourceFile: ResolvedSourceFile, targetFolder : pathlib.Path) -> (pathlib.Path, bool):
+	def _copyPngToTarget(sourceFile: ResolvedSourceFile, targetFolder : pathlib.Path) -> tuple[pathlib.Path, bool]:
 		convertToPng = False
 		sourceFilePath = sourceFile.actualFilePath
 		targetExt = sourceFilePath.suffix
