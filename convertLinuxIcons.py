@@ -857,6 +857,9 @@ class PngFilesHelper:
 			if not pngFilePath:
 				return None	# returns None if there was a problem => stop, don't continue on and overwrite something
 			pngFileUnchanged = False
+			if not Helpers.EnableWhatIf or pngFilePath.exists():
+				# if we're WhatIf'ing and the file didn't exist, we would not have actually copied it above, so nothing to hash;
+				# just pretend it's changed; could also just use an all zeroes hash and pass that to SourceImagesCache, but meh
 			pngFileHash = Helpers.GetMd5(pngFilePath)
 			if not SourceImagesCache.HasPngFileChanged(pngFilePath, pngFileHash):
 				pngFileUnchanged = True
@@ -956,7 +959,7 @@ class PngFilesHelper:
 		if results.exitCode != 0:
 			LogHelper.Error(f"failed converting file '{Helpers.GetRelativePath(sourceFile)}' to png (exit code: {results.exitCode}):{os.linesep}{results.getCombinedStdoutStderr()}")
 			return False
-		if not targetFile.exists():
+		if not Helpers.EnableWhatIf and not targetFile.exists():
 			LogHelper.Error(f"converting file '{Helpers.GetRelativePath(sourceFile)}' to png returned success but target file was not created:{os.linesep}{results.getCombinedStdoutStderr()}")
 			return False
 		return True
