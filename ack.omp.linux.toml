@@ -1,7 +1,6 @@
-#:schema https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json
 # oh-my-posh doc: https://ohmyposh.dev/docs/
 # nerd font icons: https://www.nerdfonts.com/cheat-sheet
-
+"$schema" = "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json"
 version = 2
 disable_notice = true		# disable upgrade notice (>= v19.27.0)
 
