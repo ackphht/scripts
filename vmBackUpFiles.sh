@@ -99,6 +99,7 @@ backUpFile "$HOME/.config/Code/User/settings.json" '.config/Code/User/settings.j
 backUpFile "$HOME/.config/filezilla/filezilla.xml" '.config/filezilla/filezilla.xml'
 backUpFile "$HOME/.config/filezilla/layout.xml" '.config/filezilla/layout.xml'
 backUpFile "$HOME/.config/filezilla/sitemanager.xml" '.config/filezilla/sitemanager.xml'
+backUpFile "$HOME/.config/git/config" '.config/git/config'
 backUpFile "$HOME/.config/pacmanfm-qt/lxqt/settings.conf" '.config/pacmanfm-qt/lxqt/settings.conf'
 backUpFile "$HOME/.config/powershell/Microsoft.PowerShell_profile.ps1" '.config/powershell/Microsoft.PowerShell_profile.ps1'
 backUpFile "$HOME/.config/xfce4/terminal/terminalrc" '.config/xfce4/terminal/terminalrc'
