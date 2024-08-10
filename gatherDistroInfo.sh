@@ -64,7 +64,7 @@ infoFileCount=$(ls -ld 2>/dev/null ${infoFileList[*]} | wc -l)
 if [[ $infoFileCount > 1 ]]; then
 	echo -n "" > $targetFolder/_infoFiles.txt
 	for file in ${infoFileList[*]}; do
-		if [[ -e $file ]]; then
+		if [[ -f $file ]]; then
 			f=$(basename $file)
 			echo "========================================" >> $targetFolder/_infoFiles.txt
 			echo "    $f" >> $targetFolder/_infoFiles.txt
