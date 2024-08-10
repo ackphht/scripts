@@ -59,6 +59,22 @@ if hasCmd uname; then
 	source $scriptRoot/showUnameInfo.sh > uname.log
 fi
 
+infoFileList=($targetFolder/uname.log $targetFolder/issue $targetFolder/*-release $targetFolder/lsb_release.log $targetFolder/debian_version $targetFolder/SUSE-brand $targetFolder/linuxmint_info $targetFolder/*-version $targetFolder/sw-vers.log)
+infoFileCount=$(ls -ld 2>/dev/null ${infoFileList[*]} | wc -l)
+if [[ $infoFileCount > 1 ]]; then
+	echo -n "" > $targetFolder/_infoFiles.txt
+	for file in ${infoFileList[*]}; do
+		if [[ -e $file ]]; then
+			f=$(basename $file)
+			echo "========================================" >> $targetFolder/_infoFiles.txt
+			echo "    $f" >> $targetFolder/_infoFiles.txt
+			echo "========================================" >> $targetFolder/_infoFiles.txt
+			cat $file >> $targetFolder/_infoFiles.txt
+			echo "" >> $targetFolder/_infoFiles.txt
+		fi
+	done
+fi
+
 env | sort -f > envVars_env.log
 #set > envVars_set.txt	# TODO?: is there a way to run this from lower shell level ??
 echo
