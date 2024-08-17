@@ -23,16 +23,13 @@ function Main {
 		[string] $vmDrive
 	)
 	if ($vmName) {
-		$vm = Get-VM | Where-Object { $_.Name -eq $vmName }
-		if ($vm) {
+		foreach ($vm in Get-VM -Name $vmName) {
 			Write-Verbose "found Hyper-V VM for name |$vmName|"
 			_optimizeHyperVVm -vm $vm
-		} else {
-			$vm = GetVirtualBoxVms | Where-Object { $_.Name -eq $vmName }
-			if ($vm) {
-				Write-Verbose "found VirtualBox VM for name |$vmName|"
-				_optimizeVirtualBoxVm -vm $vm
-			}
+		}
+		foreach ($vm in (GetVirtualBoxVms | Where-Object { $_.Name -like $vmName })) {
+			Write-Verbose "found VirtualBox VM for name |$vmName|"
+			_optimizeVirtualBoxVm -vm $vm
 		}
 	} else {
 		_optimizeVhd -vhdPath $vmDrive -vhdType 'Unknown'
@@ -94,7 +91,9 @@ function _optimizeVhd {
 			break
 		}
 		'VirtualBox' {
-			VBoxManage.exe modifyhd $vhdPath --compact
+			if ($PSCmdlet.ShouldProcess($vhdPath, 'VBoxManage.exe')) {
+				VBoxManage.exe modifyhd $vhdPath --compact
+			}
 			break
 		}
 	}
