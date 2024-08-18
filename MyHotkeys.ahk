@@ -153,6 +153,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 +#7::OpenFolder("I:\")
 ;+#8::OpenFolder("M:\")
 +#0::OpenFolder("\\wallach9")
+^+#0::OpenFolder("\\wallach9\home")
 
 /*
 	management-type stuff
