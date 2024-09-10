@@ -508,9 +508,10 @@ class MusicFolderHandler:
 					strV = strV[:117] + "..."
 				unexpectedTags.append((t, strV))
 		if unexpectedTags:
-			LogHelper.Warning(f"unexpected tag(s) in file '{musicFile.FilePath.name}':")
+			msg = f"unexpected tag(s) in file '{musicFile.FilePath.name}':"
 			for tup in unexpectedTags:
-				LogHelper.Warning(f"      tag: {tup[0]}{os.linesep}    value: {tup[1]}")
+				msg += f"{os.linesep}      tag: {tup[0]}{os.linesep}    value: {tup[1]}"
+			LogHelper.Warning(msg)
 
 	def _cleanUpFolderName(self, folderPath : pathlib.Path):
 		# check that folder name doesn't contain any funky characters and rename it if so (like fancy quotes etc)
