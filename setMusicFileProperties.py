@@ -180,6 +180,12 @@ class ApprovedTagsList:
 			Mp4TagNames.DigitalPurchaseId.upper(): Mp4TagNames.DigitalPurchaseId,
 			Mp4TagNames.Recorded.upper(): Mp4TagNames.Recorded,
 			Mp4TagNames.Released.upper(): Mp4TagNames.Released,
+			Mp4TagNames.AllMusicArtistId.upper(): Mp4TagNames.AllMusicArtistId,
+			Mp4TagNames.AllMusicAlbumId.upper(): Mp4TagNames.AllMusicAlbumId,
+			Mp4TagNames.WikidataArtistId.upper(): Mp4TagNames.WikidataArtistId,
+			Mp4TagNames.WikidataAlbumId.upper(): Mp4TagNames.WikidataAlbumId,
+			Mp4TagNames.WikipediaArtistId.upper(): Mp4TagNames.WikipediaArtistId,
+			Mp4TagNames.WikipediaAlbumId.upper(): Mp4TagNames.WikipediaAlbumId,
 		}
 
 	def __len__(self) -> int:
@@ -310,6 +316,12 @@ class MusicFolderHandler:
 		self._copyTag(Mp4TagNames.DigitalPurchaseFrom, sourceMusicFile, targetMusicFile)
 		self._copyTag(Mp4TagNames.DigitalPurchaseDate, sourceMusicFile, targetMusicFile)
 		self._copyTag(Mp4TagNames.DigitalPurchaseId, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.AllMusicArtistId, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.AllMusicAlbumId, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.WikidataArtistId, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.WikidataAlbumId, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.WikipediaArtistId, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.WikipediaAlbumId, sourceMusicFile, targetMusicFile)
 
 		self._saveFile(targetMusicFile, lastModTime, currLastAccessTime, False, True)
 

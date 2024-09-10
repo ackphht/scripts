@@ -87,6 +87,12 @@ class Mp4TagNames:
 	DigitalPurchaseId = "----:com.apple.iTunes:DIGITALPURCHASEID"
 	Recorded = "----:com.apple.iTunes:RECORDED"
 	Released = "----:com.apple.iTunes:RELEASED"
+	AllMusicArtistId = "----:com.apple.iTunes:ALLMUSIC_ARTIST_ID"
+	AllMusicAlbumId = "----:com.apple.iTunes:ALLMUSIC_ALBUM_ID"
+	WikidataArtistId = "----:com.apple.iTunes:WIKIDATA_ARTIST_ID"
+	WikidataAlbumId = "----:com.apple.iTunes:WIKIDATA_ALBUM_ID"
+	WikipediaArtistId = "----:com.apple.iTunes:WIKIPEDIA_ARTIST_ID"
+	WikipediaAlbumId = "----:com.apple.iTunes:WIKIPEDIA_ALBUM_ID"
 	# foobar2000 just blindly copies properties when it converts files, so if, e.g., we got from FLAC to M4A, we get FLAC property names:
 	MusicBrainzOriginalYearFromConvert = "----:com.apple.iTunes:ORIGINALYEAR"
 	MusicBrainzOriginalDateFromConvert = "----:com.apple.iTunes:ORIGINALDATE"
