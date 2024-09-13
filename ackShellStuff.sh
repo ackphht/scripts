@@ -33,6 +33,12 @@ if [[ -d ~/.local/bin && ! "$PATH" =~ "$HOME/.local/bin" ]]; then
 	export PATH="$HOME/.local/bin:$PATH"
 fi
 
+if hasCmd sudo; then	# termux doesn't have it
+	sudoCmd='sudo '
+else
+	sudoCmd=''
+fi
+
 alias cls='clear'
 hasCmd screenfetch && alias sf='screenfetch' || true
 hasCmd neofetch && alias nf='neofetch' || true
@@ -56,10 +62,10 @@ case $platform in
 	Linux|MINGW*|MSYS*|CYGWIN*)
 		alias ll='ls -AlFhv --group-directories-first'
 		alias l='ls -AFv --group-directories-first'
-		hasCmd journalctl && alias cj='sudo journalctl --vacuum-time=1d' || true
+		hasCmd journalctl && alias cj="${sudoCmd}journalctl --vacuum-time=1d" || true
 		# ???
-		#alias reboot='sudo reboot --reboot'
-		#alias shutdown='sudo halt --poweroff --force --no-wall'
+		#alias reboot="${sudoCmd}reboot --reboot"
+		#alias shutdown="${sudoCmd}halt --poweroff --force --no-wall"
 		;;
 	Darwin|FreeBSD)
 		alias ls='ls -G'	# -G sorta equivalent to --color=auto except it will work in ssh, too
@@ -81,78 +87,78 @@ case $platform in
 esac
 
 if [[ "$platform" != "Darwin" ]] && hasCmd apt; then	# macOs (at least version i have) has some java app called apt; don't know what it is
-	alias aptr='sudo apt update'
+	alias aptr="${sudoCmd}apt update"
 	alias aptul='apt list --upgradable'
-	alias aptu='sudo apt upgrade --yes'
-	alias aptuu='sudo apt dist-upgrade'
-	alias aptc='sudo apt-get autoremove --yes && sudo apt-get autoclean --yes && sudo apt-get clean --yes'
+	alias aptu="${sudoCmd}apt upgrade --yes"
+	alias aptuu="${sudoCmd}apt dist-upgrade"
+	alias aptc="${sudoCmd}apt-get autoremove --yes && ${sudoCmd}apt-get autoclean --yes && ${sudoCmd}apt-get clean --yes"
 	alias apts='apt-cache search'
 	alias aptn='apt show'
-	alias apti='sudo apt install'
-	alias aptx='sudo apt remove'	# leaves settings	(leaving off --yes)
-	alias aptxx='sudo apt purge'	# removes settings too
+	alias apti="${sudoCmd}apt install"
+	alias aptx="${sudoCmd}apt remove"	# leaves settings	(leaving off --yes)
+	alias aptxx="${sudoCmd}apt purge"	# removes settings too
 	alias aptl='apt list --installed'
 elif hasCmd dnf; then
-	alias aptr='sudo dnf check-update --refresh'
-	alias aptul='sudo dnf check-update'	# ???
-	alias aptu='sudo dnf upgrade --assumeyes'
-	#alias aptc='sudo dnf autoremove --assumeyes --cacheonly && sudo dnf clean all --assumeyes --cacheonly'
-	alias aptc='sudo dnf autoremove --assumeyes && sudo dnf clean packages --assumeyes --cacheonly'
-	#alias aptc='sudo dnf autoremove --assumeyes --cacheonly && pkcon refresh force --cache-age -1 && sudo dnf clean all --assumeyes --cacheonly'
+	alias aptr="${sudoCmd}dnf check-update --refresh"
+	alias aptul="${sudoCmd}dnf check-update"	# ???
+	alias aptu="${sudoCmd}dnf upgrade --assumeyes"
+	#alias aptc="${sudoCmd}dnf autoremove --assumeyes --cacheonly && ${sudoCmd}dnf clean all --assumeyes --cacheonly"
+	alias aptc="${sudoCmd}dnf autoremove --assumeyes && ${sudoCmd}dnf clean packages --assumeyes --cacheonly"
+	#alias aptc="${sudoCmd}dnf autoremove --assumeyes --cacheonly && pkcon refresh force --cache-age -1 && ${sudoCmd}dnf clean all --assumeyes --cacheonly"
 	alias apts='dnf search'
 	alias aptn='dnf info'
-	alias apti='sudo dnf install'
-	alias aptx='sudo dnf remove'	# these both do the same thing
-	alias aptxx='sudo dnf remove'	# but to keep the same aliases available...
+	alias apti="${sudoCmd}dnf install"
+	alias aptx="${sudoCmd}dnf remove"	# these both do the same thing
+	alias aptxx="${sudoCmd}dnf remove"	# but to keep the same aliases available...
 	alias aptl='dnf list --installed'
 elif hasCmd zypper; then
-	alias aptr='sudo zypper refresh' # --force'	# if output is piped into, e.g. grep, it displays a warning about not having a 'stable CLI interface', 'use with caution'; ???
-	alias aptul='sudo zypper list-updates'		# no idea why this requires sudo now...
-	alias aptu='sudo zypper update --no-confirm --no-recommends'
-	alias aptuu='sudo zypper dist-upgrade --no-recommends'	# --no-confirm
-	#alias aptc='sudo zypper remove --clean-deps && sudo zypper clean --all'
-	alias aptc='sudo zypper clean' # --all'
+	alias aptr="${sudoCmd}zypper refresh" # --force'	# if output is piped into, e.g. grep, it displays a warning about not having a 'stable CLI interface', 'use with caution'; ???
+	alias aptul="${sudoCmd}zypper list-updates"		# no idea why this requires sudo now...
+	alias aptu="${sudoCmd}zypper update --no-confirm --no-recommends"
+	alias aptuu="${sudoCmd}zypper dist-upgrade --no-recommends"	# --no-confirm
+	#alias aptc="${sudoCmd}zypper remove --clean-deps && ${sudoCmd}zypper clean --all"
+	alias aptc="${sudoCmd}zypper clean" # --all'
 	alias apts='zypper search'
 	alias aptn='zypper info'
-	alias apti='sudo zypper install --no-recommends'
-	alias aptx='sudo zypper remove --clean-deps'
-	alias aptxx='sudo zypper remove --clean-deps'
+	alias apti="${sudoCmd}zypper install --no-recommends"
+	alias aptx="${sudoCmd}zypper remove --clean-deps"
+	alias aptxx="${sudoCmd}zypper remove --clean-deps"
 	alias aptl='zypper search --installed-only'
 	alias zp='zypper'
 elif hasCmd pacman; then
-	alias aptr='sudo pacman -Syy'	# --sync --refresh x 2 to force updae
+	alias aptr="${sudoCmd}pacman -Syy"	# --sync --refresh x 2 to force updae
 	alias aptul='pacman --query --upgrades'
-	alias aptu='sudo pacman --sync --sysupgrade --noconfirm'
-	alias aptc='sudo pacman --sync --clean --noconfirm'
+	alias aptu="${sudoCmd}pacman --sync --sysupgrade --noconfirm"
+	alias aptc="${sudoCmd}pacman --sync --clean --noconfirm"
 	alias apts='pacman --sync --search'
 	alias aptn='pacman --query --info'
-	alias apti='sudo pacman --sync'
-	alias aptx='sudo pacman --remove --recursive'
-	alias aptxx='sudo pacman --remove --recursive --nosave'
+	alias apti="${sudoCmd}pacman --sync"
+	alias aptx="${sudoCmd}pacman --remove --recursive"
+	alias aptxx="${sudoCmd}pacman --remove --recursive --nosave"
 	alias aptl='pacman --query'
 	# just to store this somewhere: to list all explicitly installed packages that aren't required by something else:
 	#	pacman --query --explicit --unrequired (or pacman -Qet if wanna be lazy)
 elif hasCmd apk; then
-	alias aptr='sudo apk update'
+	alias aptr="${sudoCmd}apk update"
 	alias aptul='apk list --upgradable'
-	alias aptu='sudo apk upgrade --available'
-	alias aptc='sudo apk cache --purge'	# ???
+	alias aptu="${sudoCmd}apk upgrade --available"
+	alias aptc="${sudoCmd}apk cache --purge"	# ???
 	alias apts='apk search'
 	alias aptn='apk info'		# can add '--all' to dump out all info, but this gets most likely relevant
-	alias apti='sudo apk add'
-	alias aptx='sudo apk del'
-	alias aptxx='sudo apk del'
+	alias apti="${sudoCmd}apk add"
+	alias aptx="${sudoCmd}apk del"
+	alias aptxx="${sudoCmd}apk del"
 	alias aptl='apk list --installed'
 elif hasCmd eopkg; then
-	alias aptr='sudo eopkg update-repo'
+	alias aptr="${sudoCmd}eopkg update-repo"
 	alias aptul='eopkg list-upgrades --install-info'
-	alias aptu='sudo eopkg upgrade --yes-all'
-	alias aptc='sudo eopkg remove-orphans && sudo eopkg delete-cache'
+	alias aptu="${sudoCmd}eopkg upgrade --yes-all"
+	alias aptc="${sudoCmd}eopkg remove-orphans && ${sudoCmd}eopkg delete-cache"
 	alias apts='eopkg search'
 	alias aptn='eopkg info'
-	alias apti='sudo eopkg install'
-	alias aptx='sudo eopkg remove'
-	alias aptxx='sudo eopkg remove'
+	alias apti="${sudoCmd}eopkg install"
+	alias aptx="${sudoCmd}eopkg remove"
+	alias aptxx="${sudoCmd}eopkg remove"
 	alias aptl='eopkg list-installed --install-info'
 elif hasCmd brew; then
 	# https://docs.brew.sh/Manpage
@@ -167,27 +173,27 @@ elif hasCmd brew; then
 	alias aptxx='brew uninstall'
 	alias aptl='brew list'
 elif hasCmd pkg; then
-	alias aptr='sudo pkg update --force'
+	alias aptr="${sudoCmd}pkg update --force"
 	alias aptul='pkg upgrade --dry-run'
-	alias aptu='sudo pkg upgrade --yes'
-	alias aptc='sudo pkg autoremove --yes && sudo pkg clean --all --yes'
+	alias aptu="${sudoCmd}pkg upgrade --yes"
+	alias aptc="${sudoCmd}pkg autoremove --yes && ${sudoCmd}pkg clean --all --yes"
 	alias apts='pkg search'
 	alias aptn='pkg info --case-insensitive'
-	alias apti='sudo pkg install'
-	alias aptx='sudo pkg delete'
-	alias aptxx='sudo pkg delete'
+	alias apti="${sudoCmd}pkg install"
+	alias aptx="${sudoCmd}pkg delete"
+	alias aptxx="${sudoCmd}pkg delete"
 	alias aptl='pkg info --all'
 fi
 
 if hasCmd snap; then
 	alias snaptul='snap refresh --list'
 	alias snaptr='snap refresh --list'
-	alias snaptu='sudo snap refresh'
+	alias snaptu="${sudoCmd}snap refresh"
 	alias snapts='snap find'
 	alias snaptn='snap info'
-	alias snapti='sudo snap install'
-	alias snaptx='sudo snap remove'
-	alias snaptxx='sudo snap remove'
+	alias snapti="${sudoCmd}snap install"
+	alias snaptx="${sudoCmd}snap remove"
+	alias snaptxx="${sudoCmd}snap remove"
 	alias snaptl='snap list'
 fi
 
@@ -200,9 +206,9 @@ case $platform in
 		alias sz="${dfBase} /"
 		# can't use which or type for sbin stuff on openSuse:
 		if [[ -x /usr/bin/btrfs || -x /usr/sbin/btrfs ]]; then
-			alias defrag='sudo btrfs filesystem defrag -czstd -rv /'
+			alias defrag="${sudoCmd}btrfs filesystem defrag -czstd -rv /"
 			if [[ -x /usr/bin/compsize || -x /usr/sbin/compsize ]]; then
-				alias sz="${dfBase} /; echo; sudo compsize -x /"
+				alias sz="${dfBase} /; echo; ${sudoCmd}compsize -x /"
 			fi
 		fi
 		alias szz="${dfBase} --type=ext2 --type=ext3 --type=ext4 --type=btrfs --type=zfs --type=vfat --type=ntfs"
@@ -228,9 +234,9 @@ esac
 
 if [[ "$platform" == "Linux" || "$platform" =~ "BSD" || "$platform" == "DragonFly" ]]; then
 	if hasCmd python3 && [[ -f ~/scripts/zeroLinuxFreeSpace.py ]]; then
-		alias zx='sudo python3 ~/scripts/zeroLinuxFreeSpace.py'
+		alias zx="${sudoCmd}python3 ~/scripts/zeroLinuxFreeSpace.py"
 	elif hasCmd pwsh && [[ -f ~/scripts/zeroLinuxFreeSpace.ps1 ]]; then
-		alias zx='sudo $(which pwsh) -f ~/scripts/zeroLinuxFreeSpace.ps1'
+		alias zx="${sudoCmd}$(which pwsh) -f ~/scripts/zeroLinuxFreeSpace.ps1"
 	fi
 fi
 
@@ -253,4 +259,4 @@ if hasCmd oh-my-posh && test -n $currShell ; then
 	fi
 fi
 
-unset platform currShell
+unset platform currShell sudoCmd
