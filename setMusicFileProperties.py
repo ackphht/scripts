@@ -879,8 +879,8 @@ def buildArguments():
 	setFolderCmd.set_defaults(func=setFolderPropertiesFromDbCommand)
 
 	setFolderCmd = subparsers.add_parser("copyFolderProperties", aliases=["copy", "cp"], help="enumerates music files in the target folder, looks for a matching file in source folder, and copies properties from source to target")
-	setFolderCmd.add_argument("targetFolderPath")
-	setFolderCmd.add_argument("sourceFolderPath")
+	setFolderCmd.add_argument("sourceFolderPath", help="folder to copy file tags FROM")
+	setFolderCmd.add_argument("targetFolderPath", help="folder to copy file tags TO")
 	setFolderCmd.add_argument("-w", "--whatIf", action="store_true", help="look up properties, but don't actually save anything")
 	setFolderCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	setFolderCmd.set_defaults(func=copyFolderPropertiesCommand)
