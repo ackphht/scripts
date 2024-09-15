@@ -183,6 +183,13 @@ class MusicFileProperties:
 			for tag in self._mutagen.tags:
 				yield tag
 
+	def getProperty(self, propertyName: str) -> str|int|None:
+		if self._tinytag:
+			ttDict = self._tinytag.as_dict()
+			return ttDict[propertyName] if propertyName in ttDict else None
+		else:
+			return self._getMutagenProperty(propertyName)
+
 	def getRawProperty(self, propertyName: str) -> str|int|None:
 		if self._tinytag:
 			ttDict = self._tinytag.as_dict()
@@ -204,7 +211,11 @@ class MusicFileProperties:
 	def _getMutagenProperty(self, propertyName : str) -> str|int|None:
 		val = self._mutagen[propertyName] if propertyName in self._mutagen else None
 		if val and isinstance(val, list) and len(val) > 0:
+			#
+			# TODO: what if there's more than one? think MP4s do support it; Mp3tag, at least, does that sometimes
+			#
 			val = val[0]
+		# TODO: this is all kinda specific to mp4 files; if we want this to work other types of files...
 		if val and isinstance(val, mutagen.mp4.MP4FreeForm):
 			if val.dataformat != mutagen.mp4.AtomDataType.UTF8:
 				raise NotImplementedError("MP4FreeForm contains unsupported data type: " + str(val.dataform))
@@ -250,6 +261,10 @@ class MusicFileProperties:
 			self._deleteMutagenProperty(propertyName)
 		else:
 			self._setMutagenProperty(propertyName, [(val, ttl)])
+
+	@property
+	def HasChanges(self) -> pathlib.Path:
+		return self._dirty
 
 	@property
 	def FilePath(self) -> pathlib.Path:
