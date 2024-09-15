@@ -186,6 +186,7 @@ class ApprovedTagsList:
 			Mp4TagNames.WikidataAlbumId.upper(): Mp4TagNames.WikidataAlbumId,
 			Mp4TagNames.WikipediaArtistId.upper(): Mp4TagNames.WikipediaArtistId,
 			Mp4TagNames.WikipediaAlbumId.upper(): Mp4TagNames.WikipediaAlbumId,
+			Mp4TagNames.ImdbArtistId.upper(): Mp4TagNames.ImdbArtistId,
 		}
 
 	def __len__(self) -> int:
@@ -322,6 +323,7 @@ class MusicFolderHandler:
 		self._copyTag(Mp4TagNames.WikidataAlbumId, sourceMusicFile, targetMusicFile)
 		self._copyTag(Mp4TagNames.WikipediaArtistId, sourceMusicFile, targetMusicFile)
 		self._copyTag(Mp4TagNames.WikipediaAlbumId, sourceMusicFile, targetMusicFile)
+		self._copyTag(Mp4TagNames.ImdbArtistId, sourceMusicFile, targetMusicFile)
 
 		self._saveFile(targetMusicFile, lastModTime, currLastAccessTime, False, True)
 
