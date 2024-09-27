@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import pathlib
-from typing import Any, List, Iterator
+from typing import Any, Iterator
 import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
 from tinytag import TinyTag
 from ackPyHelpers import LogHelper
 from .mp4TagNames import Mp4TagNames
+from .musicTagNames import MusicTagNames
+from .tagMapper import TagMapper
 
 class MusicFileProperties:
 	def __init__(self, musicFilePath):
