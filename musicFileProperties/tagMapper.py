@@ -205,33 +205,22 @@ class TagMapper:
 				id3v23: list[str] = TagMapper._splitTagName(row["ID3v23"])
 				ape: list[str] = TagMapper._splitTagName(row["APEv2"])
 
-				TagMapper._tagNamesToTypedMap[tagName] = TagMapper._mappedTags(mp4=mp4, vorbis=vorbis, id3v24=id3v24, id3v23=id3v23, apev2=ape)
+				TagMapper._tagNamesToTypedMap[tagName] = TagMapper._mappedTags(mp4=mp4, vorbis=vorbis, asf=asf, id3v24=id3v24, id3v23=id3v23, apev2=ape)
 
-				for t in mp4:
-					t = t.upper() if t else ""
-					if t and t not in TagMapper._typedToTagNamesMap[TagMapper.MP4TagType]:
-						TagMapper._typedToTagNamesMap[TagMapper.MP4TagType][t] = tagName
-				for t in vorbis:
-					t = t.upper() if t else ""
-					if t and t not in TagMapper._typedToTagNamesMap[TagMapper.VorbisTagType]:
-						TagMapper._typedToTagNamesMap[TagMapper.VorbisTagType][t] = tagName
-				for t in asf:
-					t = t.upper() if t else ""
-					if t and t not in TagMapper._typedToTagNamesMap[TagMapper.AsfTagType]:
-						TagMapper._typedToTagNamesMap[TagMapper.AsfTagType][t] = tagName
-				for t in id3v24:
-					t = t.upper() if t else ""
-					if t and t not in TagMapper._typedToTagNamesMap[TagMapper.Id3v24TagType]:
-						TagMapper._typedToTagNamesMap[TagMapper.Id3v24TagType][t] = tagName
-				for t in id3v23:
-					t = t.upper() if t else ""
-					if t and t not in TagMapper._typedToTagNamesMap[TagMapper.Id3v23TagType]:
-						TagMapper._typedToTagNamesMap[TagMapper.Id3v23TagType][t] = tagName
-				for t in ape:
-					t = t.upper() if t else ""
-					if t and t not in TagMapper._typedToTagNamesMap[TagMapper.ApeV2TagType]:
-						TagMapper._typedToTagNamesMap[TagMapper.ApeV2TagType][t] = tagName
+				TagMapper._addToTypedToTagNameDict(tagName, mp4, TagMapper.MP4TagType)
+				TagMapper._addToTypedToTagNameDict(tagName, vorbis, TagMapper.VorbisTagType)
+				TagMapper._addToTypedToTagNameDict(tagName, asf, TagMapper.AsfTagType)
+				TagMapper._addToTypedToTagNameDict(tagName, id3v24, TagMapper.Id3v24TagType)
+				TagMapper._addToTypedToTagNameDict(tagName, id3v23, TagMapper.Id3v23TagType)
+				TagMapper._addToTypedToTagNameDict(tagName, ape, TagMapper.ApeV2TagType)
 
 	@staticmethod
 	def _splitTagName(tag: str) -> list[str]:
 		return [x.strip() for x in tag.strip().split("|")] if tag else []
+
+	@staticmethod
+	def _addToTypedToTagNameDict(tagName: str, typedNames: list[str], tagType: str) -> list[str]:
+		for t in typedNames:
+			t = t.upper() if t else ""
+			if t and t not in TagMapper._typedToTagNamesMap[tagType]:
+				TagMapper._typedToTagNamesMap[tagType][t] = tagName
