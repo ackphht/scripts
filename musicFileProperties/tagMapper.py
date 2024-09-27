@@ -10,6 +10,7 @@ class TagMapper:
 	class _mappedTags(NamedTuple):
 		mp4: list[str]
 		vorbis: list[str]
+		asf: list[str]
 		id3v24: list[str]
 		id3v23: list[str]
 		apev2: list[str]
@@ -20,6 +21,7 @@ class TagMapper:
 
 	MP4TagType = "mp4"
 	VorbisTagType = "vorbis"
+	AsfTagType = "asf"
 	Id3v24TagType = "id3v24"
 	Id3v23TagType = "id3v23"
 	ApeV2TagType = "apev2"
@@ -87,6 +89,22 @@ class TagMapper:
 		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
 			return mappedTag.vorbis[0] if len(mappedTag.vorbis) > 0 else ""
 
+	class _asfMapper(Mapper):
+		_instance = None
+		def __new__(cls):
+			if cls._instance is None:
+				cls._instance = super().__new__(cls)
+			return cls._instance
+
+		def __init__(self):
+			super().__init__()
+
+		def _getTagType(self) -> str:
+			return TagMapper.AsfTagType
+
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
+			return mappedTag.asf[0] if len(mappedTag.asf) > 0 else ""
+
 	class _apeV2Mapper(Mapper):
 		_instance = None
 		def __new__(cls):
@@ -153,6 +171,8 @@ class TagMapper:
 			return TagMapper._mp4Mapper()
 		if name == "VCFLACDict" or name == "OggOpusVComment" or name == "OggVCommentDict":
 			return TagMapper._vorbisMapper()
+		if name == "ASFTags":
+			return TagMapper._asfMapper()
 		if name == "APEv2":
 			return TagMapper._apeV2Mapper()
 		if name == "ID3" or name == "_WaveID3":
@@ -169,17 +189,18 @@ class TagMapper:
 		TagMapper._typedToTagNamesMap = {
 			TagMapper.MP4TagType: dict(),
 			TagMapper.VorbisTagType: dict(),
+			TagMapper.AsfTagType: dict(),
 			TagMapper.Id3v24TagType: dict(),
 			TagMapper.Id3v23TagType: dict(),
 			TagMapper.ApeV2TagType: dict(),
 		}
 		with open(TagMapper._csvFilepath, mode="r", encoding="utf_8_sig", newline='') as f:
 			for row in csv.DictReader(f, dialect=csv.excel):
-				#print(row["MusicTagName"], row["MP4"], row["Vorbis"], row["ID3v24"], row["ID3v23"], row["APEv2"])
 				tagName: str = row["MusicTagName"].strip() if row["MusicTagName"] else ""
 				if not tagName or tagName.startswith("#"): continue
 				mp4: list[str] = [x.replace("*", Mp4TagNames.Mp4CustomPropertyPrefix) for x in TagMapper._splitTagName(row["MP4"])]
 				vorbis: list[str] = TagMapper._splitTagName(row["Vorbis"])
+				asf: list[str] = TagMapper._splitTagName(row["WMA"])
 				id3v24: list[str] = TagMapper._splitTagName(row["ID3v24"])
 				id3v23: list[str] = TagMapper._splitTagName(row["ID3v23"])
 				ape: list[str] = TagMapper._splitTagName(row["APEv2"])
@@ -194,6 +215,10 @@ class TagMapper:
 					t = t.upper() if t else ""
 					if t and t not in TagMapper._typedToTagNamesMap[TagMapper.VorbisTagType]:
 						TagMapper._typedToTagNamesMap[TagMapper.VorbisTagType][t] = tagName
+				for t in asf:
+					t = t.upper() if t else ""
+					if t and t not in TagMapper._typedToTagNamesMap[TagMapper.AsfTagType]:
+						TagMapper._typedToTagNamesMap[TagMapper.AsfTagType][t] = tagName
 				for t in id3v24:
 					t = t.upper() if t else ""
 					if t and t not in TagMapper._typedToTagNamesMap[TagMapper.Id3v24TagType]:
