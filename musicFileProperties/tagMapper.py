@@ -39,14 +39,14 @@ class TagMapper:
 		def __init__(self):
 			TagMapper._init()
 
-		def mapTypedNameToTagName(self, typedName: str) -> str:
+		def mapFromRawName(self, typedName: str) -> str:
 			d = TagMapper._typedToTagNamesMap[self._getTagType()]
 			u = typedName.upper()
 			if u in d:
 				return d[u]
 			return ""
 
-		def mapTagNameToTypedName(self, tagName: str) -> str:
+		def mapToRawName(self, tagName: str) -> str:
 			mapped = TagMapper._tagNamesToTypedMap[tagName] if tagName in TagMapper._tagNamesToTypedMap else None
 			if mapped is None: return ""
 			return self._getMappedTagProp(mapped)
