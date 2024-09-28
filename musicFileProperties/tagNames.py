@@ -1,7 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-class MusicTagNames:
+class TagNames:
 	AcoustidId = "AcoustidId"
 	AcoustidFingerprint = "AcoustidFingerprint"
 	AlbumArtist = "AlbumArtist"
