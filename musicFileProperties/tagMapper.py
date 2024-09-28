@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pathlib, csv
-from typing import NamedTuple
+from typing import NamedTuple, Any
 import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
 from .mp4TagNames import Mp4TagNames
 
@@ -39,9 +39,9 @@ class TagMapper:
 		def __init__(self):
 			TagMapper._init()
 
-		def mapFromRawName(self, typedName: str) -> str:
+		def mapFromRawName(self, rawTagName: str) -> str:
 			d = TagMapper._typedToTagNamesMap[self._getTagType()]
-			u = typedName.upper()
+			u = rawTagName.upper()
 			if u in d:
 				return d[u]
 			return ""
@@ -51,11 +51,39 @@ class TagMapper:
 			if mapped is None: return ""
 			return self._getMappedTagProp(mapped)
 
+		def mapFromRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+			if rawValue is None: return []
+			results = []
+			if TagMapper.Mapper._isSimpleType(rawValue):
+				results.append(rawValue)
+			elif isinstance(rawValue, list):
+				if len(rawValue) > 0:
+					# can we get a list of lists ???
+					for v in rawValue:
+						if TagMapper.Mapper._isSimpleType(v):
+							results.append(v)
+						else:
+							results.append(self._mapRawValue(v, tagName, rawTagName))
+			else:
+				results.append(self._mapRawValue(v, tagName, rawTagName))
+			return results
+
+		@staticmethod
+		def _isSimpleType(value: Any) -> bool:
+			t = type(value)
+			return t is str or t is int or t is bytes
+
+		#region "abstract" methods
 		def _getTagType(self) -> str:
 			raise NotImplementedError()
 
 		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
 			raise NotImplementedError()
+
+		def _mapRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> str|int|bytes:
+			# we'll have already checked for lists, so should just be a single value
+			raise NotImplementedError()
+		#endregion
 
 	class _mp4Mapper(Mapper):
 		_instance = None
@@ -72,6 +100,21 @@ class TagMapper:
 
 		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
 			return mappedTag.mp4[0] if len(mappedTag.mp4) > 0 else ""
+
+		def _mapRawValue(self, val: Any, tagName: str, rawTagName: str) -> str|int|bytes:
+			# we'll have already checked for lists, so should just be a single value
+			if val and isinstance(val, mutagen.mp4.MP4FreeForm):
+				if val.dataformat == mutagen.mp4.AtomDataType.INTEGER:
+					# don't think we need to worry about parsing this: for standard tags,
+					# mutagen just returns the simple value for you, for non-standard tags, they're always text
+					pass
+				else:
+					if val.dataformat != mutagen.mp4.AtomDataType.UTF8:		# it looks like mutagen only ever supports utf-8, so ???
+						raise NotImplementedError("MP4FreeForm contains unsupported data type: " + str(val.dataform))
+					val = val.decode("utf-8")
+			elif val and isinstance(val, mutagen.mp4.MP4Cover):
+				val = bytes(val)
+			return val
 
 	class _vorbisMapper(Mapper):
 		_instance = None
@@ -198,7 +241,7 @@ class TagMapper:
 			for row in csv.DictReader(f, dialect=csv.excel):
 				tagName: str = row["MusicTagName"].strip() if row["MusicTagName"] else ""
 				if not tagName or tagName.startswith("#"): continue
-				mp4: list[str] = [x.replace("*", Mp4TagNames.Mp4CustomPropertyPrefix) for x in TagMapper._splitTagName(row["MP4"])]
+				mp4: list[str] = [x.replace("*:", Mp4TagNames.Mp4CustomPropertyPrefix) for x in TagMapper._splitTagName(row["MP4"])]
 				vorbis: list[str] = TagMapper._splitTagName(row["Vorbis"])
 				asf: list[str] = TagMapper._splitTagName(row["WMA"])
 				id3v24: list[str] = TagMapper._splitTagName(row["ID3v24"])
