@@ -22,11 +22,15 @@ class MusicFileProperties:
 		self._mutagen = None
 		self._tinytag = None
 		self._mutagen = mutagen.File(self._musicFilePath)
+		self._mapper = TagMapper.getTagMapper(self._mutagen.tags)
 
 	def save(self, removePadding = False) -> bool:
 		if not self._dirty:
 			return False
 		if removePadding:
+			#
+			# TODO: is this padding thing for other types than M4A ?? do we need to check for that ??
+			#
 			self._mutagen.save(padding = lambda x: 0)
 		else:
 			self._mutagen.save()
@@ -40,25 +44,19 @@ class MusicFileProperties:
 		yield ("TrackTitle", self.TrackTitle)
 		yield ("Year", self.Year)
 		yield ("Composer", self.Composer)
-		yield ("Genre", self.Genre)
-		yield ("Comments", self.Comments)
+		yield ("Lyricist", self.Lyricist)
+		yield ("Producer", self.Producer)
 		yield ("TrackNumber", self.TrackNumber)
 		yield ("TotalTracks", self.TotalTracks)
 		yield ("DiscNumber", self.DiscNumber)
 		yield ("TotalDiscs", self.TotalDiscs)
-		yield ("Producer", self.Producer)
-		yield ("Conductor", self.Conductor)
-		yield ("Copyright", self.Copyright)
-		yield ("Publisher", self.Publisher)
-		yield ("Lyrics", self.Lyrics)
-		yield ("Lyricist", self.Lyricist)
-		yield ("OriginalArtist", self.OriginalArtist)
-		yield ("OriginalAlbum", self.OriginalAlbum)
-		yield ("OriginalYear", self.OriginalYear)
+		yield ("Genre", self.Genre)
+		yield ("Comments", self.Comments)
 
 	def getRawProperties(self) -> Iterator[tuple[str, Any]]:
 		yield ('$$TagType', self._mutagen.tags.__class__.__name__)
 		for tag in self._mutagen.tags:
+			# some tag types, the iterator returns a tuple(name,value), others it just returns the name
 			if isinstance(tag, tuple):
 				yield tag
 			else:
@@ -66,9 +64,13 @@ class MusicFileProperties:
 
 	def getRawPropertyNames(self) -> Iterator[str]:
 		for tag in self._mutagen.tags:
-			yield tag
+			# some tag types, the iterator returns a tuple(name,value), others it just returns the name
+			if isinstance(tag, tuple):
+				yield tag[0]
+			else:
+				yield tag
 
-	def getProperty(self, propertyName: str) -> str|int|None:
+	def getProperty(self, propertyName: str) -> list[str|int|bytes]:
 		return self._getMutagenProperty(propertyName)
 
 	def getRawProperty(self, propertyName: str) -> str|int|None:
@@ -80,19 +82,11 @@ class MusicFileProperties:
 	def deleteRawProperty(self, propertyName : str) -> None:
 		self._deleteMutagenProperty(propertyName)
 
-	def _getMutagenProperty(self, propertyName : str) -> str|int|None:
-		val = self._mutagen[propertyName] if propertyName in self._mutagen else None
-		if val and isinstance(val, list) and len(val) > 0:
-			#
-			# TODO: what if there's more than one? think MP4s do support it; Mp3tag, at least, does that sometimes
-			#
-			val = val[0]
-		# TODO: this is all kinda specific to mp4 files; if we want this to work other types of files...
-		if val and isinstance(val, mutagen.mp4.MP4FreeForm):
-			if val.dataformat != mutagen.mp4.AtomDataType.UTF8:
-				raise NotImplementedError("MP4FreeForm contains unsupported data type: " + str(val.dataform))
-			val = val.decode("utf-8")
-		return val
+	def _getMutagenProperty(self, propertyName : str) -> list[str|int|bytes]:
+		rawTagName = self._mapper.mapToRawName(propertyName)
+		if not rawTagName: return []
+		val = self._mutagen.tags[rawTagName] if rawTagName in self._mutagen.tags else None
+		return self._mapper.mapFromRawValue(val, propertyName, rawTagName)
 
 	def _setMutagenProperty(self, propertyName : str, value : Any) -> None:
 		LogHelper.Verbose('setting mutagen property named "{0}"', propertyName)
@@ -135,7 +129,7 @@ class MusicFileProperties:
 		return self._musicFilePath
 
 	@property
-	def DurationSeconds(self) -> int:
+	def DurationSeconds(self) -> float:
 		return self._mutagen.info.length
 
 	## region property LastWriteTime
@@ -150,301 +144,271 @@ class MusicFileProperties:
 
 	# region property AlbumTitle
 	@property
-	def AlbumTitle(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.AlbumTitle)
+	def AlbumTitle(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.AlbumTitle)
 
 	@AlbumTitle.setter
 	def AlbumTitle(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.AlbumTitle, value)
+		self._setMutagenProperty(MusicTagNames.AlbumTitle, value)
 
 	@AlbumTitle.deleter
 	def AlbumTitle(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.AlbumTitle)
+		self._deleteMutagenProperty(MusicTagNames.AlbumTitle)
 	# endregion
 
 	# region property TrackTitle
 	@property
-	def TrackTitle(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.TrackTitle)
+	def TrackTitle(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.TrackTitle)
 
 	@TrackTitle.setter
 	def TrackTitle(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.TrackTitle, value)
+		self._setMutagenProperty(MusicTagNames.TrackTitle, value)
 
 	@TrackTitle.deleter
 	def TrackTitle(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.TrackTitle)
+		self._deleteMutagenProperty(MusicTagNames.TrackTitle)
 	# endregion
 
 	# region property AlbumArtist
 	@property
-	def AlbumArtist(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.AlbumArtist)
+	def AlbumArtist(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.AlbumArtist)
 
 	@AlbumArtist.setter
 	def AlbumArtist(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.AlbumArtist, value)
+		self._setMutagenProperty(MusicTagNames.AlbumArtist, value)
 
 	@AlbumArtist.deleter
 	def AlbumArtist(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.AlbumArtist)
+		self._deleteMutagenProperty(MusicTagNames.AlbumArtist)
 	# endregion
 
 	# region property TrackArtist
 	@property
-	def TrackArtist(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.TrackArtist)
+	def TrackArtist(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.TrackArtist)
 
 	@TrackArtist.setter
 	def TrackArtist(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.TrackArtist, value)
+		self._setMutagenProperty(MusicTagNames.TrackArtist, value)
 
 	@TrackArtist.deleter
 	def TrackArtist(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.TrackArtist)
+		self._deleteMutagenProperty(MusicTagNames.TrackArtist)
 	# endregion
 
 	# region property Year
 	@property
-	def Year(self) -> int:
-		return self._getMutagenProperty(Mp4TagNames.Year)
+	def Year(self) -> list[int]:
+		return self._getMutagenProperty(MusicTagNames.YearReleased)
 
 	@Year.setter
 	def Year(self, value : int) -> None:
-		self._setMutagenProperty(Mp4TagNames.Year, value)
+		self._setMutagenProperty(MusicTagNames.YearReleased, value)
 
 	@Year.deleter
 	def Year(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.Year)
+		self._deleteMutagenProperty(MusicTagNames.YearReleased)
 	# endregion
 
 	# region property Composer
 	@property
-	def Composer(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.Composer)
+	def Composer(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.Composer)
 
 	@Composer.setter
 	def Composer(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.Composer, value)
+		self._setMutagenProperty(MusicTagNames.Composer, value)
 
 	@Composer.deleter
 	def Composer(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.Composer)
+		self._deleteMutagenProperty(MusicTagNames.Composer)
 	# endregion
 
 	# region property Comments
 	@property
-	def Comments(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.Comment)
+	def Comments(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.Comment)
 
 	@Comments.setter
 	def Comments(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.Comment, value)
+		self._setMutagenProperty(MusicTagNames.Comment, value)
 
 	@Comments.deleter
 	def Comments(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.Comment)
+		self._deleteMutagenProperty(MusicTagNames.Comment)
 	# endregion
 
 	# region property Genre
 	@property
-	def Genre(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.Genre)
+	def Genre(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.Genre)
 
 	@Genre.setter
 	def Genre(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.Genre, value)
+		self._setMutagenProperty(MusicTagNames.Genre, value)
 
 	@Genre.deleter
 	def Genre(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.Genre)
+		self._deleteMutagenProperty(MusicTagNames.Genre)
 	# endregion
 
 	# region property TrackNumber
 	@property
-	def TrackNumber(self) -> int:
-		trackInfo= self._getMutagenProperty(Mp4TagNames.TrackNumber)
+	def TrackNumber(self) -> list[int]:
+		#
+		# TODO
+		#
+		trackInfo= self._getMutagenProperty(MusicTagNames.TrackNumber)
 		# if no track info at all, will not return anything; otherwise it always returns a tuple; if one value is missing, it will be 0 in the tuple
 		return trackInfo[0] if trackInfo and trackInfo[0] > 0 else None
 
 	@TrackNumber.setter
 	def TrackNumber(self, value : int) -> None:
-		self._setTrackOrDisc(Mp4TagNames.TrackNumber, value, self.TotalTracks)
+		self._setTrackOrDisc(MusicTagNames.TrackNumber, value, self.TotalTracks)
 
 	@TrackNumber.deleter
 	def TrackNumber(self) -> None:
-		self._setTrackOrDisc(Mp4TagNames.TrackNumber, 0, self.TotalTracks)
+		self._setTrackOrDisc(MusicTagNames.TrackNumber, 0, self.TotalTracks)
 	# endregion
 
 	# region property TotalTracks
 	@property
-	def TotalTracks(self) -> int:
-		trackInfo= self._getMutagenProperty(Mp4TagNames.TrackNumber)
+	def TotalTracks(self) -> list[int]:
+		#
+		# TODO
+		#
+		trackInfo= self._getMutagenProperty(MusicTagNames.TrackNumber)
 		return trackInfo[1] if trackInfo and trackInfo[1] > 0 else None
 
 	@TotalTracks.setter
 	def TotalTracks(self, value : int) -> None:
-		self._setTrackOrDisc(Mp4TagNames.TrackNumber, self.TrackNumber, value)
+		self._setTrackOrDisc(MusicTagNames.TrackNumber, self.TrackNumber, value)
 
 	@TotalTracks.deleter
 	def TotalTracks(self) -> None:
-		self._setTrackOrDisc(Mp4TagNames.TrackNumber, self.TrackNumber, 0)
+		self._setTrackOrDisc(MusicTagNames.TrackNumber, self.TrackNumber, 0)
 	# endregion
 
 	# region property DiscNumber
 	@property
-	def DiscNumber(self) -> int:
-		discInfo= self._getMutagenProperty(Mp4TagNames.DiscNumber)
+	def DiscNumber(self) -> list[int]:
+		#
+		# TODO
+		#
+		discInfo= self._getMutagenProperty(MusicTagNames.DiscNumber)
 		return discInfo[0] if discInfo and discInfo[0] > 0 else None
 
 	@DiscNumber.setter
 	def DiscNumber(self, value : int) -> None:
-		self._setTrackOrDisc(Mp4TagNames.DiscNumber, value, self.TotalDiscs)
+		self._setTrackOrDisc(MusicTagNames.DiscNumber, value, self.TotalDiscs)
 		pass
 
 	@DiscNumber.deleter
 	def DiscNumber(self) -> None:
-		self._setTrackOrDisc(Mp4TagNames.DiscNumber, 0, self.TotalDiscs)
+		self._setTrackOrDisc(MusicTagNames.DiscNumber, 0, self.TotalDiscs)
 	# endregion
 
 	# region property TotalDiscs
 	@property
-	def TotalDiscs(self) -> int:
-		discInfo= self._getMutagenProperty(Mp4TagNames.DiscNumber)
+	def TotalDiscs(self) -> list[int]:
+		#
+		# TODO
+		#
+		discInfo= self._getMutagenProperty(MusicTagNames.DiscNumber)
 		return discInfo[1] if discInfo and discInfo[1] > 0 else None
 
 	@TotalDiscs.setter
 	def TotalDiscs(self, value : int) -> None:
-		self._setTrackOrDisc(Mp4TagNames.DiscNumber, self.DiscNumber, value)
+		self._setTrackOrDisc(MusicTagNames.DiscNumber, self.DiscNumber, value)
 		pass
 
 	@TotalDiscs.deleter
 	def TotalDiscs(self) -> None:
-		self._setTrackOrDisc(Mp4TagNames.DiscNumber, self.DiscNumber, 0)
+		self._setTrackOrDisc(MusicTagNames.DiscNumber, self.DiscNumber, 0)
 	# endregion
 
 	# region property Producer
 	@property
-	def Producer(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.Producer)
+	def Producer(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.Producer)
 
 	@Producer.setter
 	def Producer(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.Producer, value)
+		self._setMutagenProperty(MusicTagNames.Producer, value)
 
 	@Producer.deleter
 	def Producer(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.Producer)
+		self._deleteMutagenProperty(MusicTagNames.Producer)
 	# endregion
 
 	# region property Conductor
 	@property
-	def Conductor(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.Conductor)
+	def Conductor(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.Conductor)
 
 	@Conductor.setter
 	def Conductor(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.Conductor, value)
+		self._setMutagenProperty(MusicTagNames.Conductor, value)
 
 	@Conductor.deleter
 	def Conductor(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.Conductor)
+		self._deleteMutagenProperty(MusicTagNames.Conductor)
 	# endregion
 
 	# region property Copyright
 	@property
-	def Copyright(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.Copyright)
+	def Copyright(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.Copyright)
 
 	@Copyright.setter
 	def Copyright(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.Copyright, value)
+		self._setMutagenProperty(MusicTagNames.Copyright, value)
 
 	@Copyright.deleter
 	def Copyright(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.Copyright)
+		self._deleteMutagenProperty(MusicTagNames.Copyright)
 	# endregion
 
-	# region property Publisher
+	# region property RecordLabel
 	@property
-	def Publisher(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.Publisher)
+	def RecordLabel(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.RecordLabel)
 
-	@Publisher.setter
-	def Publisher(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.Publisher, value)
+	@RecordLabel.setter
+	def RecordLabel(self, value : str) -> None:
+		self._setMutagenProperty(MusicTagNames.RecordLabel, value)
 
-	@Publisher.deleter
-	def Publisher(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.Publisher)
+	@RecordLabel.deleter
+	def RecordLabel(self) -> None:
+		self._deleteMutagenProperty(MusicTagNames.RecordLabel)
 	# endregion
 
 	# region property Lyrics
 	@property
-	def Lyrics(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.Lyrics)
+	def Lyrics(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.Lyrics)
 
 	@Lyrics.setter
 	def Lyrics(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.Lyrics, value)
+		self._setMutagenProperty(MusicTagNames.Lyrics, value)
 
 	@Lyrics.deleter
 	def Lyrics(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.Lyrics)
+		self._deleteMutagenProperty(MusicTagNames.Lyrics)
 	# endregion
 
 	# region property Lyricist
 	@property
-	def Lyricist(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.Lyricist)
+	def Lyricist(self) -> list[str]:
+		return self._getMutagenProperty(MusicTagNames.Lyricist)
 
 	@Lyricist.setter
 	def Lyricist(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.Lyricist, value)
+		self._setMutagenProperty(MusicTagNames.Lyricist, value)
 
 	@Lyricist.deleter
 	def Lyricist(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.Lyricist)
-	# endregion
-
-	# region property OriginalArtist
-	@property
-	def OriginalArtist(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.OriginalArtist)
-
-	@OriginalArtist.setter
-	def OriginalArtist(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.OriginalArtist, value)
-
-	@OriginalArtist.deleter
-	def OriginalArtist(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.OriginalArtist)
-	# endregion
-
-	# region property OriginalAlbum
-	@property
-	def OriginalAlbum(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.OriginalAlbum)
-
-	@OriginalAlbum.setter
-	def OriginalAlbum(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.OriginalAlbum, value)
-
-	@OriginalAlbum.deleter
-	def OriginalAlbum(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.OriginalAlbum)
-	# endregion
-
-	# region property OriginalYear
-	@property
-	def OriginalYear(self) -> str:
-		return self._getMutagenProperty(Mp4TagNames.OriginalYear)
-
-	@OriginalYear.setter
-	def OriginalYear(self, value : str) -> None:
-		self._setMutagenProperty(Mp4TagNames.OriginalYear, value)
-
-	@OriginalYear.deleter
-	def OriginalYear(self) -> None:
-		self._deleteMutagenProperty(Mp4TagNames.OriginalYear)
+		self._deleteMutagenProperty(MusicTagNames.Lyricist)
 	# endregion
