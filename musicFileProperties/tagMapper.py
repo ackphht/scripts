@@ -51,37 +51,10 @@ class TagMapper:
 			if mapped is None: return ""
 			return self._getMappedTagProp(mapped)
 
-		def mapFromRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
-			if rawValue is None: return []
-			# apparently mutagen gives us the same objects and lists of objects that it's caching underneath,
-			# and if we modify those lists (like turning a complex type into a simple type), it's modifying
-			# those cached values, which seems like a bad thing; also the list we return may get modified by caller;
-			# so we always create a new list:
-			results = []
-			if TagMapper.Mapper._isSimpleType(rawValue):
-				results.append(rawValue)
-			elif isinstance(rawValue, list):
-				if len(rawValue) > 0:
-					# can we get a list of lists ???
-					for v in rawValue:
-						if v is None:
-							results.append("")		# ??? should we just leave it out? can this even happen ??
-						elif TagMapper.Mapper._isSimpleType(v):
-							results.append(v)
-						else:
-							for v2 in self._mapRawValue(v, tagName, rawTagName):
-								results.append(v2)
-			else:
-				for v2 in self._mapRawValue(rawValue, tagName, rawTagName):
-					results.append(v2)
-			return results
-
-		@staticmethod
-		def _isSimpleType(value: Any) -> bool:
-			t = type(value)
-			return t is str or t is int or t is bytes
-
 		#region "abstract" methods
+		def mapFromRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+			raise NotImplementedError()
+
 		def _getTagType(self) -> str:
 			raise NotImplementedError()
 
@@ -104,13 +77,7 @@ class TagMapper:
 		def __init__(self):
 			super().__init__()
 
-		def _getTagType(self) -> str:
-			return TagMapper.MP4TagType
-
-		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
-			return mappedTag.mp4[0] if len(mappedTag.mp4) > 0 else ""
-
-		def _mapRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
 			# we'll have already checked for lists, so incoming should just be a single value,
 			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 			if isinstance(val, mutagen.mp4.MP4FreeForm):
@@ -125,6 +92,12 @@ class TagMapper:
 			elif isinstance(val, mutagen.mp4.MP4Cover):
 				val = bytes(val)
 			return [val]
+
+		def _getTagType(self) -> str:
+			return TagMapper.MP4TagType
+
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
+			return mappedTag.mp4[0] if len(mappedTag.mp4) > 0 else ""
 
 	class _vorbisMapper(Mapper):
 		_instance = None
@@ -158,13 +131,7 @@ class TagMapper:
 		def __init__(self):
 			super().__init__()
 
-		def _getTagType(self) -> str:
-			return TagMapper.AsfTagType
-
-		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
-			return mappedTag.asf[0] if len(mappedTag.asf) > 0 else ""
-
-		def _mapRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
 			# we'll have already checked for lists, so incoming should just be a single value,
 			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 			# could be ASFUnicodeAttribute, ASFByteArrayAttribute, ASFBoolAttribute, ASFDWordAttribute, ASFQWordAttribute, ASFWordAttribute, ASFGUIDAttribute
@@ -172,6 +139,12 @@ class TagMapper:
 			if isinstance(val, mutagen.asf._attrs.ASFBaseAttribute):
 				val = val.value
 			return [val]
+
+		def _getTagType(self) -> str:
+			return TagMapper.AsfTagType
+
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
+			return mappedTag.asf[0] if len(mappedTag.asf) > 0 else ""
 
 	class _apeV2Mapper(Mapper):
 		_instance = None
@@ -183,13 +156,7 @@ class TagMapper:
 		def __init__(self):
 			super().__init__()
 
-		def _getTagType(self) -> str:
-			return TagMapper.ApeV2TagType
-
-		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
-			return mappedTag.apev2[0] if len(mappedTag.apev2) > 0 else ""
-
-		def _mapRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
 			# we'll have already checked for lists, so incoming should just be a single value,
 			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 			result = []
@@ -202,6 +169,12 @@ class TagMapper:
 				result.append(val.value)	# assume binary types are always single, since \x00 could be valid here ???
 			return result
 
+		def _getTagType(self) -> str:
+			return TagMapper.ApeV2TagType
+
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
+			return mappedTag.apev2[0] if len(mappedTag.apev2) > 0 else ""
+
 	class _id3v24Mapper(Mapper):
 		_instance = None
 		def __new__(cls):
@@ -211,6 +184,13 @@ class TagMapper:
 
 		def __init__(self):
 			super().__init__()
+
+		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+			# we'll have already checked for lists, so incoming should just be a single value,
+			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
+			if isinstance(val, mutagen.id3.TIPL):
+				pass
+			return []
 
 		def _getTagType(self) -> str:
 			return TagMapper.Id3v24TagType
@@ -227,6 +207,11 @@ class TagMapper:
 
 		def __init__(self):
 			super().__init__()
+
+		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+			# we'll have already checked for lists, so incoming should just be a single value,
+			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
+			raise NotImplementedError()
 
 		def _getTagType(self) -> str:
 			return TagMapper.Id3v23TagType
