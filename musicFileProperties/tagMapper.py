@@ -46,7 +46,7 @@ class TagMapper:
 				return d[u]
 			return ""
 
-		def mapToRawName(self, tagName: str) -> str:
+		def mapToRawName(self, tagName: str) -> list[str]:
 			mapped = TagMapper._tagNamesToTypedMap[tagName] if tagName in TagMapper._tagNamesToTypedMap else None
 			if mapped is None: return ""
 			return self._getMappedTagProp(mapped)
@@ -58,7 +58,7 @@ class TagMapper:
 		def _getTagType(self) -> str:
 			raise NotImplementedError()
 
-		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> list[str]:
 			raise NotImplementedError()
 
 		def _mapRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
@@ -96,8 +96,8 @@ class TagMapper:
 		def _getTagType(self) -> str:
 			return TagMapper.MP4TagType
 
-		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
-			return mappedTag.mp4[0] if len(mappedTag.mp4) > 0 else ""
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> list[str]:
+			return mappedTag.mp4
 
 	class _vorbisMapper(Mapper):
 		_instance = None
@@ -112,8 +112,8 @@ class TagMapper:
 		def _getTagType(self) -> str:
 			return TagMapper.VorbisTagType
 
-		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
-			return mappedTag.vorbis[0] if len(mappedTag.vorbis) > 0 else ""
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> list[str]:
+			return mappedTag.vorbis
 
 		# the vorbis tags are always just returned as strings (right?) so don't need to do this one (right?)
 		#def _mapRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
@@ -143,8 +143,8 @@ class TagMapper:
 		def _getTagType(self) -> str:
 			return TagMapper.AsfTagType
 
-		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
-			return mappedTag.asf[0] if len(mappedTag.asf) > 0 else ""
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> list[str]:
+			return mappedTag.asf
 
 	class _apeV2Mapper(Mapper):
 		_instance = None
@@ -172,8 +172,8 @@ class TagMapper:
 		def _getTagType(self) -> str:
 			return TagMapper.ApeV2TagType
 
-		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
-			return mappedTag.apev2[0] if len(mappedTag.apev2) > 0 else ""
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> list[str]:
+			return mappedTag.apev2
 
 	class _id3v24Mapper(Mapper):
 		_instance = None
@@ -195,8 +195,8 @@ class TagMapper:
 		def _getTagType(self) -> str:
 			return TagMapper.Id3v24TagType
 
-		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
-			return mappedTag.id3v24[0] if len(mappedTag.id3v24) > 0 else ""
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> list[str]:
+			return mappedTag.id3v24
 
 	class _id3v23Mapper(Mapper):
 		_instance = None
@@ -216,8 +216,8 @@ class TagMapper:
 		def _getTagType(self) -> str:
 			return TagMapper.Id3v23TagType
 
-		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> str:
-			return mappedTag.id3v23[0] if len(mappedTag.id3v23) > 0 else ""
+		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> list[str]:
+			return mappedTag.id3v23
 	#endregion
 
 	def __new__(cls):

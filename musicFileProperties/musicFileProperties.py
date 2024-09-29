@@ -83,37 +83,35 @@ class MusicFileProperties:
 		self._deleteMutagenProperty(propertyName)
 
 	def _getMutagenProperty(self, tagName : str) -> list[str|int|bytes]:
-		# TODO: mapToRawName needs to return all the names, not just first one
-		rawTagName = self._mapper.mapToRawName(tagName)
-		if not rawTagName: return []
-		val = self._mutagen.tags[rawTagName] if rawTagName in self._mutagen.tags else None
-#		return self._mapper.mapFromRawValue(val, propertyName, rawTagName)
-		if val is None: return []
+		rawTagNames = self._mapper.mapToRawName(tagName)
+		tagValues: list[tuple[Any, str]] = []
+		for n in rawTagNames:
+			v = self._mutagen.tags[n] if n in self._mutagen.tags else None
+			if v is not None: tagValues.append((v, n))
+		if len(tagValues) == 0: return []
 		# apparently mutagen gives us the same objects and lists of objects that it's caching underneath,
 		# and if we modify those lists (like turning a complex type into a simple type), it's modifying
 		# those cached values, which seems like a bad thing; also the list we return may get modified by caller;
 		# so we always create a new list:
 		results = []
-		if MusicFileProperties._isSimpleType(val):
-			results.append(val)
-		elif isinstance(val, list):
-			if len(val) > 0:
-				# can we get a list of lists ???
-				for v in val:
-					if v is None:
-						continue
-					elif MusicFileProperties._isSimpleType(v):
-						results.append(v)
-					else:
-						for v2 in self._mapper.mapFromRawValue(v, tagName, rawTagName):
-							results.append(v2)
-		else:
-			for v2 in self._mapper.mapFromRawValue(val, tagName, rawTagName):
-				results.append(v2)
+		for rawTagValue,rawTagName in tagValues:
+			if MusicFileProperties._isSimpleType(rawTagValue):
+				results.append(rawTagValue)
+			elif isinstance(rawTagValue, list):
+				if len(rawTagValue) > 0:
+					# can we get a list of lists ???
+					for v in rawTagValue:
+						if v is None:
+							continue
+						elif MusicFileProperties._isSimpleType(v):
+							results.append(v)
+						else:
+							for v2 in self._mapper.mapFromRawValue(v, tagName, rawTagName):
+								results.append(v2)
+			else:
+				for v2 in self._mapper.mapFromRawValue(rawTagValue, tagName, rawTagName):
+					results.append(v2)
 		return results
-
-
-
 
 	def _setMutagenProperty(self, propertyName : str, value : Any) -> None:
 		LogHelper.Verbose('setting mutagen property named "{0}"', propertyName)
