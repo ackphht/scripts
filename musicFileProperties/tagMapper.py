@@ -275,9 +275,9 @@ class TagMapper:
 			return TagMapper._apeV2Mapper()
 		if name == "ID3" or name == "_WaveID3":
 			ver = mgTags.version
-			if ver > (2, 4, 0):
+			if ver >= (2, 4, 0):
 				return TagMapper._id3v24Mapper()
-			if ver > (2, 3, 0):
+			if ver >= (2, 3, 0):
 				return TagMapper._id3v23Mapper()
 		raise TypeError(f'unrecognized mutagen tag type: "{mgTags.__class__.__module__}.{mgTags.__class__.__name__}"') #LookupError #NameError #TypeError
 
