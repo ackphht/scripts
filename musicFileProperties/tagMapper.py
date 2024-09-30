@@ -52,7 +52,7 @@ class TagMapper:
 			return self._getMappedTagProp(mapped)
 
 		#region "abstract" methods
-		def mapFromRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+		def mapFromRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
 			raise NotImplementedError()
 
 		def _getTagType(self) -> str:
@@ -77,7 +77,7 @@ class TagMapper:
 		def __init__(self):
 			super().__init__()
 
-		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
 			# we'll have already checked for lists, so incoming should just be a single value,
 			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 			if isinstance(val, mutagen.mp4.MP4FreeForm):
@@ -116,7 +116,7 @@ class TagMapper:
 			return mappedTag.vorbis
 
 		# the vorbis tags are always just returned as strings (right?) so don't need to do this one (right?)
-		#def _mapRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+		#def _mapRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
 		#	# we'll have already checked for lists, so incoming should just be a single value,
 		#	# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 		#	raise NotImplementedError()
@@ -131,7 +131,7 @@ class TagMapper:
 		def __init__(self):
 			super().__init__()
 
-		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
 			# we'll have already checked for lists, so incoming should just be a single value,
 			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 			# could be ASFUnicodeAttribute, ASFByteArrayAttribute, ASFBoolAttribute, ASFDWordAttribute, ASFQWordAttribute, ASFWordAttribute, ASFGUIDAttribute
@@ -156,7 +156,7 @@ class TagMapper:
 		def __init__(self):
 			super().__init__()
 
-		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
+		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
 			# we'll have already checked for lists, so incoming should just be a single value,
 			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 			result = []
@@ -175,7 +175,51 @@ class TagMapper:
 		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> list[str]:
 			return mappedTag.apev2
 
-	class _id3v24Mapper(Mapper):
+	class _id3Mapper(Mapper):	# abstract base class
+		def __new__(cls):
+			if cls.__name__ == "_id3Mapper":
+				raise NotImplementedError("abstract class; use TagMapper.getTagMapper")
+			return super().__new__(cls)
+
+		def __init__(self):
+			super().__init__()
+
+		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
+			# we'll have already checked for lists, so incoming should just be a single value,
+			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
+			#
+			# tags that will need special handling:
+			# APIC (tag key tries to include description, which may or may not be there)
+			# USLT/SYLT (tag key tries to include lang and description, which may or may not be there)
+			# COMM (tag key tries to include lang and description, which may or may not be there)
+			# track, disc, movement info
+			# Producer, Engineer, Arranger, Mixer: may need to parse out of IPLS/TIPL, or they may be in separate tags
+			# MusicianCredits: may be in IPLS(?) if id3v23, or in TMCL for id3v24; or could be in their own tag
+			#
+			result = []
+			if isinstance(val, mutagen.id3.NumericPartTextFrame):	# TRCK, TPOS, MVIN; these will need special handling...
+				# ?????
+				for v in val:
+					result.append(v)
+			elif isinstance(val, mutagen.id3.NumericTextFrame):
+				result.append(+val)
+			elif isinstance(val, mutagen.id3.TextFrame):
+				for v in val:
+					result.append(v)
+			elif isinstance(val, mutagen.id3.PairedTextFrame):	# TIPL, TMCL, IPLS
+				for v in val.people:
+					result.append(v)
+			elif isinstance(val, mutagen.id3.USLT) or isinstance(val, mutagen.id3.SYLT):
+				result.append(val.text)
+			elif isinstance(val, mutagen.id3.UrlFrame):
+				result.append(val.url)
+			elif isinstance(val, mutagen.id3.BinaryFrame) or isinstance(val, mutagen.id3.APIC):
+				result.append(val.data)
+			elif isinstance(val, mutagen.id3.UFID):
+				result.append(val.data.decode("ascii"))
+			return result
+
+	class _id3v24Mapper(_id3Mapper):
 		_instance = None
 		def __new__(cls):
 			if cls._instance is None:
@@ -184,13 +228,6 @@ class TagMapper:
 
 		def __init__(self):
 			super().__init__()
-
-		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
-			# we'll have already checked for lists, so incoming should just be a single value,
-			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
-			if isinstance(val, mutagen.id3.TIPL):
-				pass
-			return []
 
 		def _getTagType(self) -> str:
 			return TagMapper.Id3v24TagType
@@ -198,7 +235,7 @@ class TagMapper:
 		def _getMappedTagProp(self, mappedTag: "TagMapper._mappedTags") -> list[str]:
 			return mappedTag.id3v24
 
-	class _id3v23Mapper(Mapper):
+	class _id3v23Mapper(_id3Mapper):
 		_instance = None
 		def __new__(cls):
 			if cls._instance is None:
@@ -207,11 +244,6 @@ class TagMapper:
 
 		def __init__(self):
 			super().__init__()
-
-		def mapFromRawValue(self, val: Any, tagName: str, rawTagName: str) -> list[str|int|bytes]:
-			# we'll have already checked for lists, so incoming should just be a single value,
-			# but some types (APE) store multi values in same tag object, so could be multiple outgoing
-			raise NotImplementedError()
 
 		def _getTagType(self) -> str:
 			return TagMapper.Id3v23TagType
