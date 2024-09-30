@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pathlib
-from typing import Any, Iterator
+from typing import Any, Iterable, Iterator
 import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
 from ackPyHelpers import LogHelper
 from .mp4TagNames import Mp4TagNames
@@ -37,6 +37,10 @@ class MusicFileProperties:
 		self._dirty = False
 		return True
 
+	#
+	# TODO: we need to rename these methods from "property" to "tag"
+	#
+
 	def getProperties(self) -> Iterator[tuple[str, Any]]:
 		yield ("AlbumArtist", self.AlbumArtist)
 		yield ("AlbumTitle", self.AlbumTitle)
@@ -70,11 +74,16 @@ class MusicFileProperties:
 			else:
 				yield tag
 
-	def getProperty(self, propertyName: str) -> list[str|int|bytes]:
+	def getProperty(self, propertyName: str) -> list[str|int|bytes|list[str,str]]:
 		return self._getMutagenProperty(propertyName)
 
 	def getRawProperty(self, propertyName: str) -> str|int|None:
 		return self._mutagen[propertyName] if propertyName in self._mutagen else None
+
+	def getPropertyFromRawName(self, tagName: str) -> list[str|int|bytes|list[str,str]]:
+		val = self._mutagen[tagName] if tagName in self._mutagen else None
+		if val is None: return []
+		return list(self._mapMutagenProperty(val, self._mapper.mapFromRawName(tagName), tagName))
 
 	def setRawProperty(self, propertyName : str, value : Any) -> None:
 		self._setMutagenProperty(propertyName, value)
@@ -82,7 +91,7 @@ class MusicFileProperties:
 	def deleteRawProperty(self, propertyName : str) -> None:
 		self._deleteMutagenProperty(propertyName)
 
-	def _getMutagenProperty(self, tagName : str) -> list[str|int|bytes]:
+	def _getMutagenProperty(self, tagName : str) -> list[str|int|bytes|list[str,str]]:
 		rawTagNames = self._mapper.mapToRawName(tagName)
 		tagValues: list[tuple[Any, str]] = []
 		for n in rawTagNames:
@@ -95,22 +104,8 @@ class MusicFileProperties:
 		# so we always create a new list:
 		results = []
 		for rawTagValue,rawTagName in tagValues:
-			if MusicFileProperties._isSimpleType(rawTagValue):
-				results.append(rawTagValue)
-			elif isinstance(rawTagValue, list):
-				if len(rawTagValue) > 0:
-					# can we get a list of lists ???
-					for v in rawTagValue:
-						if v is None:
-							continue
-						elif MusicFileProperties._isSimpleType(v):
-							results.append(v)
-						else:
-							for v2 in self._mapper.mapFromRawValue(v, tagName, rawTagName):
-								results.append(v2)
-			else:
-				for v2 in self._mapper.mapFromRawValue(rawTagValue, tagName, rawTagName):
-					results.append(v2)
+			for v in self._mapMutagenProperty(rawTagValue, tagName, rawTagName):
+				results.append(v)
 		return results
 
 	def _setMutagenProperty(self, propertyName : str, value : Any) -> None:
@@ -136,6 +131,24 @@ class MusicFileProperties:
 		if propertyName in self._mutagen:
 			del self._mutagen[propertyName]
 			self._dirty = True
+
+	def _mapMutagenProperty(self, rawTagValue: Any, tagName: str, rawTagName: str) -> Iterable[str|int|bytes|list[str,str]]:
+		if MusicFileProperties._isSimpleType(rawTagValue):
+			yield rawTagValue
+		elif isinstance(rawTagValue, list):
+			if len(rawTagValue) > 0:
+				# can we get a list of lists ???
+				for v in rawTagValue:
+					if v is None:
+						continue
+					elif MusicFileProperties._isSimpleType(v):
+						yield v
+					else:
+						for v2 in self._mapper.mapFromRawValue(v, tagName, rawTagName):
+							yield v2
+		else:
+			for v2 in self._mapper.mapFromRawValue(rawTagValue, tagName, rawTagName):
+				yield v2
 
 	def _setTrackOrDisc(self, propertyName : str, val : int, ttl : int) -> None:
 		val = 0 if val is None or val < 0 else val
