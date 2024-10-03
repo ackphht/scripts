@@ -85,6 +85,9 @@ class MusicFileProperties:
 		if val is None: return []
 		return list(self._mapMutagenProperty(val, self._mapper.mapFromRawName(tagName), tagName))
 
+	def getRawPropertyName(self, tagName: str) -> list[str]:
+		return self._mapper.mapToRawName(tagName)
+
 	def setRawProperty(self, propertyName : str, value : Any) -> None:
 		self._setMutagenProperty(propertyName, value)
 
