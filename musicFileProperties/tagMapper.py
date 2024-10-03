@@ -3,8 +3,8 @@
 
 import pathlib, csv
 from typing import NamedTuple, Any
-import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
-from .mp4TagNames import Mp4TagNames
+import mutagen, mutagen.mp4, mutagen.asf, mutagen.apev2, mutagen.id3			# https://mutagen.readthedocs.io/en/latest/api/mp4.html
+from .tagNames import TagNames
 
 class TagMapper:
 	class _mappedTags(NamedTuple):
@@ -51,6 +51,12 @@ class TagMapper:
 			if mapped is None: return ""
 			return self._getMappedTagProp(mapped)
 
+		def isSpecialHandlingTag(self, tagName: str) -> bool:
+			return False
+
+		def getSpecialHandlingTagValues(self, tagName: str, mgTags: mutagen.Tags) -> list[str|int|bytes|list[str,str]]:
+			return []
+
 		#region "abstract" methods
 		def mapFromRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
 			raise NotImplementedError()
@@ -67,7 +73,40 @@ class TagMapper:
 			raise NotImplementedError()
 		#endregion
 
+		def _getWmaApePackedValueFirstPart(self, value: str|int) -> str|int|None:
+			if isinstance(value, str) and len(value) > 0:
+				v = self._getSplitPart(value, "/", 0)
+				return v if len(v) > 0 else None
+			elif isinstance(value, int):
+				return value
+			# no other types, right?
+			return None
+
+		def _getWmaApeMaybePackedValueSecondPart(self, maybeValue: str|int, fallbackCallable: callable) -> str|int|None:
+			# try getting value from separate tag first:
+			if isinstance(maybeValue, str) and len(maybeValue) > 0:
+				maybeValue = maybeValue.strip()
+				if len(maybeValue) > 0: return maybeValue
+			elif isinstance(maybeValue, int):
+				return maybeValue
+			else:	# couldn't be some other type, right?
+				# doesn't look like there's anything in maybeValue, see if it's packed in with fallback:
+				fallback = fallbackCallable()
+				if isinstance(fallback, str) and len(fallback) > 0:
+					v = self._getSplitPart(fallback, "/", 1)
+					if len(v) > 0: return v
+				# for this one, don't care if it's an int, that would be the disc number
+			return None
+
+		def _getSplitPart(self, value: str, sep: str, index: int) -> str:
+			if value is not None:
+				split = value.partition(sep)
+				return split[0].strip() if index == 0 else split[2].strip()
+			return ""
+
 	class _mp4Mapper(Mapper):
+		_specialTags: list[str] = [ TagNames.TrackNumber, TagNames.TrackCount, TagNames.DiscNumber, TagNames.DiscCount, ]
+
 		_instance = None
 		def __new__(cls):
 			if cls._instance is None:
@@ -92,6 +131,36 @@ class TagMapper:
 			elif isinstance(val, mutagen.mp4.MP4Cover):
 				val = bytes(val)
 			return [val]
+
+		def isSpecialHandlingTag(self, tagName: str) -> bool:
+			return tagName in TagMapper._mp4Mapper._specialTags
+
+		def getSpecialHandlingTagValues(self, tagName: str, mgTags: mutagen.Tags) -> list[str|int|bytes|list[str,str]]:
+			results = []
+			# for track and disc: if no info at all, mg will not return anything;
+			# otherwise it always returns a tuple, wrapped in a list;
+			# if one value is missing, it will be 0 in the tuple
+			if tagName == TagNames.TrackNumber or tagName == TagNames.TrackCount:
+				mp4TagName = self.mapToRawName(TagNames.TrackNumber)
+				if mp4TagName is not None:
+					tag = mgTags[mp4TagName[0]] if mp4TagName[0] in mgTags else None
+					if isinstance(tag, list) and len(tag) > 0:
+						tag = tag[0]
+						if tagName == TagNames.TrackNumber:
+							if tag[0] > 0: results.append(tag[0])
+						elif tagName == TagNames.TrackCount:
+							if tag[1] > 0: results.append(tag[1])
+			elif tagName == TagNames.DiscNumber or tagName == TagNames.DiscCount:
+				mp4TagName = self.mapToRawName(TagNames.DiscNumber)
+				if mp4TagName is not None:
+					tag = mgTags[mp4TagName[0]] if mp4TagName[0] in mgTags else None
+					if isinstance(tag, list) and len(tag) > 0:
+						tag = tag[0]
+						if tagName == TagNames.DiscNumber:
+							if tag[0] > 0: results.append(tag[0])
+						elif tagName == TagNames.DiscCount:
+							if tag[1] > 0: results.append(tag[1])
+			return results
 
 		def _getTagType(self) -> str:
 			return TagMapper.MP4TagType
@@ -122,6 +191,13 @@ class TagMapper:
 		#	raise NotImplementedError()
 
 	class _asfMapper(Mapper):
+		# for WMA for Track info: Picard only ever writes track number and never writes total, while Mp3tag uses separate tags
+		# for WMA for Disc info: Picard stores values together (e.g. "2/10")
+		#     if either part is missing, whole tag gets left out 😲
+		# while Mp3tag uses separate tags
+		# => when we set or delete one of these, need to make sure we clean up tags we don't want (i.e. Picard's packed ones)
+		_specialTags: list[str] = [ TagNames.DiscNumber, TagNames.DiscCount, ]
+
 		_instance = None
 		def __new__(cls):
 			if cls._instance is None:
@@ -140,6 +216,27 @@ class TagMapper:
 				val = val.value
 			return [val]
 
+		def isSpecialHandlingTag(self, tagName: str) -> bool:
+			return tagName in TagMapper._asfMapper._specialTags
+
+		def getSpecialHandlingTagValues(self, tagName: str, mgTags: mutagen.Tags) -> list[str|int|bytes|list[str,str]]:
+			def _getWmaVal(tn: str) -> str:
+				wmaTagName = self.mapToRawName(tn)
+				if wmaTagName is not None and len(wmaTagName) > 0:
+					tag = mgTags[wmaTagName[0]] if wmaTagName[0] in mgTags else None
+					if isinstance(tag, list) and len(tag) > 0 and isinstance(tag[0], mutagen.asf._attrs.ASFBaseAttribute):
+						return tag[0].value
+				return ""
+
+			results = []
+			if tagName == TagNames.DiscNumber:
+				dnVal = self._getWmaApePackedValueFirstPart(_getWmaVal(TagNames.DiscNumber))
+				if dnVal is not None: results.append(dnVal)
+			elif tagName == TagNames.DiscCount:
+				dcVal = self._getWmaApeMaybePackedValueSecondPart(_getWmaVal(TagNames.DiscCount), lambda: _getWmaVal(TagNames.DiscNumber))
+				if dcVal is not None: results.append(dcVal)
+			return results
+
 		def _getTagType(self) -> str:
 			return TagMapper.AsfTagType
 
@@ -147,6 +244,12 @@ class TagMapper:
 			return mappedTag.asf
 
 	class _apeV2Mapper(Mapper):
+		# for Apev2: Picard stores Track and Disc info together (e.g. "2/10")
+		#     if no Total, then you just get the Track/Disc Number; if Total but no Number, info doesn't get written at all
+		# while Mp3tag uses separate tags
+		# => when we set or delete one of these, need to make sure we clean up tags we don't want (i.e. Picard's packed ones)
+		_specialTags: list[str] = [ TagNames.TrackNumber, TagNames.TrackCount, TagNames.DiscNumber, TagNames.DiscCount, ]
+
 		_instance = None
 		def __new__(cls):
 			if cls._instance is None:
@@ -169,6 +272,34 @@ class TagMapper:
 				result.append(val.value)	# assume binary types are always single, since \x00 could be valid here ???
 			return result
 
+		def isSpecialHandlingTag(self, tagName: str) -> bool:
+			return tagName in TagMapper._apeV2Mapper._specialTags
+
+		def getSpecialHandlingTagValues(self, tagName: str, mgTags: mutagen.Tags) -> list[str|int|bytes|list[str,str]]:
+			def _getApeVal(tn: str) -> str:
+				apeTagName = self.mapToRawName(tn)
+				if apeTagName is not None and len(apeTagName) > 0:
+					for t in apeTagName:
+						tag = mgTags[t] if t in mgTags else None
+						if isinstance(tag, mutagen.apev2.APETextValue):
+							return tag.value	# we'll assume there's only one value in there ???
+				return ""
+
+			results = []
+			if tagName == TagNames.TrackNumber:
+				tnVal = self._getWmaApePackedValueFirstPart(_getApeVal(TagNames.TrackNumber))
+				if tnVal is not None: results.append(tnVal)
+			elif tagName == TagNames.TrackCount:
+				tcVal = self._getWmaApeMaybePackedValueSecondPart(_getApeVal(TagNames.TrackCount), lambda: _getApeVal(TagNames.TrackNumber))
+				if tcVal is not None: results.append(tcVal)
+			elif tagName == TagNames.DiscNumber:
+				dnVal = self._getWmaApePackedValueFirstPart(_getApeVal(TagNames.DiscNumber))
+				if dnVal is not None: results.append(dnVal)
+			elif tagName == TagNames.DiscCount:
+				dcVal = self._getWmaApeMaybePackedValueSecondPart(_getApeVal(TagNames.DiscCount), lambda: _getApeVal(TagNames.DiscNumber))
+				if dcVal is not None: results.append(dcVal)
+			return results
+
 		def _getTagType(self) -> str:
 			return TagMapper.ApeV2TagType
 
@@ -176,6 +307,11 @@ class TagMapper:
 			return mappedTag.apev2
 
 	class _id3Mapper(Mapper):	# abstract base class
+		_specialTags: list[str] = [ TagNames.Comment, TagNames.Lyrics, TagNames.TrackNumber, TagNames.TrackCount,
+							 		TagNames.DiscNumber, TagNames.DiscCount, TagNames.MovementNumber, TagNames.MovementCount,
+									TagNames.Producer, TagNames.Engineer, TagNames.MixedBy, TagNames.Arranger,
+									TagNames.MusicianCredits, TagNames.Cover, ]
+
 		def __new__(cls):
 			if cls.__name__ == "_id3Mapper":
 				raise NotImplementedError("abstract class; use TagMapper.getTagMapper")
@@ -193,8 +329,8 @@ class TagMapper:
 			# USLT/SYLT (tag key tries to include lang and description, which may or may not be there)
 			# COMM (tag key tries to include lang and description, which may or may not be there)
 			# track, disc, movement info
-			# Producer, Engineer, Arranger, Mixer: may need to parse out of IPLS/TIPL, or they may be in separate tags
-			# MusicianCredits: may be in IPLS(?) if id3v23, or in TMCL for id3v24; or could be in their own tag
+			# Producer, Engineer, Arranger, Mixer: may need to parse out of IPLS (v2.3)/TIPL (v2.4), or they may be in separate tags
+			# MusicianCredits: may be in IPLS if id3v23, or in TMCL for id3v24; or could be in their own tag
 			#
 			result = []
 			if isinstance(val, mutagen.id3.NumericPartTextFrame):	# TRCK, TPOS, MVIN; these will need special handling...
@@ -213,11 +349,115 @@ class TagMapper:
 				result.append(val.text)
 			elif isinstance(val, mutagen.id3.UrlFrame):
 				result.append(val.url)
-			elif isinstance(val, mutagen.id3.BinaryFrame) or isinstance(val, mutagen.id3.APIC):
+			elif isinstance(val, mutagen.id3.APIC) or isinstance(val, mutagen.id3.BinaryFrame):
 				result.append(val.data)
 			elif isinstance(val, mutagen.id3.UFID):
 				result.append(val.data.decode("ascii"))
 			return result
+
+		def isSpecialHandlingTag(self, tagName: str) -> bool:
+			return tagName in TagMapper._id3Mapper._specialTags
+
+		def getSpecialHandlingTagValues(self, tagName: str, mgTags: mutagen.Tags) -> list[str|int|bytes|list[str,str]]:
+			#
+			# TODO: these need to actually get the values and return list[str|int|bytes|list[str,str]],
+			# rather than "list[tuple[Any,str]]" like i originally did it
+			#
+			if tagName == TagNames.Comment:
+				results = []
+				for t in self.mapToRawName(tagName):
+					tags = sorted(TagMapper._id3Mapper._findTagsStartingWith(t, mgTags), key=TagMapper._id3Mapper._sortByLang)
+					for tag in tags:
+						results.append((tag, tag.HashKey))
+				xxxxxxxx
+				return results
+			elif tagName == TagNames.Lyrics:
+				results = []
+				for t in self.mapToRawName(tagName):
+					if t in ["USLT", "SYLT"]:
+						possibles = sorted(TagMapper._id3Mapper._findTagsStartingWith(t, mgTags), key=TagMapper._id3Mapper._sortByLang)
+						for p in possibles:
+							results.append((p, p.HashKey))
+					else:
+						tag = mgTags[t] if t in mgTags else None
+						if tag is not None:
+							results.append((tag, t))
+				xxxxxxxx
+				return results
+			elif tagName == TagNames.TrackNumber or tagName == TagNames.TrackCount:
+				results = []
+				for t in self.mapToRawName(TagNames.TrackNumber):
+					tag = mgTags[t] if t in mgTags else None
+					if tag is not None: results.append((tag, t))
+					break
+				if tagName == TagNames.TrackCount:
+					for t in self.mapToRawName(TagNames.TrackCount):
+						tag = mgTags[t] if t in mgTags else None
+						if tag is not None: results.append((tag, t))
+						break
+				xxxxxxxx
+				return results
+			elif tagName == TagNames.DiscNumber or tagName == TagNames.DiscCount:
+				results = []
+				for t in self.mapToRawName(TagNames.DiscNumber):
+					tag = mgTags[t] if t in mgTags else None
+					if tag is not None: results.append((tag, t))
+					break
+				if tagName == TagNames.DiscCount:
+					for t in self.mapToRawName(TagNames.DiscCount):
+						tag = mgTags[t] if t in mgTags else None
+						if tag is not None: results.append((tag, t))
+						break
+				xxxxxxxx
+				return results
+			elif tagName == TagNames.MovementNumber or tagName == TagNames.MovementCount:
+				results = []
+				for t in self.mapToRawName(TagNames.MovementNumber):
+					tag = mgTags[t] if t in mgTags else None
+					if tag is not None: results.append((tag, t))
+					break
+				if tagName == TagNames.MovementCount:
+					for t in self.mapToRawName(TagNames.MovementCount):
+						tag = mgTags[t] if t in mgTags else None
+						if tag is not None: results.append((tag, t))
+						break
+				xxxxxxxx
+				return results
+			elif tagName == TagNames.Producer:
+				# need to check in IPLS or TIPL, and also look for TXXX:PRODUCER
+				pass
+			elif tagName == TagNames.Engineer:
+				# need to check in IPLS or TIPL, and also look for TXXX:ENGINEER
+				pass
+			elif tagName == TagNames.MixedBy:
+				# need to check in IPLS or TIPL, and also look for TXXX:MIXER(?)
+				pass
+			elif tagName == TagNames.Arranger:
+				# need to check in IPLS or TIPL, and also look for TXXX:ARRANGER
+				pass
+			elif tagName == TagNames.MusicianCredits:
+				# need to check in IPLS, filtering out any of the ones above, or in TMCL; and also look for TXXX:MUSICIANCREDITS
+				pass
+			elif tagName == TagNames.Cover:
+				possibles = sorted(TagMapper._id3Mapper._findTagsStartingWith("APIC", mgTags), key=lambda c: 1 if c.type == mutagen.id3._specs.PictureType.COVER_FRONT else 2)
+				if len(possibles) > 0:
+					xxxxxxxx
+					return [(possibles[0], possibles[0].HashKey)]
+			return None
+
+		@staticmethod
+		def _findTagsStartingWith(tagPrefix: str, mgTags: mutagen.id3.ID3) -> list[mutagen.id3.Frame]:
+			results: list[mutagen.id3.Frame] = []
+			for t in mgTags:
+				if t.startswith(tagPrefix):
+					results.append(mgTags[t])
+			return results
+
+		@staticmethod
+		def _sortByLang(tagWithLang: mutagen.id3.TextFrame) -> int:
+			if tagWithLang.lang == "eng": return 1
+			if tagWithLang.lang == "XXX": return 2
+			return 3
 
 	class _id3v24Mapper(_id3Mapper):
 		_instance = None
@@ -263,7 +503,7 @@ class TagMapper:
 		TagMapper._isInited = True
 
 	@staticmethod
-	def getTagMapper(mgTags:  mutagen.Tags) -> "TagMapper.Mapper":
+	def getTagMapper(mgTags: mutagen.Tags) -> "TagMapper.Mapper":
 		name = mgTags.__class__.__name__
 		if name == "MP4Tags":
 			return TagMapper._mp4Mapper()
@@ -292,11 +532,12 @@ class TagMapper:
 			TagMapper.Id3v23TagType: dict(),
 			TagMapper.ApeV2TagType: dict(),
 		}
+		mp4CustomPropertyPrefix = "----:com.apple.iTunes:"
 		with open(TagMapper._csvFilepath, mode="r", encoding="utf_8_sig", newline='') as f:
 			for row in csv.DictReader(f, dialect=csv.excel):
 				tagName: str = row["MusicTagName"].strip() if row["MusicTagName"] else ""
 				if not tagName or tagName.startswith("#"): continue
-				mp4: list[str] = [x.replace("*:", Mp4TagNames.Mp4CustomPropertyPrefix) for x in TagMapper._splitTagName(row["MP4"])]
+				mp4: list[str] = [x.replace("*:", mp4CustomPropertyPrefix) for x in TagMapper._splitTagName(row["MP4"])]
 				vorbis: list[str] = TagMapper._splitTagName(row["Vorbis"])
 				asf: list[str] = TagMapper._splitTagName(row["WMA"])
 				id3v24: list[str] = TagMapper._splitTagName(row["ID3v24"])
