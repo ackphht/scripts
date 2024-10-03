@@ -92,6 +92,9 @@ class MusicFileProperties:
 		self._deleteMutagenProperty(propertyName)
 
 	def _getMutagenProperty(self, tagName : str) -> list[str|int|bytes|list[str,str]]:
+		if self._mapper.isSpecialHandlingTag(tagName):
+			return self._mapper.getSpecialHandlingTagValues(tagName, self._mutagen.tags)
+
 		rawTagNames = self._mapper.mapToRawName(tagName)
 		tagValues: list[tuple[Any, str]] = []
 		for n in rawTagNames:
@@ -300,12 +303,9 @@ class MusicFileProperties:
 	# region property TrackNumber
 	@property
 	def TrackNumber(self) -> list[int]:
-		#
-		# TODO
-		#
-		trackInfo= self._getMutagenProperty(TagNames.TrackNumber)
-		# if no track info at all, will not return anything; otherwise it always returns a tuple; if one value is missing, it will be 0 in the tuple
-		return trackInfo[0] if trackInfo and trackInfo[0] > 0 else None
+		return self._getMutagenProperty(TagNames.TrackNumber)
+		## if no track info at all, will not return anything; otherwise it always returns a tuple; if one value is missing, it will be 0 in the tuple
+		#return trackInfo[0] if trackInfo and trackInfo[0] > 0 else None
 
 	@TrackNumber.setter
 	def TrackNumber(self, value : int) -> None:
@@ -319,11 +319,8 @@ class MusicFileProperties:
 	# region property TotalTracks
 	@property
 	def TotalTracks(self) -> list[int]:
-		#
-		# TODO
-		#
-		trackInfo= self._getMutagenProperty(TagNames.TrackNumber)
-		return trackInfo[1] if trackInfo and trackInfo[1] > 0 else None
+		return self._getMutagenProperty(TagNames.TrackCount)
+		#return trackInfo[1] if trackInfo and trackInfo[1] > 0 else None
 
 	@TotalTracks.setter
 	def TotalTracks(self, value : int) -> None:
@@ -337,11 +334,8 @@ class MusicFileProperties:
 	# region property DiscNumber
 	@property
 	def DiscNumber(self) -> list[int]:
-		#
-		# TODO
-		#
-		discInfo= self._getMutagenProperty(TagNames.DiscNumber)
-		return discInfo[0] if discInfo and discInfo[0] > 0 else None
+		return self._getMutagenProperty(TagNames.DiscNumber)
+		#return discInfo[0] if discInfo and discInfo[0] > 0 else None
 
 	@DiscNumber.setter
 	def DiscNumber(self, value : int) -> None:
@@ -356,11 +350,8 @@ class MusicFileProperties:
 	# region property TotalDiscs
 	@property
 	def TotalDiscs(self) -> list[int]:
-		#
-		# TODO
-		#
-		discInfo= self._getMutagenProperty(TagNames.DiscNumber)
-		return discInfo[1] if discInfo and discInfo[1] > 0 else None
+		return self._getMutagenProperty(TagNames.DiscCount)
+		#return discInfo[1] if discInfo and discInfo[1] > 0 else None
 
 	@TotalDiscs.setter
 	def TotalDiscs(self, value : int) -> None:
