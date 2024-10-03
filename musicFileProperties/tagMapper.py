@@ -169,6 +169,8 @@ class TagMapper:
 			return mappedTag.mp4
 
 	class _vorbisMapper(Mapper):
+		_specialTags: list[str] = [ TagNames.TrackCount, TagNames.DiscCount, ]
+
 		_instance = None
 		def __new__(cls):
 			if cls._instance is None:
@@ -189,6 +191,23 @@ class TagMapper:
 		#	# we'll have already checked for lists, so incoming should just be a single value,
 		#	# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 		#	raise NotImplementedError()
+
+		def isSpecialHandlingTag(self, tagName: str) -> bool:
+			return tagName in TagMapper._vorbisMapper._specialTags
+
+		def getSpecialHandlingTagValues(self, tagName: str, mgTags: mutagen.Tags) -> list[str|int|bytes|list[str,str]]:
+			# for TrackCount: Picard writes both TOTALTRACKS and TRACKTOTAL, Mp3tag just writes TOTALTRACKS
+			# for DiscCount: Picard writes both TOTALDISCS and DISCTOTAL, Mp3tag just writes TOTALDISCS
+			# we're just going to return first one we find
+			# TODO: when we set or delete one of these, need to make sure we clean up tags we don't want (i.e. Picard's duped ones)
+			if tagName in TagMapper._vorbisMapper._specialTags:
+				vorbisName = self.mapToRawName(tagName)
+				if vorbisName is not None:
+					for t in vorbisName:
+						v = mgTags[t] if t in mgTags else None
+						if isinstance(v, list) and len(v) > 0:
+							return v
+			return []
 
 	class _asfMapper(Mapper):
 		# for WMA for Track info: Picard only ever writes track number and never writes total, while Mp3tag uses separate tags
