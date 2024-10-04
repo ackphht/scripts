@@ -26,8 +26,8 @@ class _tagMap:
 		apev2: list[str]
 
 	_csvFilepath = pathlib.Path(__file__).absolute().parent / "musicTagsMap.csv"
-	_tagNamesToTypedMap: dict[str, "_tagMap._mappedTags"] = None
-	_typedToTagNamesMap: dict[str, dict[str, str]] = None
+	_tagNamesToRawNamesMap: dict[str, "_tagMap._mappedTags"] = None
+	_rawNamesToTagNamesMap: dict[str, dict[str, str]] = None
 
 	def __new__(cls):
 		raise NotImplementedError("static class; use TagMapper.getTagMapper() factory method to get the mapper you're probably looking for")
@@ -41,8 +41,8 @@ class _tagMap:
 
 	@staticmethod
 	def _loadTagNames() -> None:
-		_tagMap._tagNamesToTypedMap = dict()
-		_tagMap._typedToTagNamesMap = {
+		_tagMap._tagNamesToRawNamesMap = dict()
+		_tagMap._rawNamesToTagNamesMap = {
 			_constants.MP4TagType: dict(),
 			_constants.VorbisTagType: dict(),
 			_constants.AsfTagType: dict(),
@@ -61,7 +61,7 @@ class _tagMap:
 				id3v23: list[str] = _tagMap._splitTagName(row["ID3v23"])
 				ape: list[str] = _tagMap._splitTagName(row["APEv2"])
 
-				_tagMap._tagNamesToTypedMap[tagName] = _tagMap._mappedTags(mp4=mp4, vorbis=vorbis, asf=asf, id3v24=id3v24, id3v23=id3v23, apev2=ape)
+				_tagMap._tagNamesToRawNamesMap[tagName] = _tagMap._mappedTags(mp4=mp4, vorbis=vorbis, asf=asf, id3v24=id3v24, id3v23=id3v23, apev2=ape)
 
 				_tagMap._addRawNamesToTagNameDict(tagName, mp4, _constants.MP4TagType)
 				_tagMap._addRawNamesToTagNameDict(tagName, vorbis, _constants.VorbisTagType)
@@ -79,8 +79,8 @@ class _tagMap:
 	def _addRawNamesToTagNameDict(tagName: str, rawNames: list[str], tagType: str) -> list[str]:
 		for t in rawNames:
 			t = t.upper() if t else ""
-			if t and t not in _tagMap._typedToTagNamesMap[tagType]:
-				_tagMap._typedToTagNamesMap[tagType][t] = tagName
+			if t and t not in _tagMap._rawNamesToTagNamesMap[tagType]:
+				_tagMap._rawNamesToTagNamesMap[tagType][t] = tagName
 
 #region typed mapper classes
 # these are sorta Singleton classes: can "new" up new ones, but they all return the same instance
@@ -115,14 +115,14 @@ class TagMapper:	# abstract base class
 		raise TypeError(f'unrecognized mutagen tag type: "{mgTags.__class__.__module__}.{mgTags.__class__.__name__}"') #LookupError #NameError #TypeError
 
 	def mapFromRawName(self, rawTagName: str) -> str:
-		d = _tagMap._typedToTagNamesMap[self._getTagType()]
+		d = _tagMap._rawNamesToTagNamesMap[self._getTagType()]
 		u = rawTagName.upper()
 		if u in d:
 			return d[u]
 		return ""
 
 	def mapToRawName(self, tagName: str) -> list[str]:
-		mapped = _tagMap._tagNamesToTypedMap[tagName] if tagName in _tagMap._tagNamesToTypedMap else None
+		mapped = _tagMap._tagNamesToRawNamesMap[tagName] if tagName in _tagMap._tagNamesToRawNamesMap else None
 		if mapped is None: return ""
 		return self._getMappedTagProp(mapped)
 
