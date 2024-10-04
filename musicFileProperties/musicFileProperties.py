@@ -5,9 +5,8 @@ import pathlib
 from typing import Any, Iterable, Iterator
 import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
 from ackPyHelpers import LogHelper
-from .mp4TagNames import Mp4TagNames
 from .tagNames import TagNames
-from .tagMapper import TagMapper
+from .tagMapper import _tagMapper
 
 class MusicFileProperties:
 	def __init__(self, musicFilePath):
@@ -22,7 +21,7 @@ class MusicFileProperties:
 		self._mutagen = None
 		self._tinytag = None
 		self._mutagen = mutagen.File(self._musicFilePath)
-		self._mapper = TagMapper.getTagMapper(self._mutagen.tags)
+		self._mapper = _tagMapper.getTagMapper(self._mutagen.tags)
 
 	def save(self, removePadding = False) -> bool:
 		if not self._dirty:

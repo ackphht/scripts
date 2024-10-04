@@ -30,7 +30,7 @@ class _tagMap:
 	_rawNamesToTagNamesMap: dict[str, dict[str, str]] = None
 
 	def __new__(cls):
-		raise NotImplementedError("static class; use TagMapper.getTagMapper() factory method to get the mapper you're probably looking for")
+		raise NotImplementedError("static class; use _tagMapper.getTagMapper() factory method to get the mapper you're probably looking for")
 
 	_isInited = False;
 	@staticmethod
@@ -86,17 +86,17 @@ class _tagMap:
 # these are sorta Singleton classes: can "new" up new ones, but they all return the same instance
 # we could have a public class property Instance, like usual, but that still has to be inited somewhere
 # but python doesn't really have static class initialization, so ???; this way seems ... okay, i think
-class TagMapper:	# abstract base class
+class _tagMapper:	# abstract base class
 	def __new__(cls):
-		if cls.__name__ == "TagMapper":
-			raise NotImplementedError("abstract class; use TagMapper.getTagMapper")
+		if cls.__name__ == "_tagMapper":
+			raise NotImplementedError("abstract class; use _tagMapper.getTagMapper")
 		return super().__new__(cls)
 
 	def __init__(self):
 		_tagMap._init()
 
 	@staticmethod
-	def getTagMapper(mgTags: mutagen.Tags) -> "TagMapper":
+	def getTagMapper(mgTags: mutagen.Tags) -> "_tagMapper":
 		name = mgTags.__class__.__name__
 		if name == "MP4Tags":
 			return _mp4Mapper()
@@ -182,7 +182,7 @@ class TagMapper:	# abstract base class
 			return split[0].strip() if index == 0 else split[2].strip()
 		return ""
 
-class _mp4Mapper(TagMapper):
+class _mp4Mapper(_tagMapper):
 	_specialTags: list[str] = [ TagNames.TrackNumber, TagNames.TrackCount, TagNames.DiscNumber, TagNames.DiscCount, ]
 
 	_instance = None
@@ -294,7 +294,7 @@ class _mp4Mapper(TagMapper):
 #
 # https://mutagen.readthedocs.io/en/latest/user/vcomment.html
 #
-class _vorbisMapper(TagMapper):
+class _vorbisMapper(_tagMapper):
 	_specialTags: list[str] = [ TagNames.TrackCount, TagNames.DiscCount, ]
 
 	_instance = None
@@ -335,7 +335,7 @@ class _vorbisMapper(TagMapper):
 						return v
 		return []
 
-class _asfMapper(TagMapper):
+class _asfMapper(_tagMapper):
 	# for WMA for Track info: Picard only ever writes track number and never writes total, while Mp3tag uses separate tags
 	# for WMA for Disc info: Picard stores values together (e.g. "2/10")
 	#     if either part is missing, whole tag gets left out 😲
@@ -391,7 +391,7 @@ class _asfMapper(TagMapper):
 #
 # https://mutagen.readthedocs.io/en/latest/user/apev2.html
 #
-class _apeV2Mapper(TagMapper):
+class _apeV2Mapper(_tagMapper):
 	# for Apev2: Picard stores Track and Disc info together (e.g. "2/10")
 	#     if no Total, then you just get the Track/Disc Number; if Total but no Number, info doesn't get written at all
 	# while Mp3tag uses separate tags
@@ -457,7 +457,7 @@ class _apeV2Mapper(TagMapper):
 #
 # https://mutagen.readthedocs.io/en/latest/user/id3.html
 #
-class _id3Mapper(TagMapper):	# abstract base class
+class _id3Mapper(_tagMapper):	# abstract base class
 	_specialTags: list[str] = [ TagNames.Comment, TagNames.Lyrics, TagNames.TrackNumber, TagNames.TrackCount,
 								TagNames.DiscNumber, TagNames.DiscCount, TagNames.MovementNumber, TagNames.MovementCount,
 								TagNames.Producer, TagNames.Engineer, TagNames.MixedBy, TagNames.Arranger,
@@ -465,7 +465,7 @@ class _id3Mapper(TagMapper):	# abstract base class
 
 	def __new__(cls):
 		if cls.__name__ == "_id3Mapper":
-			raise NotImplementedError("abstract class; use TagMapper.getTagMapper")
+			raise NotImplementedError("abstract class; use _tagMapper.getTagMapper")
 		return super().__new__(cls)
 
 	def __init__(self):
