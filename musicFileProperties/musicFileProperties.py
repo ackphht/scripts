@@ -77,6 +77,14 @@ class MusicFileProperties:
 	def getProperty(self, propertyName: str) -> list[str|int|bytes|list[str,str]]:
 		return self._getMutagenProperty(propertyName)
 
+	def setProperty(self, propertyName: str, value: Any) -> None:
+		"""
+		sets or removes the value of the specified tag.
+
+		The value can be a string, an integer or a list of values. If the value is None or an empty string, the tag will be removed.
+		"""
+		return self._setMutagenProperty(propertyName, value)
+
 	def getRawProperty(self, propertyName: str) -> str|int|None:
 		return self._mutagen[propertyName] if propertyName in self._mutagen else None
 
@@ -114,29 +122,42 @@ class MusicFileProperties:
 				results.append(v)
 		return results
 
-	def _setMutagenProperty(self, propertyName : str, value : Any) -> None:
-		LogHelper.Verbose('setting mutagen property named "{0}"', propertyName)
-		if value == None or (isinstance(value, str) and len(value) == 0):
-			if propertyName in self._mutagen:
-				del self._mutagen[propertyName]
-				self._dirty = True
-			return
-		# TODO: this is all kinda specific to mp4 files; if we want this to work other types of files...
-		if not propertyName.startswith(Mp4TagNames.Mp4CustomPropertyPrefix):
-			self._mutagen[propertyName] = value
-		else:
-			if type(value) is list and len(value) == 1 and type(value[0]) is mutagen.mp4.MP4FreeForm:
-				self._mutagen[propertyName] = value[0]		# probably should check that the file is actually an mp4...
-			else:
-				if not isinstance(value, str):
-					raise NotImplementedError("only currently know how to set string values")
-				self._mutagen[propertyName] = mutagen.mp4.MP4FreeForm(value.encode(), dataformat=mutagen.mp4.AtomDataType.UTF8)
-		self._dirty = True
+	def _setMutagenProperty(self, tagName : str, value : Any) -> None:
+		rawTagNames = self._mapper.mapToRawName(tagName)
+		if rawTagNames is None or len(rawTagNames) == 0:
+			raise KeyError(f'tag name "{0}" is not mapped: do not know how to set it', tagName)
 
-	def _deleteMutagenProperty(self, propertyName : str) -> None:
-		if propertyName in self._mutagen:
-			del self._mutagen[propertyName]
-			self._dirty = True
+		LogHelper.Verbose('setting mutagen property "{0}" (raw tag name(s): "{1}")', tagName, rawTagNames)
+		if not self._mapper.isSpecialHandlingTag(tagName):
+			# if property is empty/None, delete the property:
+			if value is None or (isinstance(value, str) or isinstance(value, list)) and len(value) == 0:
+				LogHelper.Verbose('value for tag "{0}" is None or empty: removing raw tag(s) "{1}"', tagName, rawTagNames)
+				for t in rawTagNames:
+					if t in self._mutagen.tags:
+						del self._mutagen.tags[t]
+						self._dirty = True
+				return
+
+		# we're only going to set the first rawTagName from the mapping; if there are others, remove them:
+		for idx in range(0, len(rawTagNames)):
+			t = rawTagNames[idx]
+			delete = True
+			if idx == 0:
+				LogHelper.Verbose('getting wrapped value for tag "{0}"', t)
+				rawValues = self._mapper.prepareValueForSet(value, tagName, t, self._mutagen.tags)
+				if rawValues is not None and (not isinstance(rawValues, list) or len(rawValues) > 0):
+					LogHelper.Verbose('setting tag "{0}"', t)
+					self._mutagen[t] = rawValues
+					self._dirty = True
+					delete = False
+			if delete:
+				if t in self._mutagen.tags:
+					LogHelper.Verbose('deleting tag "{0}"', t)
+					del self._mutagen.tags[t]
+					self._dirty = True
+
+	def _deleteMutagenProperty(self, tagName : str) -> None:
+		self._setMutagenProperty(tagName, None)
 
 	def _mapMutagenProperty(self, rawTagValue: Any, tagName: str, rawTagName: str) -> Iterable[str|int|bytes|list[str,str]]:
 		if MusicFileProperties._isSimpleType(rawTagValue):
@@ -156,13 +177,13 @@ class MusicFileProperties:
 			for v2 in self._mapper.mapFromRawValue(rawTagValue, tagName, rawTagName):
 				yield v2
 
-	def _setTrackOrDisc(self, propertyName : str, val : int, ttl : int) -> None:
-		val = 0 if val is None or val < 0 else val
-		ttl = 0 if ttl is None or ttl < 0 else ttl
-		if val == 0 and ttl == 0:
-			self._deleteMutagenProperty(propertyName)
-		else:
-			self._setMutagenProperty(propertyName, [(val, ttl)])
+#	def _setTrackOrDisc(self, propertyName : str, val : int, ttl : int) -> None:
+#		val = 0 if val is None or val < 0 else val
+#		ttl = 0 if ttl is None or ttl < 0 else ttl
+#		if val == 0 and ttl == 0:
+#			self._deleteMutagenProperty(propertyName)
+#		else:
+#			self._setMutagenProperty(propertyName, [(val, ttl)])
 
 	@staticmethod
 	def _isSimpleType(value: Any) -> bool:
@@ -312,11 +333,11 @@ class MusicFileProperties:
 
 	@TrackNumber.setter
 	def TrackNumber(self, value : int) -> None:
-		self._setTrackOrDisc(TagNames.TrackNumber, value, self.TotalTracks)
+		self._setMutagenProperty(TagNames.TrackNumber, value)
 
 	@TrackNumber.deleter
 	def TrackNumber(self) -> None:
-		self._setTrackOrDisc(TagNames.TrackNumber, 0, self.TotalTracks)
+		self._deleteMutagenProperty(TagNames.TrackNumber)
 	# endregion
 
 	# region property TotalTracks
@@ -327,11 +348,11 @@ class MusicFileProperties:
 
 	@TotalTracks.setter
 	def TotalTracks(self, value : int) -> None:
-		self._setTrackOrDisc(TagNames.TrackNumber, self.TrackNumber, value)
+		self._setMutagenProperty(TagNames.TrackCount, value)
 
 	@TotalTracks.deleter
 	def TotalTracks(self) -> None:
-		self._setTrackOrDisc(TagNames.TrackNumber, self.TrackNumber, 0)
+		self._deleteMutagenProperty(TagNames.TrackCount)
 	# endregion
 
 	# region property DiscNumber
@@ -342,12 +363,11 @@ class MusicFileProperties:
 
 	@DiscNumber.setter
 	def DiscNumber(self, value : int) -> None:
-		self._setTrackOrDisc(TagNames.DiscNumber, value, self.TotalDiscs)
-		pass
+		self._setMutagenProperty(TagNames.DiscNumber, value)
 
 	@DiscNumber.deleter
 	def DiscNumber(self) -> None:
-		self._setTrackOrDisc(TagNames.DiscNumber, 0, self.TotalDiscs)
+		self._deleteMutagenProperty(TagNames.DiscNumber)
 	# endregion
 
 	# region property TotalDiscs
@@ -358,12 +378,11 @@ class MusicFileProperties:
 
 	@TotalDiscs.setter
 	def TotalDiscs(self, value : int) -> None:
-		self._setTrackOrDisc(TagNames.DiscNumber, self.DiscNumber, value)
-		pass
+		self._setMutagenProperty(TagNames.DiscCount, value)
 
 	@TotalDiscs.deleter
 	def TotalDiscs(self) -> None:
-		self._setTrackOrDisc(TagNames.DiscNumber, self.DiscNumber, 0)
+		self._deleteMutagenProperty(TagNames.DiscCount)
 	# endregion
 
 	# region property Producer
