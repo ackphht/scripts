@@ -132,6 +132,9 @@ class TagMapper:	# abstract base class
 	def getSpecialHandlingTagValues(self, tagName: str, mgTags: mutagen.Tags) -> list[str|int|bytes|list[str,str]]:
 		return []
 
+	def prepareValueForSet(self, rawValue: Any, tagName: str, rawTagName: str, mgTags: mutagen.Tags) -> list|Any|None:
+		return None
+
 	#region "abstract" methods
 	def mapFromRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
 		raise NotImplementedError()
@@ -214,34 +217,79 @@ class _mp4Mapper(TagMapper):
 		results = []
 		# for track and disc: if no info at all, mg will not return anything;
 		# otherwise it always returns a tuple, wrapped in a list;
-		# if one value is missing, it will be 0 in the tuple
+		# if one total is missing, it will be 0 in the tuple; if number is missing, whole tag is left out
 		if tagName == TagNames.TrackNumber or tagName == TagNames.TrackCount:
-			mp4TagName = self.mapToRawName(TagNames.TrackNumber)
-			if mp4TagName is not None:
-				tag = mgTags[mp4TagName[0]] if mp4TagName[0] in mgTags else None
-				if isinstance(tag, list) and len(tag) > 0:
-					tag = tag[0]
-					if tagName == TagNames.TrackNumber:
-						if tag[0] > 0: results.append(tag[0])
-					elif tagName == TagNames.TrackCount:
-						if tag[1] > 0: results.append(tag[1])
+			mp4TagName = self._mapRequiredTagName(TagNames.TrackNumber)
+			tag = mgTags[mp4TagName] if mp4TagName in mgTags else None
+			if isinstance(tag, list) and len(tag) > 0:
+				tag = tag[0]
+				if tagName == TagNames.TrackNumber:
+					if tag[0] > 0: results.append(tag[0])
+				elif tagName == TagNames.TrackCount:
+					if tag[1] > 0: results.append(tag[1])
 		elif tagName == TagNames.DiscNumber or tagName == TagNames.DiscCount:
-			mp4TagName = self.mapToRawName(TagNames.DiscNumber)
-			if mp4TagName is not None:
-				tag = mgTags[mp4TagName[0]] if mp4TagName[0] in mgTags else None
-				if isinstance(tag, list) and len(tag) > 0:
-					tag = tag[0]
-					if tagName == TagNames.DiscNumber:
-						if tag[0] > 0: results.append(tag[0])
-					elif tagName == TagNames.DiscCount:
-						if tag[1] > 0: results.append(tag[1])
+			mp4TagName = self._mapRequiredTagName(TagNames.DiscNumber)
+			tag = mgTags[mp4TagName] if mp4TagName in mgTags else None
+			if isinstance(tag, list) and len(tag) > 0:
+				tag = tag[0]
+				if tagName == TagNames.DiscNumber:
+					if tag[0] > 0: results.append(tag[0])
+				elif tagName == TagNames.DiscCount:
+					if tag[1] > 0: results.append(tag[1])
 		return results
+
+	def prepareValueForSet(self, rawValue: Any, tagName: str, rawTagName: str, mgTags: mutagen.Tags) -> list|Any|None:
+		# special case packed values:
+		if tagName in [ TagNames.TrackNumber, TagNames.TrackCount, TagNames.DiscNumber, TagNames.DiscCount, ]:
+			v = rawValue
+			if isinstance(v, list) and len(rawValue) > 0: v = v[0]
+			intVal = v if isinstance(v, int) else int(v) if v is not None else 0
+			num = 0; ttl = 0;
+			if tagName == TagNames.TrackNumber or tagName == TagNames.DiscNumber:
+				num = intVal
+				otherTagName = TagNames.TrackCount if tagName == TagNames.TrackNumber else TagNames.DiscCount
+				otherVal = self.getSpecialHandlingTagValues(otherTagName, mgTags)
+				ttl = otherVal[0] if isinstance(otherVal, list) and len(otherVal) > 0 else 0
+			elif tagName == TagNames.TrackCount or tagName == TagNames.DiscCount:
+				ttl = intVal
+				otherTagName = TagNames.TrackNumber if tagName == TagNames.TrackCount else TagNames.DiscNumber
+				otherVal = self.getSpecialHandlingTagValues(otherTagName, mgTags)
+				num = otherVal[0] if isinstance(otherVal, list) and len(otherVal) > 0 else 0
+			return [(num, ttl)] if num > 0 else None
+
+		# for built-in tag names (the "FourCC" ones), mutagen will handle the mapping, so we don't have to wrap it:
+		if not rawTagName.startswith(_constants.Mp4CustomPropertyPrefix):
+			if not isinstance(rawValue, str) and not isinstance(rawValue, list):
+				return [rawValue]		# but int's, others(?), have to be in a list or it blows up (???)
+			return rawValue
+		# but for custom tags (the "----" ones), we have to create MP4FreeForm objects for mutagen to insert
+		else:
+			if isinstance(rawValue, list):
+				results = []
+				for v in rawValue:
+					results.append(_mp4Mapper._wrapValue(v))
+				return results
+			return _mp4Mapper._wrapValue(rawValue)
 
 	def _getTagType(self) -> str:
 		return _constants.MP4TagType
 
 	def _getMappedTagProp(self, mappedTag: "_tagMap._mappedTags") -> list[str]:
 		return mappedTag.mp4
+
+	def _mapRequiredTagName(self, tagName: str) -> str:
+		raw = self.mapToRawName(tagName)
+		if raw is None or len(raw) == 0:
+			raise KeyError(f'no MP4 mapping found for tag "{tagName}"')
+		return raw[0]
+
+	@staticmethod
+	def _wrapValue(value: Any) -> mutagen.mp4.MP4FreeForm:
+		if isinstance(value, mutagen.mp4.MP4FreeForm):
+			return value	# already wrapped
+		if not isinstance(value, str):
+			value = str(value)	#custom Mp4 tags have to be strings (right ??)
+		return mutagen.mp4.MP4FreeForm(value.encode("utf-8", errors="replace"), dataformat=mutagen.mp4.AtomDataType.UTF8)
 
 #
 # https://mutagen.readthedocs.io/en/latest/user/vcomment.html
