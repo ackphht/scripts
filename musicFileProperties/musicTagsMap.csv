@@ -17,7 +17,7 @@ Copyright,cprt,COPYRIGHT,Copyright,TCOP,TCOP,Copyright
 Cover,covr,METADATA_BLOCK_PICTURE,WM/Picture,APIC,APIC, Cover Art (Front)
 Description,desc,,,,,
 DiscNumber,disk,DISCNUMBER,WM/PartOfSet,TPOS,TPOS,DiscNumber|Disc
-DiscCount,,TOTALDISCS|DISCTOTAL,TOTALDISCS,TOTALDISCS,TOTALDISCS,TotalDiscs
+DiscCount,disk    # make sure this one is after above,TOTALDISCS|DISCTOTAL,TOTALDISCS,TOTALDISCS,TOTALDISCS,TotalDiscs
 DiscTItle,*:DISC TITLE,,,,,
 DiscogsReleaseId,*:DISCOGS_RELEASE_ID,DISCOGS_RELEASE_ID,DISCOGS_RELEASE_ID,TXXX:DISCOGS_RELEASE_ID,TXXX:DISCOGS_RELEASE_ID,Discogs_Release_Id
 Engineer,*:ENGINEER,ENGINEER,WM/Engineer|ENGINEER,TIPL:engineer|TXXX:ENGINEER,IPLS:engineer|TXXX:ENGINEER,Engineer
@@ -64,7 +64,7 @@ TrackArtistSort,soar,ARTISTSORT,WM/ArtistSortOrder,TSOP,TSOP,ArtistSort
 TrackTitle,©nam,TITLE,Title,TIT2,TIT2,Title
 TrackTitleSort,sonm,TITLESORT,WM/TitleSortOrder,TSOT,TSOT,TitleSort
 TrackNumber,trkn,TRACKNUMBER,WM/TrackNumber,TRCK,TRCK,Track
-TrackCount,,TOTALTRACKS|TRACKTOTAL,TOTALTRACKS,TOTALTRACKS,TOTALTRACKS,TotalTracks
+TrackCount,trkn    # make sure this one is after above,TOTALTRACKS|TRACKTOTAL,TOTALTRACKS,TOTALTRACKS,TOTALTRACKS,TotalTracks
 WorkTitle,©wrk,WORK,WM/Work,TXXX:WORK,TXXX:WORK,Work
 Writer,*:WRITER,WRITER,WRITER,TXXX:Writer,TXXX:WRITER,Writer
 YearReleased,©day,DATE,WM/Year,TDRC,TDRC|TYER,Year
