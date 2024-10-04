@@ -73,33 +73,39 @@ class MusicFileProperties:
 			else:
 				yield tag
 
-	def getProperty(self, propertyName: str) -> list[str|int|bytes|list[str,str]]:
-		return self._getMutagenProperty(propertyName)
+	def getProperty(self, tagName: str) -> list[str|int|bytes|list[str,str]]:
+		return self._getMutagenProperty(tagName)
 
-	def setProperty(self, propertyName: str, value: Any) -> None:
+	def setProperty(self, tagName: str, value: Any) -> None:
 		"""
 		sets or removes the value of the specified tag.
 
 		The value can be a string, an integer or a list of values. If the value is None or an empty string, the tag will be removed.
 		"""
-		return self._setMutagenProperty(propertyName, value)
+		return self._setMutagenProperty(tagName, value)
 
-	def getRawProperty(self, propertyName: str) -> str|int|None:
-		return self._mutagen[propertyName] if propertyName in self._mutagen else None
+	def getRawProperty(self, rawTagName: str) -> str|int|None:
+		return self._mutagen.tags[rawTagName] if rawTagName in self._mutagen.tags else None
 
-	def getPropertyFromRawName(self, tagName: str) -> list[str|int|bytes|list[str,str]]:
-		val = self._mutagen[tagName] if tagName in self._mutagen else None
+	def getPropertyFromRawName(self, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
+		val = self._mutagen.tags[rawTagName] if rawTagName in self._mutagen.tags else None
 		if val is None: return []
-		return list(self._mapMutagenProperty(val, self._mapper.mapFromRawName(tagName), tagName))
+		return list(self._mapMutagenProperty(val, self._mapper.mapFromRawName(rawTagName), rawTagName))
 
 	def getRawPropertyName(self, tagName: str) -> list[str]:
 		return self._mapper.mapToRawName(tagName)
 
-	def setRawProperty(self, propertyName : str, value : Any) -> None:
-		self._setMutagenProperty(propertyName, value)
+	def setRawProperty(self, tagName : str, value : Any) -> None:
+		#
+		# TODO: name passed here is the "raw" tag name, but method expects mapped name, need to update this somehow; or remove it ???
+		#
+		self._setMutagenProperty(tagName, value)
 
-	def deleteRawProperty(self, propertyName : str) -> None:
-		self._deleteMutagenProperty(propertyName)
+	def deleteRawProperty(self, tagName : str) -> None:
+		#
+		# TODO: name passed here is the "raw" tag name, but method expects mapped name, need to update this somehow; or remove it ???
+		#
+		self._deleteMutagenProperty(tagName)
 
 	def _getMutagenProperty(self, tagName : str) -> list[str|int|bytes|list[str,str]]:
 		if self._mapper.isSpecialHandlingTag(tagName):
