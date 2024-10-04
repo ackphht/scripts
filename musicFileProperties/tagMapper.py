@@ -54,7 +54,7 @@ class _tagMap:
 			for row in csv.DictReader(f, dialect=csv.excel):
 				tagName: str = row["MusicTagName"].strip() if row["MusicTagName"] else ""
 				if not tagName or tagName.startswith("#"): continue
-				mp4: list[str] = [x.replace("*:", _constants.mp4CustomPropertyPrefix) for x in _tagMap._splitTagName(row["MP4"])]
+				mp4: list[str] = [x.replace("*:", _constants.Mp4CustomPropertyPrefix) for x in _tagMap._splitTagName(row["MP4"])]
 				vorbis: list[str] = _tagMap._splitTagName(row["Vorbis"])
 				asf: list[str] = _tagMap._splitTagName(row["WMA"])
 				id3v24: list[str] = _tagMap._splitTagName(row["ID3v24"])
@@ -63,20 +63,21 @@ class _tagMap:
 
 				_tagMap._tagNamesToTypedMap[tagName] = _tagMap._mappedTags(mp4=mp4, vorbis=vorbis, asf=asf, id3v24=id3v24, id3v23=id3v23, apev2=ape)
 
-				_tagMap._addToTypedToTagNameDict(tagName, mp4, _constants.MP4TagType)
-				_tagMap._addToTypedToTagNameDict(tagName, vorbis, _constants.VorbisTagType)
-				_tagMap._addToTypedToTagNameDict(tagName, asf, _constants.AsfTagType)
-				_tagMap._addToTypedToTagNameDict(tagName, id3v24, _constants.Id3v24TagType)
-				_tagMap._addToTypedToTagNameDict(tagName, id3v23, _constants.Id3v23TagType)
-				_tagMap._addToTypedToTagNameDict(tagName, ape, _constants.ApeV2TagType)
+				_tagMap._addRawNamesToTagNameDict(tagName, mp4, _constants.MP4TagType)
+				_tagMap._addRawNamesToTagNameDict(tagName, vorbis, _constants.VorbisTagType)
+				_tagMap._addRawNamesToTagNameDict(tagName, asf, _constants.AsfTagType)
+				_tagMap._addRawNamesToTagNameDict(tagName, id3v24, _constants.Id3v24TagType)
+				_tagMap._addRawNamesToTagNameDict(tagName, id3v23, _constants.Id3v23TagType)
+				_tagMap._addRawNamesToTagNameDict(tagName, ape, _constants.ApeV2TagType)
 
 	@staticmethod
 	def _splitTagName(tag: str) -> list[str]:
-		return [x.strip() for x in tag.strip().split("|")] if tag else []
+		tag = tag.partition("#")[0].strip()
+		return [x.strip() for x in tag.split("|")] if tag else []
 
 	@staticmethod
-	def _addToTypedToTagNameDict(tagName: str, typedNames: list[str], tagType: str) -> list[str]:
-		for t in typedNames:
+	def _addRawNamesToTagNameDict(tagName: str, rawNames: list[str], tagType: str) -> list[str]:
+		for t in rawNames:
 			t = t.upper() if t else ""
 			if t and t not in _tagMap._typedToTagNamesMap[tagType]:
 				_tagMap._typedToTagNamesMap[tagType][t] = tagName
