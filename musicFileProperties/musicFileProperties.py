@@ -153,7 +153,7 @@ class MusicFileProperties:
 			if idx == 0:
 				LogHelper.Verbose('getting wrapped value for tag "{0}"', t)
 				rawValues = self._mapper.prepareValueForSet(value, tagName, t, self._mutagen.tags)
-				if rawValues is not None and (not isinstance(rawValues, list) or len(rawValues) > 0):
+				if rawValues is not None and ((not isinstance(rawValues, list) and not isinstance(rawValues, str)) or len(rawValues) > 0):
 					LogHelper.Verbose('setting tag "{0}"', t)
 					self._mutagen[t] = rawValues
 					self._dirty = True
