@@ -96,23 +96,41 @@ class _tagMapper:	# abstract base class
 		_tagMap._init()
 
 	@staticmethod
-	def getTagMapper(mgTags: mutagen.Tags) -> "_tagMapper":
+	def getTagType(mgTags: mutagen.Tags) -> str:
 		name = mgTags.__class__.__name__
 		if name == "MP4Tags":
-			return _mp4Mapper()
-		if name == "VCFLACDict" or name == "OggOpusVComment" or name == "OggVCommentDict":
-			return _vorbisMapper()
+			return "MP4"
+		if name == "VCFLACDict":
+			return "FLACVorbis"
+		if name == "OggOpusVComment" or name == "OggVCommentDict" or name == "OggFLACVComment" or name == "OggTheoraVComment" or name == "OggSpeexVComment":
+			return "OggVorbis"
 		if name == "ASFTags":
-			return _asfMapper()
+			return "ASF"
 		if name == "APEv2":
-			return _apeV2Mapper()
+			return "APEv2"
 		if name == "ID3" or name == "_WaveID3":
 			ver = mgTags.version
 			if ver >= (2, 4, 0):
-				return _id3v24Mapper()
+				return "ID3v24"
 			if ver >= (2, 3, 0):
-				return _id3v23Mapper()
+				return "ID3v23"
 		raise TypeError(f'unrecognized mutagen tag type: "{mgTags.__class__.__module__}.{mgTags.__class__.__name__}"') #LookupError #NameError #TypeError
+
+	@staticmethod
+	def getTagMapper(mgTags: mutagen.Tags) -> "_tagMapper":
+		name = _tagMapper.getTagType(mgTags)
+		if name == "MP4":
+			return _mp4Mapper()
+		if name == "FLACVorbis" or name == "OggVorbis":
+			return _vorbisMapper()
+		if name == "ASF":
+			return _asfMapper()
+		if name == "APEv2":
+			return _apeV2Mapper()
+		if name == "ID3v24":
+			return _id3v24Mapper()
+		if name == "ID3v23":
+			return _id3v23Mapper()
 
 	def mapFromRawName(self, rawTagName: str) -> str:
 		d = _tagMap._rawNamesToTagNamesMap[self._getTagType()]
