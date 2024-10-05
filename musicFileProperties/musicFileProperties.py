@@ -35,11 +35,10 @@ class MusicFileProperties:
 		self._dirty = False
 		return True
 
-	#
-	# TODO: we need to rename these methods from "property" to "tag"
-	#
-
-	def getProperties(self) -> Iterator[tuple[str, Any]]:
+	def getTagValues(self) -> Iterator[tuple[str, Any]]:
+		#
+		# TODO: this should just go through TagNames and try getting each one
+		#
 		yield ("AlbumArtist", self.AlbumArtist)
 		yield ("AlbumTitle", self.AlbumTitle)
 		yield ("TrackArtist", self.TrackArtist)
@@ -55,7 +54,7 @@ class MusicFileProperties:
 		yield ("Genre", self.Genre)
 		yield ("Comments", self.Comments)
 
-	def getRawProperties(self) -> Iterator[tuple[str, Any]]:
+	def getNativeTagValues(self) -> Iterator[tuple[str, Any]]:
 		yield ('$$TagType', self._mutagen.tags.__class__.__name__)
 		for tag in self._mutagen.tags:
 			# some tag types, the iterator returns a tuple(name,value), others it just returns the name
@@ -64,7 +63,7 @@ class MusicFileProperties:
 			else:
 				yield (tag, self._mutagen[tag])
 
-	def getRawPropertyNames(self) -> Iterator[str]:
+	def getNativePropertyNames(self) -> Iterator[str]:
 		for tag in self._mutagen.tags:
 			# some tag types, the iterator returns a tuple(name,value), others it just returns the name
 			if isinstance(tag, tuple):
@@ -72,10 +71,10 @@ class MusicFileProperties:
 			else:
 				yield tag
 
-	def getProperty(self, tagName: str) -> list[str|int|bytes|list[str,str]]:
+	def getTagValue(self, tagName: str) -> list[str|int|bytes|list[str,str]]:
 		return self._getMutagenProperty(tagName)
 
-	def setProperty(self, tagName: str, value: Any) -> None:
+	def setTagValue(self, tagName: str, value: Any) -> None:
 		"""
 		sets or removes the value of the specified tag.
 
@@ -85,18 +84,18 @@ class MusicFileProperties:
 			raise NotSupportedError("setting the cover image is not supported (yet??)")
 		return self._setMutagenProperty(tagName, value)
 
-	def getRawProperty(self, rawTagName: str) -> str|int|None:
+	def getNativeTagValue(self, rawTagName: str) -> list[str|int|Any]|str|Any|None:
 		return self._mutagen.tags[rawTagName] if rawTagName in self._mutagen.tags else None
 
-	def getPropertyFromRawName(self, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
+	def getTagValueFromNativeName(self, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
 		val = self._mutagen.tags[rawTagName] if rawTagName in self._mutagen.tags else None
 		if val is None: return []
 		return list(self._mapMutagenProperty(val, self._mapper.mapFromRawName(rawTagName), rawTagName))
 
-	def getRawPropertyName(self, tagName: str) -> list[str]:
+	def mapToNativeTagName(self, tagName: str) -> list[str]:
 		return self._mapper.mapToRawName(tagName)
 
-	def setRawProperty(self, rawTagName : str, value : Any) -> None:
+	def setNativeTagValue(self, rawTagName : str, value : Any) -> None:
 		if self._mapper.mapFromRawName(rawTagName) == TagNames.Cover:
 			raise NotSupportedError("setting the cover image is not supported (yet??)")
 		#
@@ -104,7 +103,7 @@ class MusicFileProperties:
 		#
 		self._setMutagenProperty(rawTagName, value)
 
-	def deleteRawProperty(self, rawTagName : str) -> None:
+	def deleteNativeTagValue(self, rawTagName : str) -> None:
 		#
 		# TODO: name passed here is the "raw" tag name, but method expects mapped name, need to update this somehow; or remove it ???
 		#
