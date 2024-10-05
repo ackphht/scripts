@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pathlib
+from sqlite3 import NotSupportedError
 from typing import Any, Iterable, Iterator
 import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
 from ackPyHelpers import LogHelper
@@ -80,6 +81,8 @@ class MusicFileProperties:
 
 		The value can be a string, an integer or a list of values. If the value is None or an empty string, the tag will be removed.
 		"""
+		if tagName == TagNames.Cover:
+			raise NotSupportedError("setting the cover image is not supported (yet??)")
 		return self._setMutagenProperty(tagName, value)
 
 	def getRawProperty(self, rawTagName: str) -> str|int|None:
@@ -93,17 +96,19 @@ class MusicFileProperties:
 	def getRawPropertyName(self, tagName: str) -> list[str]:
 		return self._mapper.mapToRawName(tagName)
 
-	def setRawProperty(self, tagName : str, value : Any) -> None:
+	def setRawProperty(self, rawTagName : str, value : Any) -> None:
+		if self._mapper.mapFromRawName(rawTagName) == TagNames.Cover:
+			raise NotSupportedError("setting the cover image is not supported (yet??)")
 		#
 		# TODO: name passed here is the "raw" tag name, but method expects mapped name, need to update this somehow; or remove it ???
 		#
-		self._setMutagenProperty(tagName, value)
+		self._setMutagenProperty(rawTagName, value)
 
-	def deleteRawProperty(self, tagName : str) -> None:
+	def deleteRawProperty(self, rawTagName : str) -> None:
 		#
 		# TODO: name passed here is the "raw" tag name, but method expects mapped name, need to update this somehow; or remove it ???
 		#
-		self._deleteMutagenProperty(tagName)
+		self._deleteMutagenProperty(rawTagName)
 
 	def removeAllTags(self) -> None:
 		self._mutagen.tags.clear()
