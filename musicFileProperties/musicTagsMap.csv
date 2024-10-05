@@ -1,7 +1,7 @@
 ﻿MusicTagName,MP4,Vorbis,WMA,ID3v24,ID3v23,APEv2
 AcoustidId,*:ACOUSTID ID,ACOUSTID_ID,Acoustid/Id,TXXX:ACOUSTID ID,TXXX:ACOUSTID ID,AcoustId_Id
 AcoustidFingerprint,*:ACOUSTID FINGERPRINT,ACOUSTID_FINGERPRINT,Acoustid/Fingerprint,TXXX:ACOUSTID FINGERPRINT,TXXX:ACOUSTID FINGERPRINT,AcoustId_Fingerprint
-AlbumArtist,aART,ALBUMARTIST,WM/AlbumArtist,TPE2,TPE2,Album Artist|AlbumArtist
+AlbumArtist,aART,ALBUMARTIST,WM/AlbumArtist,TPE2,TPE2,AlbumArtist|Album Artist
 AlbumArtistSort,soaa,ALBUMARTISTSORT,WM/AlbumArtistSortOrder|ALBUMARTISTSORT,TSO2,TSO2,AlbumArtistSort
 AlbumTitle,©alb,ALBUM,WM/AlbumTitle,TALB,TALB,Album
 AlbumTitleSort,soal,ALBUMSORT,WM/AlbumSortOrder,TSOA,TSOA,AlbumSort
