@@ -185,14 +185,6 @@ class MusicFileProperties:
 			for v2 in self._mapper.mapFromRawValue(rawTagValue, tagName, rawTagName):
 				yield v2
 
-#	def _setTrackOrDisc(self, propertyName : str, val : int, ttl : int) -> None:
-#		val = 0 if val is None or val < 0 else val
-#		ttl = 0 if ttl is None or ttl < 0 else ttl
-#		if val == 0 and ttl == 0:
-#			self._deleteMutagenProperty(propertyName)
-#		else:
-#			self._setMutagenProperty(propertyName, [(val, ttl)])
-
 	@staticmethod
 	def _isSimpleType(value: Any) -> bool:
 		t = type(value)
