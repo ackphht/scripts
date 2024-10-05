@@ -63,7 +63,7 @@ class MusicFileProperties:
 			else:
 				yield (tag, self._mutagen[tag])
 
-	def getNativePropertyNames(self) -> Iterator[str]:
+	def getNativeTagNames(self) -> Iterator[str]:
 		for tag in self._mutagen.tags:
 			# some tag types, the iterator returns a tuple(name,value), others it just returns the name
 			if isinstance(tag, tuple):
