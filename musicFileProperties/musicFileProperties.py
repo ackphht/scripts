@@ -107,6 +107,9 @@ class MusicFileProperties:
 		#
 		self._deleteMutagenProperty(tagName)
 
+	def removeAllTags(self) -> None:
+		self._mutagen.tags.clear()
+
 	def _getMutagenProperty(self, tagName : str) -> list[str|int|bytes|list[str,str]]:
 		if self._mapper.isSpecialHandlingTag(tagName):
 			return self._mapper.getSpecialHandlingTagValues(tagName, self._mutagen.tags)
