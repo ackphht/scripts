@@ -132,11 +132,11 @@ class _tagMapper:	# abstract base class
 	def getSpecialHandlingTagValues(self, tagName: str, mgTags: mutagen.Tags) -> list[str|int|bytes|list[str,str]]:
 		return []
 
-	def prepareValueForSet(self, rawValue: Any, tagName: str, rawTagName: str, mgTags: mutagen.Tags) -> list|Any|None:
-		return None
-
 	#region "abstract" methods
 	def mapFromRawValue(self, rawValue: Any, tagName: str, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
+		raise NotImplementedError()
+
+	def prepareValueForSet(self, rawValue: Any, tagName: str, rawTagName: str, mgTags: mutagen.Tags) -> list|Any|None:
 		raise NotImplementedError()
 
 	def _getTagType(self) -> str:
@@ -335,12 +335,18 @@ class _vorbisMapper(_tagMapper):
 						return v
 		return []
 
+	def prepareValueForSet(self, rawValue: Any, tagName: str, rawTagName: str, mgTags: mutagen.Tags) -> list|Any|None:
+		# everything just needs to be a string
+		if rawValue is None or isinstance(rawValue, str): return rawValue
+		if isinstance(rawValue, list):
+			return [v if isinstance(v, str) else str(v) for v in rawValue]
+		return str(rawValue)
+
 class _asfMapper(_tagMapper):
 	# for WMA for Track info: Picard only ever writes track number and never writes total, while Mp3tag uses separate tags
 	# for WMA for Disc info: Picard stores values together (e.g. "2/10")
 	#     if either part is missing, whole tag gets left out 😲
 	# while Mp3tag uses separate tags
-	# => when we set or delete one of these, need to make sure we clean up tags we don't want (i.e. Picard's packed ones)
 	_specialTags: list[str] = [ TagNames.DiscNumber, TagNames.DiscCount, ]
 
 	_instance = None
@@ -382,6 +388,14 @@ class _asfMapper(_tagMapper):
 			if dcVal is not None: results.append(dcVal)
 		return results
 
+	def prepareValueForSet(self, rawValue: Any, tagName: str, rawTagName: str, mgTags: mutagen.Tags) -> list|Any|None:
+		# mutagen will actually write integer values as ASFDWordAttribute, which would be more correct,
+		# but Mp3tag really only understands everything as string, so just do that:
+		if rawValue is None or isinstance(rawValue, str): return rawValue
+		if isinstance(rawValue, list):
+			return [v if isinstance(v, str) else str(v) for v in rawValue]
+		return str(rawValue)
+
 	def _getTagType(self) -> str:
 		return _constants.AsfTagType
 
@@ -395,7 +409,6 @@ class _apeV2Mapper(_tagMapper):
 	# for Apev2: Picard stores Track and Disc info together (e.g. "2/10")
 	#     if no Total, then you just get the Track/Disc Number; if Total but no Number, info doesn't get written at all
 	# while Mp3tag uses separate tags
-	# => when we set or delete one of these, need to make sure we clean up tags we don't want (i.e. Picard's packed ones)
 	_specialTags: list[str] = [ TagNames.TrackNumber, TagNames.TrackCount, TagNames.DiscNumber, TagNames.DiscCount, ]
 
 	_instance = None
@@ -447,6 +460,13 @@ class _apeV2Mapper(_tagMapper):
 			dcVal = self._getWmaApeMaybePackedValueSecondPart(_getApeVal(TagNames.DiscCount), lambda: _getApeVal(TagNames.DiscNumber))
 			if dcVal is not None: results.append(dcVal)
 		return results
+
+	def prepareValueForSet(self, rawValue: Any, tagName: str, rawTagName: str, mgTags: mutagen.Tags) -> list|Any|None:
+		# everything just needs to be a string
+		if rawValue is None or isinstance(rawValue, str): return rawValue
+		if isinstance(rawValue, list):
+			return [v if isinstance(v, str) else str(v) for v in rawValue]
+		return str(rawValue)
 
 	def _getTagType(self) -> str:
 		return _constants.ApeV2TagType
