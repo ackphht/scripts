@@ -100,8 +100,8 @@ if [[ "$platform" != "Darwin" ]] && hasCmd apt; then	# macOs (at least version i
 	alias aptxx="${sudoCmd}apt purge"	# removes settings too
 	alias aptl='apt list --installed'
 elif hasCmd dnf; then
-	alias aptr="${sudoCmd}dnf check-update --refresh"
-	alias aptul="${sudoCmd}dnf check-update"	# ???
+	alias aptr="dnf updateinfo --refresh"
+	alias aptul="dnf check-update"	# ???
 	alias aptu="${sudoCmd}dnf upgrade --assumeyes"
 	#alias aptc="${sudoCmd}dnf autoremove --assumeyes --cacheonly && ${sudoCmd}dnf clean all --assumeyes --cacheonly"
 	alias aptc="${sudoCmd}dnf autoremove --assumeyes && ${sudoCmd}dnf clean packages --assumeyes --cacheonly"
