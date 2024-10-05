@@ -9,6 +9,8 @@ from .tagNames import TagNames
 from .tagMapper import _tagMapper
 
 class MusicFileProperties:
+	_noPaddingArgOnSave: set[str] = { "APEv2", }
+
 	def __init__(self, musicFilePath):
 		if isinstance(musicFilePath, str):
 			musicFilePath = pathlib.Path(musicFilePath)
@@ -18,18 +20,14 @@ class MusicFileProperties:
 			musicFilePath = musicFilePath.absolute()
 		self._musicFilePath = musicFilePath
 		self._dirty = False
-		self._mutagen = None
-		self._tinytag = None
-		self._mutagen = mutagen.File(self._musicFilePath)
+		self._mutagen: mutagen.FileType = mutagen.File(self._musicFilePath)
 		self._mapper = _tagMapper.getTagMapper(self._mutagen.tags)
+		self._tagtype = _tagMapper.getTagType(self._mutagen.tags)
 
 	def save(self, removePadding = False) -> bool:
 		if not self._dirty:
 			return False
-		if removePadding:
-			#
-			# TODO: is this padding thing for other types than M4A ?? do we need to check for that ??
-			#
+		if removePadding and self._tagtype not in MusicFileProperties._noPaddingArgOnSave:
 			self._mutagen.save(padding = lambda x: 0)
 		else:
 			self._mutagen.save()
@@ -189,6 +187,10 @@ class MusicFileProperties:
 	def _isSimpleType(value: Any) -> bool:
 		t = type(value)
 		return t is str or t is int or t is bytes
+
+	@property
+	def TagType(self) -> pathlib.Path:
+		return self._tagtype
 
 	@property
 	def HasChanges(self) -> pathlib.Path:
