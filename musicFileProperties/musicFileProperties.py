@@ -90,22 +90,22 @@ class MusicFileProperties:
 	def getTagValueFromNativeName(self, nativeTagName: str) -> list[str|int|bytes|list[str,str]]:
 		val = self._mutagen.tags[nativeTagName] if nativeTagName in self._mutagen.tags else None
 		if val is None: return []
-		return list(self._mapMutagenProperty(val, self._mapper.mapFromRawName(nativeTagName), nativeTagName))
+		return list(self._mapMutagenProperty(val, self._mapper.mapFromNativeName(nativeTagName), nativeTagName))
 
 	def mapToNativeTagName(self, tagName: str) -> list[str]:
-		return self._mapper.mapToRawName(tagName)
+		return self._mapper.mapToNativeName(tagName)
 
 	def setNativeTagValue(self, nativeTagName : str, value : Any) -> None:
-		if self._mapper.mapFromRawName(nativeTagName) == TagNames.Cover:
+		if self._mapper.mapFromNativeName(nativeTagName) == TagNames.Cover:
 			raise NotSupportedError("setting the cover image is not supported (yet??)")
 		#
-		# TODO: name passed here is the "raw" tag name, but method expects mapped name, need to update this somehow; or remove it ???
+		# TODO: name passed here is the "native" tag name, but method expects mapped name, need to update this somehow; or remove it ???
 		#
 		self._setMutagenTag(nativeTagName, value)
 
 	def deleteNativeTagValue(self, nativeTagName : str) -> None:
 		#
-		# TODO: name passed here is the "raw" tag name, but method expects mapped name, need to update this somehow; or remove it ???
+		# TODO: name passed here is the "native" tag name, but method expects mapped name, need to update this somehow; or remove it ???
 		#
 		self._deleteMutagenTag(nativeTagName)
 
@@ -116,7 +116,7 @@ class MusicFileProperties:
 		if self._mapper.isSpecialHandlingTag(tagName):
 			return self._mapper.getSpecialHandlingTagValues(tagName, self._mutagen.tags)
 
-		nativeTagNames = self._mapper.mapToRawName(tagName)
+		nativeTagNames = self._mapper.mapToNativeName(tagName)
 		tagValues: list[tuple[Any, str]] = []
 		for n in nativeTagNames:
 			v = self._mutagen.tags[n] if n in self._mutagen.tags else None
@@ -133,7 +133,7 @@ class MusicFileProperties:
 		return results
 
 	def _setMutagenTag(self, tagName : str, value : Any) -> None:
-		nativeTagNames = self._mapper.mapToRawName(tagName)
+		nativeTagNames = self._mapper.mapToNativeName(tagName)
 		if nativeTagNames is None or len(nativeTagNames) == 0:
 			raise KeyError(f'tag name "{0}" is not mapped: do not know how to set it', tagName)
 
@@ -181,10 +181,10 @@ class MusicFileProperties:
 					elif MusicFileProperties._isSimpleType(v):
 						yield v
 					else:
-						for v2 in self._mapper.mapFromRawValue(v, tagName, nativeTagName):
+						for v2 in self._mapper.mapFromNativeValue(v, tagName, nativeTagName):
 							yield v2
 		else:
-			for v2 in self._mapper.mapFromRawValue(nativeTagValue, tagName, nativeTagName):
+			for v2 in self._mapper.mapFromNativeValue(nativeTagValue, tagName, nativeTagName):
 				yield v2
 
 	@staticmethod
