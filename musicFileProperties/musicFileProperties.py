@@ -84,30 +84,30 @@ class MusicFileProperties:
 			raise NotSupportedError("setting the cover image is not supported (yet??)")
 		return self._setMutagenProperty(tagName, value)
 
-	def getNativeTagValue(self, rawTagName: str) -> list[str|int|Any]|str|Any|None:
-		return self._mutagen.tags[rawTagName] if rawTagName in self._mutagen.tags else None
+	def getNativeTagValue(self, nativeTagName: str) -> list[str|int|Any]|str|Any|None:
+		return self._mutagen.tags[nativeTagName] if nativeTagName in self._mutagen.tags else None
 
-	def getTagValueFromNativeName(self, rawTagName: str) -> list[str|int|bytes|list[str,str]]:
-		val = self._mutagen.tags[rawTagName] if rawTagName in self._mutagen.tags else None
+	def getTagValueFromNativeName(self, nativeTagName: str) -> list[str|int|bytes|list[str,str]]:
+		val = self._mutagen.tags[nativeTagName] if nativeTagName in self._mutagen.tags else None
 		if val is None: return []
-		return list(self._mapMutagenProperty(val, self._mapper.mapFromRawName(rawTagName), rawTagName))
+		return list(self._mapMutagenProperty(val, self._mapper.mapFromRawName(nativeTagName), nativeTagName))
 
 	def mapToNativeTagName(self, tagName: str) -> list[str]:
 		return self._mapper.mapToRawName(tagName)
 
-	def setNativeTagValue(self, rawTagName : str, value : Any) -> None:
-		if self._mapper.mapFromRawName(rawTagName) == TagNames.Cover:
+	def setNativeTagValue(self, nativeTagName : str, value : Any) -> None:
+		if self._mapper.mapFromRawName(nativeTagName) == TagNames.Cover:
 			raise NotSupportedError("setting the cover image is not supported (yet??)")
 		#
 		# TODO: name passed here is the "raw" tag name, but method expects mapped name, need to update this somehow; or remove it ???
 		#
-		self._setMutagenProperty(rawTagName, value)
+		self._setMutagenProperty(nativeTagName, value)
 
-	def deleteNativeTagValue(self, rawTagName : str) -> None:
+	def deleteNativeTagValue(self, nativeTagName : str) -> None:
 		#
 		# TODO: name passed here is the "raw" tag name, but method expects mapped name, need to update this somehow; or remove it ???
 		#
-		self._deleteMutagenProperty(rawTagName)
+		self._deleteMutagenProperty(nativeTagName)
 
 	def removeAllTags(self) -> None:
 		self._mutagen.tags.clear()
@@ -116,9 +116,9 @@ class MusicFileProperties:
 		if self._mapper.isSpecialHandlingTag(tagName):
 			return self._mapper.getSpecialHandlingTagValues(tagName, self._mutagen.tags)
 
-		rawTagNames = self._mapper.mapToRawName(tagName)
+		nativeTagNames = self._mapper.mapToRawName(tagName)
 		tagValues: list[tuple[Any, str]] = []
-		for n in rawTagNames:
+		for n in nativeTagNames:
 			v = self._mutagen.tags[n] if n in self._mutagen.tags else None
 			if v is not None: tagValues.append((v, n))
 		if len(tagValues) == 0: return []
@@ -127,37 +127,37 @@ class MusicFileProperties:
 		# those cached values, which seems like a bad thing; also the list we return may get modified by caller;
 		# so we always create a new list:
 		results = []
-		for rawTagValue,rawTagName in tagValues:
-			for v in self._mapMutagenProperty(rawTagValue, tagName, rawTagName):
+		for nativeTagValue,nativeTagName in tagValues:
+			for v in self._mapMutagenProperty(nativeTagValue, tagName, nativeTagName):
 				results.append(v)
 		return results
 
 	def _setMutagenProperty(self, tagName : str, value : Any) -> None:
-		rawTagNames = self._mapper.mapToRawName(tagName)
-		if rawTagNames is None or len(rawTagNames) == 0:
+		nativeTagNames = self._mapper.mapToRawName(tagName)
+		if nativeTagNames is None or len(nativeTagNames) == 0:
 			raise KeyError(f'tag name "{0}" is not mapped: do not know how to set it', tagName)
 
-		LogHelper.Verbose('setting mutagen property "{0}" (raw tag name(s): "{1}")', tagName, rawTagNames)
+		LogHelper.Verbose('setting mutagen property "{0}" (native tag name(s): "{1}")', tagName, nativeTagNames)
 		if not self._mapper.isSpecialHandlingTag(tagName):
 			# if property is empty/None, delete the property:
 			if value is None or (isinstance(value, str) or isinstance(value, list)) and len(value) == 0:
-				LogHelper.Verbose('value for tag "{0}" is None or empty: removing raw tag(s) "{1}"', tagName, rawTagNames)
-				for t in rawTagNames:
+				LogHelper.Verbose('value for tag "{0}" is None or empty: removing native tag(s) "{1}"', tagName, nativeTagNames)
+				for t in nativeTagNames:
 					if t in self._mutagen.tags:
 						del self._mutagen.tags[t]
 						self._dirty = True
 				return
 
-		# we're only going to set the first rawTagName from the mapping; if there are others, remove them:
-		for idx in range(0, len(rawTagNames)):
-			t = rawTagNames[idx]
+		# we're only going to set the first nativeTagName from the mapping; if there are others, remove them:
+		for idx in range(0, len(nativeTagNames)):
+			t = nativeTagNames[idx]
 			delete = True
 			if idx == 0:
 				LogHelper.Verbose('getting wrapped value for tag "{0}"', t)
-				rawValues = self._mapper.prepareValueForSet(value, tagName, t, self._mutagen.tags)
-				if rawValues is not None and ((not isinstance(rawValues, list) and not isinstance(rawValues, str)) or len(rawValues) > 0):
+				nativeValues = self._mapper.prepareValueForSet(value, tagName, t, self._mutagen.tags)
+				if nativeValues is not None and ((not isinstance(nativeValues, list) and not isinstance(nativeValues, str)) or len(nativeValues) > 0):
 					LogHelper.Verbose('setting tag "{0}"', t)
-					self._mutagen[t] = rawValues
+					self._mutagen[t] = nativeValues
 					self._dirty = True
 					delete = False
 			if delete:
@@ -169,22 +169,22 @@ class MusicFileProperties:
 	def _deleteMutagenProperty(self, tagName : str) -> None:
 		self._setMutagenProperty(tagName, None)
 
-	def _mapMutagenProperty(self, rawTagValue: Any, tagName: str, rawTagName: str) -> Iterable[str|int|bytes|list[str,str]]:
-		if MusicFileProperties._isSimpleType(rawTagValue):
-			yield rawTagValue
-		elif isinstance(rawTagValue, list):
-			if len(rawTagValue) > 0:
+	def _mapMutagenProperty(self, nativeTagValue: Any, tagName: str, nativeTagName: str) -> Iterable[str|int|bytes|list[str,str]]:
+		if MusicFileProperties._isSimpleType(nativeTagValue):
+			yield nativeTagValue
+		elif isinstance(nativeTagValue, list):
+			if len(nativeTagValue) > 0:
 				# can we get a list of lists ???
-				for v in rawTagValue:
+				for v in nativeTagValue:
 					if v is None:
 						continue
 					elif MusicFileProperties._isSimpleType(v):
 						yield v
 					else:
-						for v2 in self._mapper.mapFromRawValue(v, tagName, rawTagName):
+						for v2 in self._mapper.mapFromRawValue(v, tagName, nativeTagName):
 							yield v2
 		else:
-			for v2 in self._mapper.mapFromRawValue(rawTagValue, tagName, rawTagName):
+			for v2 in self._mapper.mapFromRawValue(nativeTagValue, tagName, nativeTagName):
 				yield v2
 
 	@staticmethod
