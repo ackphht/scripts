@@ -6,7 +6,7 @@ from typing import Any, List, Iterator
 from tabulate import tabulate	# https://pypi.org/project/tabulate/
 from operator import attrgetter
 
-from ackPyHelpers import LogHelper
+from ackPyHelpers import LogHelper, FileHelpers
 from musicFileProperties import MusicFileProperties, TagNames
 
 _musicAttributesDbPath = pathlib.Path(os.path.expandvars("%UserProfile%/Music/MyMusic/musicAttributes.sqlite"))#.resolve()
@@ -204,6 +204,7 @@ class ApprovedTagsList:
 			yield v
 
 class MusicFolderHandler:
+	_supportedFileTypesGlob: list[str] = ["*.m4a", "*.wma", "*.flac", "*.ogg", "*.oga", "*.opus", "*.ape",]	# "*.mp3", "*.wav",]
 	_disableWriteAccess = (stat.S_ISUID|stat.S_ISGID|stat.S_ISVTX|stat.S_IRWXU|stat.S_IRWXG|stat.S_IRWXO) ^ (stat.S_IWRITE|stat.S_IWGRP|stat.S_IWOTH)
 	_commentsProducerRegex = re.compile(r"produce(r|d)", re.IGNORECASE)
 	_composerRegex = re.compile(r"\s*(;|/)\s*")
@@ -251,10 +252,10 @@ class MusicFolderHandler:
 			self._targetFolderPath = renamedFolder
 		self._cleanUpFilenames(self._targetFolderPath)
 
-		#
-		# TODO: this needs updating to not just be m4a...
-		#
-		for tf in self._targetFolderPath.glob("*.m4a"):
+		for tf in FileHelpers.MultiGlob(self._targetFolderPath, MusicFolderHandler._supportedFileTypesGlob):
+			#
+			# TODO: this needs updating to look for any supported types, not just same one as original...
+			#
 			sf = self._sourceFolderPath / tf.name
 			if not sf.is_file():
 				LogHelper.Warning(f"no source file found for file '{tf.name}'")
@@ -269,10 +270,7 @@ class MusicFolderHandler:
 			self._folderPath = renamedFolder
 		self._cleanUpFilenames(self._folderPath)
 
-		#
-		# TODO: this needs updating to not just be m4a...
-		#
-		for f in self._folderPath.glob("*.m4a"):
+		for f in FileHelpers.MultiGlob(self._folderPath, MusicFolderHandler._supportedFileTypesGlob):
 			mf = MusicFileProperties(f)
 			self._cleanFile(mf)
 
@@ -561,10 +559,7 @@ class MusicFolderHandler:
 
 	def _cleanUpFilenames(self, folderPath : pathlib.Path):
 		# check all the file names for funky characters and rename them
-		#
-		# TODO: this needs updating to not just be m4a...
-		#
-		for f in folderPath.glob("*.m4a"):
+		for f in FileHelpers.MultiGlob(folderPath, MusicFolderHandler._supportedFileTypesGlob):
 			filename = f.name
 			if MusicFolderHandler._hasBadChars(filename):
 				filename = MusicFolderHandler._fixBadChars(filename)
@@ -576,10 +571,7 @@ class MusicFolderHandler:
 
 	def _createPlaylist(self):
 		entries = []; isFirst = True; albumTitle = ''; albumArtist = ''
-		#
-		# TODO: this needs updating to not just be m4a...
-		#
-		for f in self._folderPath.glob("*.m4a"):
+		for f in FileHelpers.MultiGlob(self._folderPath, MusicFolderHandler._supportedFileTypesGlob):
 			mf = MusicFileProperties(f)
 			if isFirst:
 				albumTitle = self._playlistName if self._playlistName else mf.AlbumTitle
@@ -851,18 +843,11 @@ def showFolderPropertiesCommand(args : argparse.Namespace):
 		return
 	headers = ['Filename', 'AlbumTitle', 'TrackArtist', 'TrackTitle', 'Year']
 	results = []
-	#
-	# TODO: this probably needs updating to not just be m4a/wma...
-	#
-	for f in folder.glob('*.m4a'):
+	for f in FileHelpers.MultiGlob(folder, MusicFolderHandler._supportedFileTypesGlob):
 		props = MusicFileProperties(f)
 		results.append([f.name, props.AlbumTitle, props.TrackArtist, props.TrackTitle, props.Year])
 		props = None
-	for f in folder.glob('*.wma'):
-		props = MusicFileProperties(f)
-		results.append([f.name, props.AlbumTitle, props.TrackArtist, props.TrackTitle, props.Year])
-		props = None
-	print(tabulate(results, headers=headers, tablefmt=_defaultTableFormat))
+	print(tabulate(sorted(results, key=lambda r: r[0]), headers=headers, tablefmt=_defaultTableFormat))
 
 def showFilePropertiesCommand(args : argparse.Namespace):
 	LogHelper.Init()
