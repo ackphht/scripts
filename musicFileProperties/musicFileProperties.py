@@ -36,23 +36,10 @@ class MusicFileProperties:
 		return True
 
 	def getTagValues(self) -> Iterator[tuple[str, Any]]:
-		#
-		# TODO: this should just go through TagNames and try getting each one
-		#
-		yield ("AlbumArtist", self.AlbumArtist)
-		yield ("AlbumTitle", self.AlbumTitle)
-		yield ("TrackArtist", self.TrackArtist)
-		yield ("TrackTitle", self.TrackTitle)
-		yield ("Year", self.Year)
-		yield ("Composer", self.Composer)
-		yield ("Lyricist", self.Lyricist)
-		yield ("Producer", self.Producer)
-		yield ("TrackNumber", self.TrackNumber)
-		yield ("TotalTracks", self.TotalTracks)
-		yield ("DiscNumber", self.DiscNumber)
-		yield ("TotalDiscs", self.TotalDiscs)
-		yield ("Genre", self.Genre)
-		yield ("Comments", self.Comments)
+		for tn in filter(lambda t: not t.startswith("_"), dir(TagNames)):
+			val = self.getTagValue(tn)
+			if not MusicFileProperties._isEmptyValue(val):
+				yield (tn, val)
 
 	def getNativeTagValues(self) -> Iterator[tuple[str, Any]]:
 		yield ('$$TagType', self._mutagen.tags.__class__.__name__)
