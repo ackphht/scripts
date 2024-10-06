@@ -134,13 +134,16 @@ class MusicFileProperties:
 
 	def _setMutagenTag(self, tagName : str, value : Any) -> None:
 		nativeTagNames = self._mapper.mapToNativeName(tagName)
-		if nativeTagNames is None or len(nativeTagNames) == 0:
-			raise KeyError(f'tag name "{0}" is not mapped: do not know how to set it', tagName)
+		if MusicFileProperties._isEmptyValue(nativeTagNames):
+			if not MusicFileProperties._isEmptyValue(value):
+				raise KeyError(f'tag name "{0}" is not mapped: do not know how to set it', tagName)
+			LogHelper.Verbose('no mapping native tag name(s) found for tagName = "{0}"', tagName)
+			return
 
 		LogHelper.Verbose('setting mutagen property "{0}" (native tag name(s): "{1}")', tagName, nativeTagNames)
 		if not self._mapper.isSpecialHandlingTag(tagName):
 			# if property is empty/None, delete the property:
-			if value is None or (isinstance(value, str) or isinstance(value, list)) and len(value) == 0:
+			if MusicFileProperties._isEmptyValue(value):
 				LogHelper.Verbose('value for tag "{0}" is None or empty: removing native tag(s) "{1}"', tagName, nativeTagNames)
 				for t in nativeTagNames:
 					if t in self._mutagen.tags:
@@ -155,7 +158,7 @@ class MusicFileProperties:
 			if idx == 0:
 				LogHelper.Verbose('getting wrapped value for tag "{0}"', t)
 				nativeValues = self._mapper.prepareValueForSet(value, tagName, t, self._mutagen.tags)
-				if nativeValues is not None and ((not isinstance(nativeValues, list) and not isinstance(nativeValues, str)) or len(nativeValues) > 0):
+				if not MusicFileProperties._isEmptyValue(nativeValues):
 					LogHelper.Verbose('setting tag "{0}"', t)
 					self._mutagen[t] = nativeValues
 					self._dirty = True
@@ -191,6 +194,10 @@ class MusicFileProperties:
 	def _isSimpleType(value: Any) -> bool:
 		t = type(value)
 		return t is str or t is int or t is bytes
+
+	@staticmethod
+	def _isEmptyValue(value: Any) -> bool:
+		return value is None or ((isinstance(value, list) or isinstance(value, str)) and len(value) == 0)
 
 	@property
 	def TagType(self) -> pathlib.Path:
