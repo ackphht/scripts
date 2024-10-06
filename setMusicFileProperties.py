@@ -1,13 +1,13 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import os, pathlib, datetime, re, argparse, stat, sqlite3
+import os, sys, pathlib, datetime, re, argparse, stat, sqlite3
 from typing import Any, List, Iterator
 from tabulate import tabulate	# https://pypi.org/project/tabulate/
 from operator import attrgetter
 
 from ackPyHelpers import LogHelper
-from musicFileProperties import MusicFileProperties, Mp4TagNames
+from musicFileProperties import MusicFileProperties, TagNames
 
 _musicAttributesDbPath = pathlib.Path(os.path.expandvars("%UserProfile%/Music/MyMusic/musicAttributes.sqlite"))#.resolve()
 _defaultTableFormat = "presto"#"simple"
@@ -115,8 +115,10 @@ class DbRowHelper:
 
 class PlaylistEntry:
 	def __init__(self, mf : MusicFileProperties, filename : str):
-		self.discNumber = mf.DiscNumber if mf.DiscNumber else 0
-		self.trackNumber = mf.TrackNumber if mf.TrackNumber else 0
+		tmp = mf.DiscNumber
+		self.discNumber = tmp if tmp else 0
+		tmp = mf.TrackNumber
+		self.trackNumber = tmp if tmp else 0
 		self.trackArtist = mf.TrackArtist
 		self.trackTitle = mf.TrackTitle
 		self.filename = filename
@@ -125,68 +127,70 @@ class PlaylistEntry:
 class ApprovedTagsList:
 	def __init__(self) -> None:
 		self._tags = {
-			Mp4TagNames.AlbumTitle.upper(): Mp4TagNames.AlbumTitle,
-			Mp4TagNames.TrackTitle.upper(): Mp4TagNames.TrackTitle,
-			Mp4TagNames.AlbumArtist.upper(): Mp4TagNames.AlbumArtist,
-			Mp4TagNames.TrackArtist.upper(): Mp4TagNames.TrackArtist,
-			Mp4TagNames.Year.upper(): Mp4TagNames.Year,
-			Mp4TagNames.Composer.upper(): Mp4TagNames.Composer,
-			Mp4TagNames.Comment.upper(): Mp4TagNames.Comment,
-			Mp4TagNames.TrackNumber.upper(): Mp4TagNames.TrackNumber,
-			Mp4TagNames.DiscNumber.upper(): Mp4TagNames.DiscNumber,
-			Mp4TagNames.Copyright.upper(): Mp4TagNames.Copyright,
-			Mp4TagNames.Conductor.upper(): Mp4TagNames.Conductor,
-			Mp4TagNames.Lyrics.upper(): Mp4TagNames.Lyrics,
-			Mp4TagNames.Writer.upper(): Mp4TagNames.Writer,
-			Mp4TagNames.Producer.upper(): Mp4TagNames.Producer,
-			Mp4TagNames.Engineer.upper(): Mp4TagNames.Engineer,
-			Mp4TagNames.Mixer.upper(): Mp4TagNames.Mixer,
-			Mp4TagNames.ReMixer.upper(): Mp4TagNames.ReMixer,
-			Mp4TagNames.Arranger.upper(): Mp4TagNames.Arranger,
-			Mp4TagNames.Publisher.upper(): Mp4TagNames.Publisher,
-			Mp4TagNames.Lyricist.upper(): Mp4TagNames.Lyricist,
-			Mp4TagNames.Language.upper(): Mp4TagNames.Language,
-			Mp4TagNames.OriginalAlbum.upper(): Mp4TagNames.OriginalAlbum,
-			Mp4TagNames.OriginalArtist.upper(): Mp4TagNames.OriginalArtist,
-			Mp4TagNames.OriginalYear.upper(): Mp4TagNames.OriginalYear,
-			Mp4TagNames.ReplayGainTrackGain.upper(): Mp4TagNames.ReplayGainTrackGain,
-			Mp4TagNames.ReplayGainTrackPeak.upper(): Mp4TagNames.ReplayGainTrackPeak,
-			Mp4TagNames.ReplayGainAlbumGain.upper(): Mp4TagNames.ReplayGainAlbumGain,
-			Mp4TagNames.ReplayGainAlbumPeak.upper(): Mp4TagNames.ReplayGainAlbumPeak,
-			Mp4TagNames.MusicBrainzDiscId.upper(): Mp4TagNames.MusicBrainzDiscId,
-			Mp4TagNames.MusicBrainzAlbumId.upper(): Mp4TagNames.MusicBrainzAlbumId,
-			Mp4TagNames.MusicBrainzArtistId.upper(): Mp4TagNames.MusicBrainzArtistId,
-			Mp4TagNames.MusicBrainzAlbumArtistId.upper(): Mp4TagNames.MusicBrainzAlbumArtistId,
-			Mp4TagNames.MusicBrainzTrackId.upper(): Mp4TagNames.MusicBrainzTrackId,
-			Mp4TagNames.MusicBrainzRecordingId.upper(): Mp4TagNames.MusicBrainzRecordingId,
-			Mp4TagNames.MusicBrainzReleaseCountry.upper(): Mp4TagNames.MusicBrainzReleaseCountry,
-			Mp4TagNames.MusicBrainzReleaseGroupId.upper(): Mp4TagNames.MusicBrainzReleaseGroupId,
-			Mp4TagNames.MusicBrainzReleaseType.upper(): Mp4TagNames.MusicBrainzReleaseType,
-			Mp4TagNames.MusicBrainzReleaseStatus.upper(): Mp4TagNames.MusicBrainzReleaseStatus,
-			Mp4TagNames.Mp3tagMediaType.upper(): Mp4TagNames.Mp3tagMediaType,
-			Mp4TagNames.MusicBrainzMediaType.upper(): Mp4TagNames.MusicBrainzMediaType,
-			Mp4TagNames.MusicBrainzWorkId.upper(): Mp4TagNames.MusicBrainzWorkId,
-			Mp4TagNames.WorkTitle.upper(): Mp4TagNames.WorkTitle,
-			Mp4TagNames.AcoustId.upper(): Mp4TagNames.AcoustId,
-			Mp4TagNames.Isrc.upper(): Mp4TagNames.Isrc,
-			Mp4TagNames.Barcode.upper(): Mp4TagNames.Barcode,
-			Mp4TagNames.CatalogNumber.upper(): Mp4TagNames.CatalogNumber,
-			Mp4TagNames.Asin.upper(): Mp4TagNames.Asin,
-			Mp4TagNames.Label.upper(): Mp4TagNames.Label,
-			Mp4TagNames.MusicianCredits.upper(): Mp4TagNames.MusicianCredits,
-			Mp4TagNames.InvolvedPeople.upper(): Mp4TagNames.InvolvedPeople,
-			Mp4TagNames.DigitalPurchaseFrom.upper(): Mp4TagNames.DigitalPurchaseFrom,
-			Mp4TagNames.DigitalPurchaseDate.upper(): Mp4TagNames.DigitalPurchaseDate,
-			Mp4TagNames.DigitalPurchaseId.upper(): Mp4TagNames.DigitalPurchaseId,
-			Mp4TagNames.Recorded.upper(): Mp4TagNames.Recorded,
-			Mp4TagNames.Released.upper(): Mp4TagNames.Released,
-			Mp4TagNames.AllMusicArtistId.upper(): Mp4TagNames.AllMusicArtistId,
-			Mp4TagNames.AllMusicAlbumId.upper(): Mp4TagNames.AllMusicAlbumId,
-			Mp4TagNames.WikidataArtistId.upper(): Mp4TagNames.WikidataArtistId,
-			Mp4TagNames.WikidataAlbumId.upper(): Mp4TagNames.WikidataAlbumId,
-			Mp4TagNames.WikipediaArtistId.upper(): Mp4TagNames.WikipediaArtistId,
-			Mp4TagNames.WikipediaAlbumId.upper(): Mp4TagNames.WikipediaAlbumId,
-			Mp4TagNames.ImdbArtistId.upper(): Mp4TagNames.ImdbArtistId,
+			TagNames.AlbumTitle.upper(): TagNames.AlbumTitle,
+			TagNames.TrackTitle.upper(): TagNames.TrackTitle,
+			TagNames.AlbumArtist.upper(): TagNames.AlbumArtist,
+			TagNames.TrackArtist.upper(): TagNames.TrackArtist,
+			TagNames.YearReleased.upper(): TagNames.YearReleased,
+			TagNames.Composer.upper(): TagNames.Composer,
+			TagNames.Comment.upper(): TagNames.Comment,
+			TagNames.TrackNumber.upper(): TagNames.TrackNumber,
+			TagNames.DiscNumber.upper(): TagNames.DiscNumber,
+			TagNames.Copyright.upper(): TagNames.Copyright,
+			TagNames.Conductor.upper(): TagNames.Conductor,
+			TagNames.Lyrics.upper(): TagNames.Lyrics,
+			TagNames.Writer.upper(): TagNames.Writer,
+			TagNames.Producer.upper(): TagNames.Producer,
+			TagNames.Engineer.upper(): TagNames.Engineer,
+			TagNames.MixedBy.upper(): TagNames.MixedBy,
+			TagNames.RemixedBy.upper(): TagNames.RemixedBy,
+			TagNames.Arranger.upper(): TagNames.Arranger,
+			TagNames.RecordLabel.upper(): TagNames.RecordLabel,
+			TagNames.Lyricist.upper(): TagNames.Lyricist,
+			TagNames.Language.upper(): TagNames.Language,
+			TagNames.OriginalAlbumTitle.upper(): TagNames.OriginalAlbumTitle,
+			TagNames.OriginalArtist.upper(): TagNames.OriginalArtist,
+			TagNames.OriginalReleaseYear.upper(): TagNames.OriginalReleaseYear,
+			TagNames.ReplayGainTrackGain.upper(): TagNames.ReplayGainTrackGain,
+			TagNames.ReplayGainTrackPeak.upper(): TagNames.ReplayGainTrackPeak,
+			TagNames.ReplayGainAlbumGain.upper(): TagNames.ReplayGainAlbumGain,
+			TagNames.ReplayGainAlbumPeak.upper(): TagNames.ReplayGainAlbumPeak,
+			TagNames.MusicBrainzDiscId.upper(): TagNames.MusicBrainzDiscId,
+			TagNames.MusicBrainzAlbumId.upper(): TagNames.MusicBrainzAlbumId,
+			TagNames.MusicBrainzTrackArtistId.upper(): TagNames.MusicBrainzTrackArtistId,
+			TagNames.MusicBrainzAlbumArtistId.upper(): TagNames.MusicBrainzAlbumArtistId,
+			TagNames.MusicBrainzTrackId.upper(): TagNames.MusicBrainzTrackId,
+			TagNames.MusicBrainzTrackId.upper(): TagNames.MusicBrainzTrackId,
+			TagNames.MusicBrainzAlbumReleaseCountry.upper(): TagNames.MusicBrainzAlbumReleaseCountry,
+			TagNames.MusicBrainzReleaseGroupId.upper(): TagNames.MusicBrainzReleaseGroupId,
+			TagNames.MusicBrainzReleaseType.upper(): TagNames.MusicBrainzReleaseType,
+			TagNames.MusicBrainzReleaseStatus.upper(): TagNames.MusicBrainzReleaseStatus,
+			TagNames.MediaType.upper(): TagNames.MediaType,
+			TagNames.MusicBrainzWorkId.upper(): TagNames.MusicBrainzWorkId,
+			TagNames.WorkTitle.upper(): TagNames.WorkTitle,
+			TagNames.AcoustidId.upper(): TagNames.AcoustidId,
+			TagNames.ISRC.upper(): TagNames.ISRC,
+			TagNames.Barcode.upper(): TagNames.Barcode,
+			TagNames.CatalogNumber.upper(): TagNames.CatalogNumber,
+			TagNames.AmazonId.upper(): TagNames.AmazonId,
+			TagNames.RecordLabel.upper(): TagNames.RecordLabel,
+			TagNames.MusicianCredits.upper(): TagNames.MusicianCredits,
+			TagNames.InvolvedPeople.upper(): TagNames.InvolvedPeople,
+			TagNames.DigitalPurchaseFrom.upper(): TagNames.DigitalPurchaseFrom,
+			TagNames.DigitalPurchaseDate.upper(): TagNames.DigitalPurchaseDate,
+			TagNames.DigitalPurchaseId.upper(): TagNames.DigitalPurchaseId,
+			TagNames.RecordedDate.upper(): TagNames.RecordedDate,
+			TagNames.ReleasedDate.upper(): TagNames.ReleasedDate,
+			TagNames.AllMusicArtistId.upper(): TagNames.AllMusicArtistId,
+			TagNames.AllMusicAlbumId.upper(): TagNames.AllMusicAlbumId,
+			TagNames.WikidataArtistId.upper(): TagNames.WikidataArtistId,
+			TagNames.WikidataAlbumId.upper(): TagNames.WikidataAlbumId,
+			TagNames.WikipediaArtistId.upper(): TagNames.WikipediaArtistId,
+			TagNames.WikipediaAlbumId.upper(): TagNames.WikipediaAlbumId,
+			TagNames.IMDbArtistId.upper(): TagNames.IMDbArtistId,
+			# opus file's realplay gain names; don't think we need these in TagNames (??)
+			"R128_ALBUM_GAIN": "R128_ALBUM_GAIN",
+			"R128_TRACK_GAIN": "R128_TRACK_GAIN",
 		}
 
 	def __len__(self) -> int:
@@ -200,6 +204,7 @@ class ApprovedTagsList:
 			yield v
 
 class MusicFolderHandler:
+	_disableWriteAccess = (stat.S_ISUID|stat.S_ISGID|stat.S_ISVTX|stat.S_IRWXU|stat.S_IRWXG|stat.S_IRWXO) ^ (stat.S_IWRITE|stat.S_IWGRP|stat.S_IWOTH)
 	_commentsProducerRegex = re.compile(r"produce(r|d)", re.IGNORECASE)
 	_composerRegex = re.compile(r"\s*(;|/)\s*")
 	_badCharsRegex = re.compile(r"[‘’“”\u2014\u2013\u2010]")
@@ -224,6 +229,7 @@ class MusicFolderHandler:
 		self._enableSimpleLookup = enableSimpleLookup
 		self._whatIf = whatIf
 
+#	@deprecated("we're not using this any more, right?")
 	def SetFolderFilesFromDb(self):
 		renamedFolder = self._cleanUpFolderName(self._folderPath)
 		if renamedFolder:
@@ -245,6 +251,9 @@ class MusicFolderHandler:
 			self._targetFolderPath = renamedFolder
 		self._cleanUpFilenames(self._targetFolderPath)
 
+		#
+		# TODO: this needs updating to not just be m4a...
+		#
 		for tf in self._targetFolderPath.glob("*.m4a"):
 			sf = self._sourceFolderPath / tf.name
 			if not sf.is_file():
@@ -260,6 +269,9 @@ class MusicFolderHandler:
 			self._folderPath = renamedFolder
 		self._cleanUpFilenames(self._folderPath)
 
+		#
+		# TODO: this needs updating to not just be m4a...
+		#
 		for f in self._folderPath.glob("*.m4a"):
 			mf = MusicFileProperties(f)
 			self._cleanFile(mf)
@@ -276,58 +288,62 @@ class MusicFolderHandler:
 				LogHelper.Verbose(f'saving change to file "{musicFile.FilePath.name}"')
 			else:
 				LogHelper.Message(f'saving change to file "{musicFile.FilePath.name}"')
-			os.chmod(musicFile.FilePath, stat.S_IWRITE)		# make sure it's NOT readonly
+			musicFile.FilePath.chmod(musicFile.FilePath.stat().st_mode | stat.S_IWRITE)		# make sure it's NOT readonly
 			if ignoreOnlyTimestamp or not self._onlyTimestamp:
 				musicFile.save(True)
 			os.utime(musicFile.FilePath, (originalLastAccessTime, originalLastModTime))
-			os.chmod(musicFile.FilePath, stat.S_IREAD)		# now make sure it IS readonly
+			musicFile.FilePath.chmod(musicFile.FilePath.stat().st_mode & MusicFolderHandler._disableWriteAccess)		# now make sure it IS readonly
 
 	def _copyFileProperties(self, targetMusicFile : MusicFileProperties, sourceMusicFile : MusicFileProperties, forceOverwrite: bool = False):
 		lastModTime = os.path.getmtime(sourceMusicFile.FilePath)
 		currLastAccessTime = os.path.getatime(targetMusicFile.FilePath)
 		self._cleanJunkProperties(targetMusicFile)
 
-		targetMusicFile.AlbumTitle = sourceMusicFile.AlbumTitle
-		targetMusicFile.TrackTitle = sourceMusicFile.TrackTitle
-		targetMusicFile.AlbumArtist = sourceMusicFile.AlbumArtist
-		targetMusicFile.TrackArtist = sourceMusicFile.TrackArtist
-		targetMusicFile.Year = sourceMusicFile.Year
-		targetMusicFile.Conductor = sourceMusicFile.Conductor
-		targetMusicFile.Copyright = sourceMusicFile.Copyright
-		targetMusicFile.Publisher = sourceMusicFile.Publisher
-		targetMusicFile.OriginalArtist = sourceMusicFile.OriginalArtist
-		targetMusicFile.OriginalAlbum = sourceMusicFile.OriginalAlbum
-		targetMusicFile.OriginalYear = sourceMusicFile.OriginalYear
-		targetMusicFile.Lyrics = sourceMusicFile.Lyrics
-		targetMusicFile.Composer = sourceMusicFile.Composer
-		targetMusicFile.Producer = sourceMusicFile.Producer
-		targetMusicFile.Comments = sourceMusicFile.Comments
-		targetMusicFile.TrackNumber = sourceMusicFile.TrackNumber
-		targetMusicFile.TotalTracks = sourceMusicFile.TotalTracks
-		targetMusicFile.DiscNumber = sourceMusicFile.DiscNumber
-		targetMusicFile.TotalDiscs = sourceMusicFile.TotalDiscs
-		# tags i haven't or don't want to make properties for:
-		self._copyTag(Mp4TagNames.Recorded, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.Released, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.MusicianCredits, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.Lyricist, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.Engineer, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.Mixer, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.Arranger, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.DigitalPurchaseFrom, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.DigitalPurchaseDate, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.DigitalPurchaseId, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.AllMusicArtistId, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.AllMusicAlbumId, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.WikidataArtistId, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.WikidataAlbumId, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.WikipediaArtistId, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.WikipediaAlbumId, sourceMusicFile, targetMusicFile)
-		self._copyTag(Mp4TagNames.ImdbArtistId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.AlbumTitle, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.TrackTitle, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.AlbumArtist, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.TrackArtist, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.YearReleased, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Conductor, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Copyright, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.RecordLabel, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Lyrics, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Composer, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Producer, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Comment, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.TrackNumber, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.TrackCount, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.DiscNumber, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.DiscCount, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.OriginalArtist, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.OriginalAlbumTitle, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.OriginalReleaseYear, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.RecordedDate, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.ReleasedDate, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicianCredits, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Lyricist, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Engineer, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MixedBy, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Arranger, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.DigitalPurchaseFrom, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.DigitalPurchaseDate, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.DigitalPurchaseId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.AllMusicArtistId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.AllMusicAlbumId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.WikidataArtistId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.WikidataAlbumId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.WikipediaArtistId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.WikipediaAlbumId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.IMDbArtistId, sourceMusicFile, targetMusicFile)
 
 		self._saveFile(targetMusicFile, lastModTime, currLastAccessTime, False, True)
 
+#	@deprecated("we're not using this any more, right?")
 	def _setMusicFileFromDb(self, musicFile : MusicFileProperties, sqliteConn : sqlite3.Connection):
+		#
+		# this should be updated, if we ever use it again...; or just get rid of it...
+		___obsolete___
+		#
 		lastModTime = os.path.getmtime(musicFile.FilePath)
 		currLastAccessTime = os.path.getatime(musicFile.FilePath)
 
@@ -369,7 +385,12 @@ class MusicFolderHandler:
 
 		self._saveFile(musicFile, lastModTime, currLastAccessTime, True, False)
 
+#	@deprecated("we're not using this any more, right?")
 	def _setFileProperties(self, musicFile : MusicFileProperties, dbRow : DbRowHelper):
+		#
+		# this should be updated, if we ever use it again...; or just get rid of it...
+		___obsolete___
+		#
 		LogHelper.Verbose(f"setting properties on file '{musicFile.FilePath.stem}'")
 		if dbRow.AlbumTitle:
 			at = MusicFolderHandler._addFancyChars(dbRow.AlbumTitle)
@@ -477,44 +498,44 @@ class MusicFolderHandler:
 		self._saveFile(musicFile, lastModTime, currLastAccessTime, False, True)
 
 	def _cleanJunkProperties(self, musicFile : MusicFileProperties):
-		musicFile.deleteRawProperty(Mp4TagNames.iTunSMPB)
-		musicFile.deleteRawProperty(Mp4TagNames.Genre)
-		musicFile.deleteRawProperty(Mp4TagNames.Cover)
-		musicFile.deleteRawProperty(Mp4TagNames.Encoder)
-		musicFile.deleteRawProperty(Mp4TagNames.Codec)
-		musicFile.deleteRawProperty(Mp4TagNames.EncodedBy)
-		musicFile.deleteRawProperty(Mp4TagNames.Source)
-		musicFile.deleteRawProperty(Mp4TagNames.RippingTool)
-		musicFile.deleteRawProperty(Mp4TagNames.RipDate)
-		musicFile.deleteRawProperty(Mp4TagNames.RelaseType)
-		musicFile.deleteRawProperty(Mp4TagNames.EncodingSettings)
-		musicFile.deleteRawProperty(Mp4TagNames.Upc)
-		musicFile.deleteRawProperty(Mp4TagNames.Rating)
-		musicFile.deleteRawProperty(Mp4TagNames.Script)
-		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzMediaArtists)
-		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzPerformerFromConvert)
-		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzOriginalYearFromConvert)
-		musicFile.deleteRawProperty(Mp4TagNames.MusicBrainzOriginalDateFromConvert)
-		musicFile.deleteRawProperty(Mp4TagNames.AlbumTitleSort)
-		musicFile.deleteRawProperty(Mp4TagNames.TrackTitleSort)
-		musicFile.deleteRawProperty(Mp4TagNames.AlbumArtistSort)
-		musicFile.deleteRawProperty(Mp4TagNames.TrackArtistSort)
-		musicFile.deleteRawProperty(Mp4TagNames.ComposerSort)
+		musicFile.deleteTag(TagNames.iTunSMPB)
+		musicFile.deleteTag(TagNames.Genre)
+		musicFile.deleteTag(TagNames.Cover)
+		musicFile.deleteTag(TagNames.Encoder)
+		musicFile.deleteTag(TagNames.Codec)
+		musicFile.deleteTag(TagNames.EncodedBy)
+		musicFile.deleteTag(TagNames.Source)
+		musicFile.deleteTag(TagNames.RippingTool)
+		musicFile.deleteTag(TagNames.RipDate)
+		musicFile.deleteTag(TagNames.MusicBrainzReleaseType)
+		musicFile.deleteTag(TagNames.EncodingSettings)
+		musicFile.deleteTag(TagNames.UPC)
+		musicFile.deleteTag(TagNames.Rating)
+		musicFile.deleteTag(TagNames.Script)
+		musicFile.deleteTag(TagNames.Artists)
+		musicFile.deleteTag(TagNames.Performer)
+		#musicFile.deleteTag(TagNames.OriginalReleaseDate)		# think we've got a conflict with names from Picard and what i'm adding in Mp3tag ??
+		#musicFile.deleteTag(TagNames.OriginalReleaseYear)
+		musicFile.deleteTag(TagNames.AlbumTitleSort)
+		musicFile.deleteTag(TagNames.TrackTitleSort)
+		musicFile.deleteTag(TagNames.AlbumArtistSort)
+		musicFile.deleteTag(TagNames.TrackArtistSort)
+		musicFile.deleteTag(TagNames.ComposerSort)
 
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzMediaReleaseTypeFromConvert, Mp4TagNames.MusicBrainzReleaseType, musicFile)
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzReleaseStatusFromConvert, Mp4TagNames.MusicBrainzReleaseStatus, musicFile)
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzReleaseCountryFromConvert, Mp4TagNames.MusicBrainzReleaseCountry, musicFile)
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzWorkIdFromConvert, Mp4TagNames.MusicBrainzWorkId, musicFile)
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzRecordingIdFromConvert, Mp4TagNames.MusicBrainzRecordingId, musicFile)
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzTrackIdFromConvert, Mp4TagNames.MusicBrainzTrackId, musicFile)
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzReleaseGroupIdFromConvert, Mp4TagNames.MusicBrainzReleaseGroupId, musicFile)
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzDiscIdFromConvert, Mp4TagNames.MusicBrainzDiscId, musicFile)
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzArtistIdFromConvert, Mp4TagNames.MusicBrainzArtistId, musicFile)
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzAlbumIdFromConvert, Mp4TagNames.MusicBrainzAlbumId, musicFile)
-		MusicFolderHandler._renameTag(Mp4TagNames.MusicBrainzAlbumArtistIdFromConvert, Mp4TagNames.MusicBrainzAlbumArtistId, musicFile)
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzReleaseType, musicFile)	# we're deleting this one above ???
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzReleaseStatus, musicFile)
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumReleaseCountry, musicFile)
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzWorkId, musicFile)
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzTrackId, musicFile)
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzReleaseTrackId, musicFile)
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzReleaseGroupId, musicFile)
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzDiscId, musicFile)
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzTrackArtistId, musicFile)
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumId, musicFile)
+		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumArtistId, musicFile)
 
 		unexpectedTags = []
-		for t,v in musicFile.getRawProperties():
+		for t,v in musicFile.getNativeTagValues():
 			if t.startswith('$$'): continue
 			if t not in MusicFolderHandler._approvedTags:
 				strV = str(v)
@@ -540,6 +561,9 @@ class MusicFolderHandler:
 
 	def _cleanUpFilenames(self, folderPath : pathlib.Path):
 		# check all the file names for funky characters and rename them
+		#
+		# TODO: this needs updating to not just be m4a...
+		#
 		for f in folderPath.glob("*.m4a"):
 			filename = f.name
 			if MusicFolderHandler._hasBadChars(filename):
@@ -552,6 +576,9 @@ class MusicFolderHandler:
 
 	def _createPlaylist(self):
 		entries = []; isFirst = True; albumTitle = ''; albumArtist = ''
+		#
+		# TODO: this needs updating to not just be m4a...
+		#
 		for f in self._folderPath.glob("*.m4a"):
 			mf = MusicFileProperties(f)
 			if isFirst:
@@ -578,7 +605,8 @@ class MusicFolderHandler:
 			LogHelper.WhatIf(f"creating playlist file '{playlist.name}'")
 		else:
 			if playlist.is_file():
-				os.chmod(playlist, stat.S_IWRITE)
+				# make sure it's not readonly:
+				playlist.chmod(playlist.stat().st_mode | stat.S_IWRITE)
 			#with playlist.open(mode='wt', encoding='utf-8') as pl:
 			with playlist.open(mode='wt', encoding='utf-8-sig') as pl:
 				pl.write("#EXTM3U\n")
@@ -589,7 +617,7 @@ class MusicFolderHandler:
 				for e in sorted(entries, key=attrgetter('discNumber', 'trackNumber')):
 					pl.write(f"#EXTINF:{round(e.duration)},{e.trackArtist} - {e.trackTitle}\n")
 					pl.write(f"{e.filename}\n")
-			os.chmod(playlist, stat.S_IREAD)
+			playlist.chmod(playlist.stat().st_mode & MusicFolderHandler._disableWriteAccess)
 
 	def _logSetProperty(self, propertyName : str, value : str):
 		LogHelper.Verbose('    setting "{propertyName}" to "{value}"', propertyName = propertyName, value = lambda: MusicFolderHandler._ellipsify(value))
@@ -646,18 +674,17 @@ class MusicFolderHandler:
 
 	@staticmethod
 	def _copyTag(tagName: str, source: MusicFileProperties, target: MusicFileProperties):
-		val = source.getRawProperty(tagName)
+		val = source.getTagValue(tagName)
 		if val:
-			target.setRawProperty(tagName, val)
+			target.setTagValue(tagName, val)
 
 	@staticmethod
-	def _renameTag(oldTagName: str, newTagName: str, target: MusicFileProperties):
-		val = target.getRawProperty(oldTagName)
+	def _cleanUpTagName(tagName: str, target: MusicFileProperties):
+		# we're handling old tag names mapped to new names in the mapping file and in how we're saving the tags,
+		# so all we have to do is get and re-save the property, if it's there:
+		val = target.getTagValue(tagName)
 		if not val: return
-		if target.getRawProperty(newTagName):
-			LogHelper.Warning('for file = "{0}", cannot rename tag "{1}" to "{2}": new name already exists', target.FilePath.name, oldTagName, newTagName)
-		target.setRawProperty(newTagName, val)
-		target.deleteRawProperty(oldTagName)
+		target.setTagValue(tagName, val)
 
 class sqliteConnHelper:
 	def __init__(self, sqliteFilename : str):
@@ -824,6 +851,9 @@ def showFolderPropertiesCommand(args : argparse.Namespace):
 		return
 	headers = ['Filename', 'AlbumTitle', 'TrackArtist', 'TrackTitle', 'Year']
 	results = []
+	#
+	# TODO: this probably needs updating to not just be m4a/wma...
+	#
 	for f in folder.glob('*.m4a'):
 		props = MusicFileProperties(f)
 		results.append([f.name, props.AlbumTitle, props.TrackArtist, props.TrackTitle, props.Year])
@@ -843,16 +873,16 @@ def showFilePropertiesCommand(args : argparse.Namespace):
 	props = MusicFileProperties(file)
 	printData = []
 	if args.raw:
-		for p,v in (sorted(props.getRawProperties(), key=lambda p: p[0].upper()) if args.sort else props.getRawProperties()):
+		for p,v in (sorted(props.getNativeTagValues(), key=lambda p: p[0].upper()) if args.sort else props.getNativeTagValues()):
 			# 'APIC' if MP3 (no idea why mutagen is putting ':' in there); 'Cover Art XXX' for APE; 'METADATA_BLOCK_PICTURE' for Vorbis; 'WM/Picture' is WMA;
-			if p == Mp4TagNames.Cover or p == 'APIC:' or p.startswith('Cover Art') or p == 'METADATA_BLOCK_PICTURE' or p == 'WM/Picture':
+			if p == "covr" or p == 'APIC:' or p.startswith('Cover Art') or p == 'METADATA_BLOCK_PICTURE' or p == 'WM/Picture':
 				printData.append([p,'<binary (cover)>'])
-			elif p == Mp4TagNames.Lyrics or p.startswith('USLT::') or p.upper() == 'LYRICS' or p.upper() == 'UNSYNCEDLYRICS' or p == 'WM/Lyrics':
+			elif p == "©lyr" or p.startswith('USLT::') or p.upper() == 'LYRICS' or p.upper() == 'UNSYNCEDLYRICS' or p == 'WM/Lyrics':
 				printData.append([p,'<lyrics>'])
 			else:
 				printData.append([p,v])
 	else:
-		for p,v in props.getProperties():
+		for p,v in props.getTagValues():
 			printData.append([p,v])
 	#print(tabulate(printData, headers=['Property','Value'], tablefmt='fancy_grid'))
 	print(tabulate(printData, headers=['Property','Value'], tablefmt=_defaultTableFormat))
