@@ -84,6 +84,10 @@ class MusicFileProperties:
 			raise NotSupportedError("setting the cover image is not supported (yet??)")
 		return self._setMutagenTag(tagName, value)
 
+	def deleteTag(self, tagName: str) -> None:
+		"""removes the specified tag and its value"""
+		return self._setMutagenTag(tagName, None)
+
 	def getNativeTagValue(self, nativeTagName: str) -> list[str|int|Any]|str|Any|None:
 		return self._mutagen.tags[nativeTagName] if nativeTagName in self._mutagen.tags else None
 
