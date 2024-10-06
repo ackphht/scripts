@@ -7,6 +7,7 @@ from typing import Any, Iterable, Iterator
 import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
 from ackPyHelpers import LogHelper
 from .tagNames import TagNames
+from .tagTypes import TagType
 from .tagMapper import _tagMapper
 
 class MusicFileProperties:
@@ -191,7 +192,7 @@ class MusicFileProperties:
 		return value is None or ((isinstance(value, list) or isinstance(value, str)) and len(value) == 0)
 
 	@property
-	def TagType(self) -> pathlib.Path:
+	def TagType(self) -> TagType:
 		return self._tagtype
 
 	@property

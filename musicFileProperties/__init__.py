@@ -5,7 +5,7 @@ just some helper classes for my music files
 __author__ = "AckWare"
 __version__ = "1.0.0"
 
-__all__ = [ 'MusicFileProperties', 'TagNames', 'Mp4TagNames', ]
+__all__ = [ 'MusicFileProperties', 'TagNames', 'TagType', ]
 
 import sys
 
@@ -16,4 +16,5 @@ if sys.version_info < (3, 9):
 
 from .musicFileProperties import MusicFileProperties
 from .tagNames import TagNames
-from .mp4TagNames import Mp4TagNames
+#from .mp4TagNames import Mp4TagNames
+from .tagTypes import TagType

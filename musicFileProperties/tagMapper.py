@@ -5,6 +5,7 @@ import pathlib, csv
 from typing import NamedTuple, Any
 import mutagen, mutagen.mp4, mutagen.asf, mutagen.apev2, mutagen.id3			# https://mutagen.readthedocs.io/en/latest/api/mp4.html
 from .tagNames import TagNames
+from .tagTypes import TagType
 
 class _constants:
 	MP4TagType = "mp4"
@@ -96,40 +97,40 @@ class _tagMapper:	# abstract base class
 		_tagMap._init()
 
 	@staticmethod
-	def getTagType(mgTags: mutagen.Tags) -> str:
+	def getTagType(mgTags: mutagen.Tags) -> TagType:
 		name = mgTags.__class__.__name__
 		if name == "MP4Tags":
-			return "MP4"
+			return TagType.MP4
 		if name == "VCFLACDict":
-			return "FLACVorbis"
+			return TagType.FLACVorbis
 		if name == "OggOpusVComment" or name == "OggVCommentDict" or name == "OggFLACVComment" or name == "OggTheoraVComment" or name == "OggSpeexVComment":
-			return "OggVorbis"
+			return TagType.OggVorbis
 		if name == "ASFTags":
-			return "ASF"
+			return TagType.ASF
 		if name == "APEv2":
-			return "APEv2"
+			return TagType.APEv2
 		if name == "ID3" or name == "_WaveID3":
 			ver = mgTags.version
 			if ver >= (2, 4, 0):
-				return "ID3v24"
+				return TagType.ID3v24
 			if ver >= (2, 3, 0):
-				return "ID3v23"
+				return TagType.ID3v23
 		raise TypeError(f'unrecognized mutagen tag type: "{mgTags.__class__.__module__}.{mgTags.__class__.__name__}"') #LookupError #NameError #TypeError
 
 	@staticmethod
 	def getTagMapper(mgTags: mutagen.Tags) -> "_tagMapper":
 		name = _tagMapper.getTagType(mgTags)
-		if name == "MP4":
+		if name == TagType.MP4:
 			return _mp4Mapper()
-		if name == "FLACVorbis" or name == "OggVorbis":
+		if name == TagType.FLACVorbis or name == TagType.OggVorbis:
 			return _vorbisMapper()
-		if name == "ASF":
+		if name == TagType.ASF:
 			return _asfMapper()
-		if name == "APEv2":
+		if name == TagType.APEv2:
 			return _apeV2Mapper()
-		if name == "ID3v24":
+		if name == TagType.ID3v24:
 			return _id3v24Mapper()
-		if name == "ID3v23":
+		if name == TagType.ID3v23:
 			return _id3v23Mapper()
 
 	def mapFromNativeName(self, nativeTagName: str) -> str:
