@@ -95,3 +95,4 @@ class TagNames:
 	RipDate = "RipDate"
 	RippingTool = "RippingTool"
 	Source = "Source"
+	UPC = "UPC"

@@ -84,10 +84,11 @@ ArtistIMDbId,*:ARTIST_IMDB_ID,ARTIST_IMDB_ID,ARTIST_IMDB_ID,TXXX:ARTIST_IMDB_ID,
 # junk tags,,,,,,
 Codec,*:cdec,,,,,
 EncodedBy,*:encoded by,,,,,
-Encoder,©too,,,,,
+Encoder,©too,ENCODER,ENCODER,ENCODER,ENCODER,ENCODER
 EncodingSettings,*:encoding settings,,,,,
 iTunSMPB,*:iTunSMPB,,,,,
-Rating,*:Rating,,,,,
+Rating,*:Rating,RATING,Rating,RATING,RATING,RATING
 RipDate,*:Rip date,,,,,
 RippingTool,*:Ripping tool,,,,,
-Source,*:Source,,,,,
+Source,*:Source,SOURCE,SOURCE,SOURCE,SOURCE,SOURCE
+UPC,*:UPC,UPC,UPC,UPC,UPC,UPC
