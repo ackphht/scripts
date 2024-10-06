@@ -868,7 +868,15 @@ def showFilePropertiesCommand(args : argparse.Namespace):
 				printData.append([p,v])
 	else:
 		for p,v in props.getTagValues():
-			printData.append([p,v])
+			if p == TagNames.Cover:
+				printData.append([p,'[<binary (cover)>]'])
+			elif p == TagNames.Lyrics:
+				printData.append([p,'[<lyrics>]'])
+			else:
+				if len(v) == 1:
+					printData.append([p,v[0]])
+				else:
+					printData.append([p,v])
 	#print(tabulate(printData, headers=['Property','Value'], tablefmt='fancy_grid'))
 	print(tabulate(printData, headers=['Property','Value'], tablefmt=_defaultTableFormat))
 	props = None
