@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pathlib, shutil, hashlib
+from typing import Iterable
 from .loghelper import LogHelper
 
 class FileHelpers:
@@ -53,6 +54,12 @@ class FileHelpers:
 		if exepath:
 			return pathlib.Path(exepath)
 		return None
+
+	@staticmethod
+	def MultiGlob(folder: pathlib.Path, globs: list[str]) -> Iterable[pathlib.Path]:
+		for g in globs:
+			for f in folder.glob(g):
+				yield f
 
 	@staticmethod
 	def _getFileHash(file: pathlib.Path, hashName: str) -> bytes:
