@@ -96,10 +96,11 @@ class MusicFileProperties:
 		self._setMutagenTag(nativeTagName, value)
 
 	def deleteNativeTagValue(self, nativeTagName : str) -> None:
-		#
-		# TODO: name passed here is the "native" tag name, but method expects mapped name, need to update this somehow; or remove it ???
-		#
-		self._deleteMutagenTag(nativeTagName)
+		# name passed here is the "native" tag name, but _deleteMutagenTag() expects mapped name, so just remove it here:
+		if nativeTagName in self._mutagen.tags:
+			LogHelper.Verbose('deleting native tag "{0}"', nativeTagName)
+			del self._mutagen.tags[nativeTagName]
+			self._dirty = True
 
 	def removeAllTags(self) -> None:
 		self._mutagen.tags.clear()
