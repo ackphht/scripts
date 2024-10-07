@@ -142,7 +142,7 @@ class _tagMapper:	# abstract base class
 
 	def mapToNativeName(self, tagName: str) -> list[str]:
 		mapped = _tagMap._tagNamesToNativeNamesMap[tagName] if tagName in _tagMap._tagNamesToNativeNamesMap else None
-		if mapped is None: return ""
+		if mapped is None: return []
 		return self._getMappedTagProp(mapped)
 
 	def isSpecialHandlingTag(self, tagName: str) -> bool:
