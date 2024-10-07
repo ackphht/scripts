@@ -534,10 +534,11 @@ class MusicFolderHandler:
 		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumId, musicFile)
 		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumArtistId, musicFile)
 
+		nativeApprovedTags = MusicFolderHandler._mapApprovedTags(musicFile)
 		unexpectedTags = []
 		for t,v in musicFile.getNativeTagValues():
 			if t.startswith('$$'): continue
-			if t not in MusicFolderHandler._approvedTags:
+			if t not in nativeApprovedTags:
 				strV = str(v)
 				if len(strV) > 120:
 					strV = strV[:117] + "..."
@@ -665,6 +666,16 @@ class MusicFolderHandler:
 	@staticmethod
 	def _addFancyChars(value : str):
 		return value.replace("'", "’").replace("...", "…")
+
+	@staticmethod
+	def _mapApprovedTags(musicFile: MusicFileProperties) -> list[str]:
+		#return [t for a in MusicFolderHandler._approvedTags for t in musicFile.mapToNativeTagName(a).append(a)]	# blows up for some reason
+		tags = []
+		for a in MusicFolderHandler._approvedTags:
+			n = musicFile.mapToNativeTagName(a)
+			if len(n) > 0: tags.extend(n)
+			else: tags.append(a)
+		return tags
 
 	@staticmethod
 	def _copyTag(tagName: str, source: MusicFileProperties, target: MusicFileProperties):
