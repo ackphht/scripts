@@ -498,29 +498,29 @@ class MusicFolderHandler:
 		self._saveFile(musicFile, lastModTime, currLastAccessTime, False, True)
 
 	def _cleanJunkProperties(self, musicFile : MusicFileProperties):
-		musicFile.deleteTag(TagNames.iTunSMPB)
-		musicFile.deleteTag(TagNames.Genre)
-		musicFile.deleteTag(TagNames.Cover)
-		musicFile.deleteTag(TagNames.Encoder)
-		musicFile.deleteTag(TagNames.Codec)
-		musicFile.deleteTag(TagNames.EncodedBy)
-		musicFile.deleteTag(TagNames.Source)
-		musicFile.deleteTag(TagNames.RippingTool)
-		musicFile.deleteTag(TagNames.RipDate)
-		musicFile.deleteTag(TagNames.MusicBrainzReleaseType)
-		musicFile.deleteTag(TagNames.EncodingSettings)
-		musicFile.deleteTag(TagNames.UPC)
-		musicFile.deleteTag(TagNames.Rating)
-		musicFile.deleteTag(TagNames.Script)
-		musicFile.deleteTag(TagNames.Artists)
-		musicFile.deleteTag(TagNames.Performer)
-		#musicFile.deleteTag(TagNames.OriginalReleaseDate)		# think we've got a conflict with names from Picard and what i'm adding in Mp3tag ??
-		#musicFile.deleteTag(TagNames.OriginalReleaseYear)
-		musicFile.deleteTag(TagNames.AlbumTitleSort)
-		musicFile.deleteTag(TagNames.TrackTitleSort)
-		musicFile.deleteTag(TagNames.AlbumArtistSort)
-		musicFile.deleteTag(TagNames.TrackArtistSort)
-		musicFile.deleteTag(TagNames.ComposerSort)
+		MusicFolderHandler._removeTag(TagNames.iTunSMPB, musicFile)
+		MusicFolderHandler._removeTag(TagNames.Genre, musicFile)
+		MusicFolderHandler._removeTag(TagNames.Cover, musicFile)
+		MusicFolderHandler._removeTag(TagNames.Codec, musicFile)
+		MusicFolderHandler._removeTag(TagNames.Encoder, musicFile)
+		MusicFolderHandler._removeTag(TagNames.EncodedBy, musicFile)
+		MusicFolderHandler._removeTag(TagNames.EncodingSettings, musicFile)
+		MusicFolderHandler._removeTag(TagNames.Source, musicFile)
+		MusicFolderHandler._removeTag(TagNames.RippingTool, musicFile)
+		MusicFolderHandler._removeTag(TagNames.RipDate, musicFile)
+		MusicFolderHandler._removeTag(TagNames.MusicBrainzReleaseType, musicFile)
+		MusicFolderHandler._removeTag(TagNames.UPC, musicFile)
+		MusicFolderHandler._removeTag(TagNames.Rating, musicFile)
+		MusicFolderHandler._removeTag(TagNames.Script, musicFile)
+		MusicFolderHandler._removeTag(TagNames.Artists, musicFile)
+		MusicFolderHandler._removeTag(TagNames.Performer, musicFile)
+		MusicFolderHandler._removeTag(TagNames.OriginalReleaseDate, musicFile)		# think we've got a conflict with names from Picard and what i'm adding in Mp3tag ??
+		MusicFolderHandler._removeTag(TagNames.OriginalReleaseYear, musicFile)
+		MusicFolderHandler._removeTag(TagNames.AlbumTitleSort, musicFile)
+		MusicFolderHandler._removeTag(TagNames.TrackTitleSort, musicFile)
+		MusicFolderHandler._removeTag(TagNames.AlbumArtistSort, musicFile)
+		MusicFolderHandler._removeTag(TagNames.TrackArtistSort, musicFile)
+		MusicFolderHandler._removeTag(TagNames.ComposerSort, musicFile)
 
 		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzReleaseType, musicFile)	# we're deleting this one above ???
 		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzReleaseStatus, musicFile)
@@ -684,9 +684,15 @@ class MusicFolderHandler:
 			target.setTagValue(tagName, val)
 
 	@staticmethod
+	def _removeTag(tagName: str, target: MusicFileProperties):
+		LogHelper.Verbose('XXX removing tag "{0}"', tagName)
+		val = target.deleteTag(tagName)
+
+	@staticmethod
 	def _cleanUpTagName(tagName: str, target: MusicFileProperties):
 		# we're handling old tag names mapped to new names in the mapping file and in how we're saving the tags,
 		# so all we have to do is get and re-save the property, if it's there:
+		LogHelper.Verbose('>>> resaving tag name "{0}" to make sure name is correct', tagName)
 		val = target.getTagValue(tagName)
 		if not val: return
 		target.setTagValue(tagName, val)
