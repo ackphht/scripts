@@ -206,7 +206,8 @@ class ApprovedTagsList:
 			yield v
 
 class MusicFolderHandler:
-	_supportedFileTypesGlob: list[str] = ["*.m4a", "*.wma", "*.flac", "*.ogg", "*.oga", "*.opus", "*.ape",]	# "*.mp3", "*.wav",]
+	_supportedFileTypesForCopy: list[str] = [".m4a", ".opus", ".wma", ".flac", ".oga", ".ogg", ".ape",]	# ".mp3", ".wav",]
+	_supportedFileTypesGlob: list[str] = ["*.m4a", "*.opus", "*.wma", "*.flac", "*.oga", "*.ogg", "*.ape",]	# "*.mp3", "*.wav",]
 	_disableWriteAccess = (stat.S_ISUID|stat.S_ISGID|stat.S_ISVTX|stat.S_IRWXU|stat.S_IRWXG|stat.S_IRWXO) ^ (stat.S_IWRITE|stat.S_IWGRP|stat.S_IWOTH)
 	_commentsProducerRegex = re.compile(r"produce(r|d)", re.IGNORECASE)
 	_composerRegex = re.compile(r"\s*(;|/)\s*")
@@ -258,10 +259,13 @@ class MusicFolderHandler:
 		self._cleanUpFilenames(self._targetFolderPath)
 
 		for tf in FileHelpers.MultiGlob(self._targetFolderPath, MusicFolderHandler._supportedFileTypesGlob):
-			#
-			# TODO: this needs updating to look for any supported types, not just same one as original...
-			#
 			sf = self._sourceFolderPath / tf.name
+			if not sf.is_file():
+				origExt = sf.suffix
+				for ext in MusicFolderHandler._supportedFileTypesForCopy:
+					if ext != origExt:
+						sf = sf.with_suffix(ext)
+						if sf.is_file(): break
 			if not sf.is_file():
 				LogHelper.Warning(f"no source file found for file '{tf.name}'")
 				continue
