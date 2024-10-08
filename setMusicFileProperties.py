@@ -9,7 +9,8 @@ from operator import attrgetter
 from ackPyHelpers import LogHelper, FileHelpers
 from musicFileProperties import MusicFileProperties, TagNames, TagType
 
-_musicAttributesDbPath = pathlib.Path(os.path.expandvars("%UserProfile%/Music/MyMusic/musicAttributes.sqlite"))#.resolve()
+_myMusicBaseFolder = pathlib.Path(pathlib.Path.home() / "Music/MyMusic")
+_musicAttributesDbPath = _myMusicBaseFolder / "musicAttributes.sqlite"
 _defaultTableFormat = "presto"#"simple"
 
 class DbRowHelper:
@@ -844,7 +845,42 @@ def copyFolderPropertiesCommand(args):
 	if not targetFolder.is_dir():
 		print(f'folder "{args.targetFolderPath}" does not exist, is not a folder or could not be accessed')
 		return
-	sourceFolder = pathlib.Path(args.sourceFolderPath)#.resolve()
+
+	sourceFolder = None
+	if args.sourceFolderPath:
+		sourceFolder = pathlib.Path(args.sourceFolderPath)#.resolve()
+	else:
+		LogHelper.Verbose('no source folder specified, trying to figure one out from target "{0}":', targetFolder)
+		# some assumptions about targetFolder here...
+		album = targetFolder.absolute()
+		artist = album.parent
+		LogHelper.Verbose('using artist name "{0}", album name "{1}"', artist.name, album.name)
+		targetArtistFldr = _myMusicBaseFolder / artist.name
+		if targetArtistFldr.is_dir():
+			LogHelper.Verbose('artist folder "{0}" exists, looking for album', targetArtistFldr)
+			maybeTargetAlbumFldr = targetArtistFldr / album.name
+			if maybeTargetAlbumFldr.is_dir():	# probably not, but maybe
+				LogHelper.Verbose('found album folder "{0}"', maybeTargetAlbumFldr)
+				sourceFolder = maybeTargetAlbumFldr
+			else:
+				#tempRe = re.compile(rf'^\[[\w\-]+\]\s+{ re.escape(album.name) }$', re.IGNORECASE)
+				#for f in targetArtistFldr.iterdir():
+				#	if not f.is_dir(): continue
+				#	if tempRe.match(f.name):
+				#		sourceFolder = f
+				#		break
+				for f in targetArtistFldr.glob(f"[[]*[]] {album.name}"):
+					LogHelper.Verbose('found album folder "{0}"', f)
+					sourceFolder = f
+					break
+		if sourceFolder:
+			LogHelper.MessageMagenta('using "{0}" as source folder', sourceFolder)
+		else:
+			LogHelper.Verbose('could not figure out a source folder, prompting for it:')
+			# ask for it
+			folderName = input("enter the source folder: ")
+			if folderName: folderName = folderName.strip('" ')
+			sourceFolder = pathlib.Path(folderName)
 	if not sourceFolder.is_dir():
 		print(f'folder "{args.sourceFolderPath}" does not exist, is not a folder or could not be accessed')
 		return
@@ -932,8 +968,8 @@ def buildArguments():
 	setFolderCmd.set_defaults(func=setFolderPropertiesFromDbCommand)
 
 	setFolderCmd = subparsers.add_parser("copyFolderProperties", aliases=["copy", "cp"], help="enumerates music files in the target folder, looks for a matching file in source folder, and copies properties from source to target")
-	setFolderCmd.add_argument("sourceFolderPath", help="folder to copy file tags FROM")
 	setFolderCmd.add_argument("targetFolderPath", help="folder to copy file tags TO")
+	setFolderCmd.add_argument("sourceFolderPath", nargs="?", help="folder to copy file tags FROM")
 	setFolderCmd.add_argument("-w", "--whatIf", action="store_true", help="look up properties, but don't actually save anything")
 	setFolderCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	setFolderCmd.set_defaults(func=copyFolderPropertiesCommand)
@@ -957,7 +993,15 @@ def buildArguments():
 
 	return parser
 
-if __name__ == "__main__":
+def main():
 	parser = buildArguments()
 	args = parser.parse_args()
-	args.func(args)
+	args.func(args)		# call the handler
+
+if __name__ == "__main__":
+	try:
+		sys.exit(main())
+	except KeyboardInterrupt:
+		print('')
+		print('')
+		print(f"\033[22m\033[33m******** CANCELLED ********\033[0m")
