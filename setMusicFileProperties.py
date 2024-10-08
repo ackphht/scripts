@@ -266,9 +266,9 @@ class MusicFolderHandler:
 					if ext != origExt:
 						sf = sf.with_suffix(ext)
 						if sf.is_file(): break
-			if not sf.is_file():
-				LogHelper.Warning(f"no source file found for file '{tf.name}'")
-				continue
+				if not sf.is_file():
+					LogHelper.Warning(f"no source file found for file '{tf.name}'")
+					continue
 			trg = MusicFileProperties(tf)
 			src = MusicFileProperties(sf)
 			self._copyFileProperties(trg, src)
@@ -304,7 +304,7 @@ class MusicFolderHandler:
 	def _copyFileProperties(self, targetMusicFile : MusicFileProperties, sourceMusicFile : MusicFileProperties, forceOverwrite: bool = False):
 		lastModTime = os.path.getmtime(sourceMusicFile.FilePath)
 		currLastAccessTime = os.path.getatime(targetMusicFile.FilePath)
-		self._cleanJunkProperties(targetMusicFile)
+		self._cleanAllTags(targetMusicFile)
 
 		self._copyTag(TagNames.AlbumTitle, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.TrackTitle, sourceMusicFile, targetMusicFile)
@@ -316,22 +316,46 @@ class MusicFolderHandler:
 		self._copyTag(TagNames.RecordLabel, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.Lyrics, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.Composer, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Lyricist, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Writer, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.Producer, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.Comment, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.TrackNumber, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.TrackCount, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.DiscNumber, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.DiscCount, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.DiscTItle, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MovementNumber, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MovementCount, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MovementName, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.Barcode, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.CatalogNumber, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.OriginalArtist, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.OriginalAlbumTitle, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.OriginalReleaseYear, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.RecordedDate, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.ReleasedDate, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.MusicianCredits, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Lyricist, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.Engineer, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.MixedBy, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.Arranger, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.RemixedBy, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.RecordedDate, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.ReleasedDate, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MediaType, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.ISRC, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzAlbumArtistId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzAlbumId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzAlbumReleaseCountry, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzReleaseStatus, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzReleaseType, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzDiscId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzReleaseGroupId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzReleaseTrackId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzTrackArtistId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzTrackId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.MusicBrainzWorkId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.WorkTitle, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.DiscogsReleaseId, sourceMusicFile, targetMusicFile)
+		self._copyTag(TagNames.AmazonId, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.DigitalPurchaseFrom, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.DigitalPurchaseDate, sourceMusicFile, targetMusicFile)
 		self._copyTag(TagNames.DigitalPurchaseId, sourceMusicFile, targetMusicFile)
@@ -501,7 +525,7 @@ class MusicFolderHandler:
 		currLastAccessTime = os.path.getatime(musicFile.FilePath)
 
 		if onlyJunkTags:
-		self._cleanJunkProperties(musicFile)
+			self._cleanJunkProperties(musicFile)
 		else:
 			self._cleanAllTags(musicFile)
 
