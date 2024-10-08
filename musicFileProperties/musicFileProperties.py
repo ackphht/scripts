@@ -43,7 +43,6 @@ class MusicFileProperties:
 				yield (tn, val)
 
 	def getNativeTagValues(self) -> Iterator[tuple[str, Any]]:
-		yield ('$$TagType', self._mutagen.tags.__class__.__name__)
 		for tag in self._mutagen.tags:
 			# some tag types, the iterator returns a tuple(name,value), others it just returns the name
 			if isinstance(tag, tuple):
