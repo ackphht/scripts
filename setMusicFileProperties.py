@@ -7,7 +7,7 @@ from tabulate import tabulate	# https://pypi.org/project/tabulate/
 from operator import attrgetter
 
 from ackPyHelpers import LogHelper, FileHelpers
-from musicFileProperties import MusicFileProperties, TagNames
+from musicFileProperties import MusicFileProperties, TagNames, TagType
 
 _musicAttributesDbPath = pathlib.Path(os.path.expandvars("%UserProfile%/Music/MyMusic/musicAttributes.sqlite"))#.resolve()
 _defaultTableFormat = "presto"#"simple"
@@ -222,6 +222,8 @@ class MusicFolderHandler:
 	_keepOnCleanAll = [ TagNames.AlbumTitle, TagNames.TrackTitle, TagNames.AlbumArtist, TagNames.TrackArtist, TagNames.TrackNumber,
 						TagNames.ReplayGainTrackGain, TagNames.ReplayGainTrackPeak, TagNames.ReplayGainAlbumGain, TagNames.ReplayGainAlbumPeak,
 						"R128_ALBUM_GAIN", "R128_TRACK_GAIN", ]
+	_approvedTagsNativeNamesCache: dict[TagType, list[str]] = dict()
+	_keepOnCleanNativeNamesCache: dict[TagType, list[str]] = dict()
 
 	def __init__(self, folderPath : pathlib.Path = None, targetFolderPath : pathlib.Path = None, sourceFolderPath : pathlib.Path = None,
 				createPlaylist : bool = False, onlyPlaylist : bool = False, playlistName : str = None, onlyTimestamp : bool = False, enableSimpleLookup : bool = False,
@@ -571,7 +573,7 @@ class MusicFolderHandler:
 		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumArtistId, musicFile)
 
 	def _cleanAllTags(self, musicFile: MusicFileProperties) -> None:
-		keepTags = MusicFolderHandler._mapApprovedTags(musicFile, MusicFolderHandler._keepOnCleanAll)
+		keepTags = MusicFolderHandler._getListOfTagsToKeepOnClean(musicFile)
 		tagsToDelete: set[str] = set()
 		# can't delete the tags while we're iterating the list of them, it throws off the iterator, so make list first:
 		LogHelper.Verbose('XXX building list of (almost) all tags to remove from file "{0}"', musicFile.FilePath)
@@ -587,7 +589,7 @@ class MusicFolderHandler:
 			musicFile.deleteNativeTagValue(t)
 
 	def _showUnexpectedTags(self, musicFile: MusicFileProperties) -> None:
-		nativeApprovedTags = MusicFolderHandler._mapApprovedTags(musicFile, MusicFolderHandler._approvedTags)
+		nativeApprovedTags = MusicFolderHandler._getListOfApprovedTags(musicFile)
 		unexpectedTags = []
 		for t,v in musicFile.getNativeTagValues():
 			if t.startswith('$$'): continue
@@ -719,6 +721,20 @@ class MusicFolderHandler:
 	@staticmethod
 	def _addFancyChars(value : str):
 		return value.replace("'", "’").replace("...", "…")
+
+	@staticmethod
+	def _getListOfTagsToKeepOnClean(musicFile: MusicFileProperties) -> list[str]:
+		if musicFile.TagType not in MusicFolderHandler._keepOnCleanNativeNamesCache:
+			tags = MusicFolderHandler._mapApprovedTags(musicFile, MusicFolderHandler._keepOnCleanAll)
+			MusicFolderHandler._keepOnCleanNativeNamesCache[musicFile.TagType] = tags
+		return MusicFolderHandler._keepOnCleanNativeNamesCache[musicFile.TagType]
+
+	@staticmethod
+	def _getListOfApprovedTags(musicFile: MusicFileProperties) -> list[str]:
+		if musicFile.TagType not in MusicFolderHandler._approvedTagsNativeNamesCache:
+			tags = MusicFolderHandler._mapApprovedTags(musicFile, MusicFolderHandler._approvedTags)
+			MusicFolderHandler._approvedTagsNativeNamesCache[musicFile.TagType] = tags
+		return MusicFolderHandler._approvedTagsNativeNamesCache[musicFile.TagType]
 
 	@staticmethod
 	def _mapApprovedTags(musicFile: MusicFileProperties, approvedTags: Iterable[str]) -> list[str]:
