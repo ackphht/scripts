@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os, sys, pathlib, datetime, re, argparse, stat, sqlite3
-from typing import Any, List, Iterator
+from typing import Any, Iterable, List, Iterator
 from tabulate import tabulate	# https://pypi.org/project/tabulate/
 from operator import attrgetter
 
@@ -218,6 +218,9 @@ class MusicFolderHandler:
 	_badDashesRegex = re.compile(r"[\u2014\u2013\u2010]")	# m-dash, n-dash, hyphen
 	_badFilenameCharsRegex = re.compile(r"[<>\\/\|\*\?:\"]")
 	_approvedTags = ApprovedTagsList()
+	_keepOnCleanAll = [ TagNames.AlbumTitle, TagNames.TrackTitle, TagNames.AlbumArtist, TagNames.TrackArtist, TagNames.TrackNumber,
+						TagNames.ReplayGainTrackGain, TagNames.ReplayGainTrackPeak, TagNames.ReplayGainAlbumGain, TagNames.ReplayGainAlbumPeak,
+						"R128_ALBUM_GAIN", "R128_TRACK_GAIN", ]
 
 	def __init__(self, folderPath : pathlib.Path = None, targetFolderPath : pathlib.Path = None, sourceFolderPath : pathlib.Path = None,
 				createPlaylist : bool = False, onlyPlaylist : bool = False, playlistName : str = None, onlyTimestamp : bool = False, enableSimpleLookup : bool = False,
@@ -266,7 +269,7 @@ class MusicFolderHandler:
 			src = MusicFileProperties(sf)
 			self._copyFileProperties(trg, src)
 
-	def CleanFolderFiles(self):
+	def CleanFolderFiles(self, onlyJunkTags: bool = False):
 		renamedFolder = self._cleanUpFolderName(self._folderPath)
 		if renamedFolder:
 			self._folderPath = renamedFolder
@@ -274,11 +277,11 @@ class MusicFolderHandler:
 
 		for f in FileHelpers.MultiGlob(self._folderPath, MusicFolderHandler._supportedFileTypesGlob):
 			mf = MusicFileProperties(f)
-			self._cleanFile(mf)
+			self._cleanFile(mf, onlyJunkTags)
 
-	def CleanFile(self, filePath : pathlib.Path):
+	def CleanFile(self, filePath : pathlib.Path, onlyJunkTags: bool = False):
 		mf = MusicFileProperties(filePath)
-		self._cleanFile(mf)
+		self._cleanFile(mf, onlyJunkTags)
 
 	def _saveFile(self, musicFile: MusicFileProperties, originalLastModTime: float, originalLastAccessTime: float, quiet: bool, ignoreOnlyTimestamp: bool):
 		if self._whatIf:
@@ -489,15 +492,20 @@ class MusicFolderHandler:
 		#	self._logSetProperty("TotalDiscs", "1")
 		#	musicFile.TotalDiscs = 1
 
-	def _cleanFile(self, musicFile : MusicFileProperties):
+	def _cleanFile(self, musicFile : MusicFileProperties, onlyJunkTags: bool):
 		lastModTime = os.path.getmtime(musicFile.FilePath)
 		currLastAccessTime = os.path.getatime(musicFile.FilePath)
 
+		if onlyJunkTags:
 		self._cleanJunkProperties(musicFile)
+		else:
+			self._cleanAllTags(musicFile)
 
+		self._showUnexpectedTags(musicFile)
 		self._saveFile(musicFile, lastModTime, currLastAccessTime, False, True)
 
-	def _cleanJunkProperties(self, musicFile : MusicFileProperties):
+	def _cleanJunkProperties(self, musicFile : MusicFileProperties) -> None:
+		LogHelper.Verbose('XXX removing junk tags from file "{0}"', musicFile.FilePath)
 		MusicFolderHandler._removeTag(TagNames.iTunSMPB, musicFile)
 		MusicFolderHandler._removeTag(TagNames.Genre, musicFile)
 		MusicFolderHandler._removeTag(TagNames.Cover, musicFile)
@@ -534,7 +542,24 @@ class MusicFolderHandler:
 		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumId, musicFile)
 		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumArtistId, musicFile)
 
-		nativeApprovedTags = MusicFolderHandler._mapApprovedTags(musicFile)
+	def _cleanAllTags(self, musicFile: MusicFileProperties) -> None:
+		keepTags = MusicFolderHandler._mapApprovedTags(musicFile, MusicFolderHandler._keepOnCleanAll)
+		tagsToDelete: set[str] = set()
+		# can't delete the tags while we're iterating the list of them, it throws off the iterator, so make list first:
+		LogHelper.Verbose('XXX building list of (almost) all tags to remove from file "{0}"', musicFile.FilePath)
+		for t in musicFile.getNativeTagNames():
+			if t not in keepTags:
+				LogHelper.Verbose('adding native tag "{0}" for removal', t)
+				tagsToDelete.add(t)
+			else: LogHelper.Verbose('keeping native tag "{0}"', t)
+		# now we can delete them:
+		LogHelper.Verbose('XXX removing (almost) all tags from file "{0}"', musicFile.FilePath)
+		for t in tagsToDelete:
+			LogHelper.Verbose('XXX removing native tag "{0}"', t)
+			musicFile.deleteNativeTagValue(t)
+
+	def _showUnexpectedTags(self, musicFile: MusicFileProperties) -> None:
+		nativeApprovedTags = MusicFolderHandler._mapApprovedTags(musicFile, MusicFolderHandler._approvedTags)
 		unexpectedTags = []
 		for t,v in musicFile.getNativeTagValues():
 			if t.startswith('$$'): continue
@@ -668,10 +693,10 @@ class MusicFolderHandler:
 		return value.replace("'", "’").replace("...", "…")
 
 	@staticmethod
-	def _mapApprovedTags(musicFile: MusicFileProperties) -> list[str]:
-		#return [t for a in MusicFolderHandler._approvedTags for t in musicFile.mapToNativeTagName(a).append(a)]	# blows up for some reason
+	def _mapApprovedTags(musicFile: MusicFileProperties, approvedTags: Iterable[str]) -> list[str]:
+		#return [t for a in approvedTags for t in musicFile.mapToNativeTagName(a).append(a)]	# blows up for some reason
 		tags = []
-		for a in MusicFolderHandler._approvedTags:
+		for a in approvedTags:
 			n = musicFile.mapToNativeTagName(a)
 			if len(n) > 0: tags.extend(n)
 			else: tags.append(a)
@@ -848,9 +873,9 @@ def cleanFilesCommand(args):
 	LogHelper.Init(verbose=args.verbose)
 	p = pathlib.Path(args.path)#.resolve()
 	if p.is_dir():
-		MusicFolderHandler(folderPath = p, whatIf = args.whatIf).CleanFolderFiles()
+		MusicFolderHandler(folderPath = p, whatIf = args.whatIf).CleanFolderFiles(args.onlyJunk)
 	elif p.is_file():
-		MusicFolderHandler(whatIf = args.whatIf).CleanFile(p)
+		MusicFolderHandler(whatIf = args.whatIf).CleanFile(p, args.onlyJunk)
 	else:
 		print(f'path "{args.path}" does not exist, is not a folder or could not be accessed')
 
@@ -930,8 +955,9 @@ def buildArguments():
 	setFolderCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	setFolderCmd.set_defaults(func=copyFolderPropertiesCommand)
 
-	setFolderCmd = subparsers.add_parser("cleanFiles", aliases=["clean", "cl", "cf"], help="cleans out junk properties from the music files in the target folder")
+	setFolderCmd = subparsers.add_parser("cleanFiles", aliases=["clean", "cl", "cf"], help="cleans out all tags (with a small list of exceptions) from the music files in the target folder")
 	setFolderCmd.add_argument("path")
+	setFolderCmd.add_argument("-j", "--onlyJunk", action="store_true", help="remove only junk tags for the files, leaving most tags")
 	setFolderCmd.add_argument("-w", "--whatIf", action="store_true", help="go thru cleaning properties, but don't actually save anything")
 	setFolderCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	setFolderCmd.set_defaults(func=cleanFilesCommand)
