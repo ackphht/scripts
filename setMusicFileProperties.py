@@ -227,12 +227,23 @@ class MusicFolderHandler:
 					TagNames.MusicianCredits, TagNames.Engineer, TagNames.MixedBy, TagNames.Arranger, TagNames.RemixedBy,
 					TagNames.RecordedDate, TagNames.ReleasedDate, TagNames.MediaType, TagNames.ISRC,
 					TagNames.MusicBrainzAlbumArtistId, TagNames.MusicBrainzAlbumId, TagNames.MusicBrainzAlbumReleaseCountry,
-					TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzReleaseType, TagNames.MusicBrainzDiscId,
-					TagNames.MusicBrainzReleaseGroupId, TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzTrackArtistId,
-					TagNames.MusicBrainzTrackId, TagNames.MusicBrainzWorkId, TagNames.WorkTitle, TagNames.DiscogsReleaseId,
-					TagNames.AmazonId, TagNames.DigitalPurchaseFrom, TagNames.DigitalPurchaseDate, TagNames.DigitalPurchaseId,
+					TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzDiscId, TagNames.MusicBrainzReleaseGroupId,
+					TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzTrackArtistId, TagNames.MusicBrainzTrackId,
+					TagNames.MusicBrainzWorkId, TagNames.WorkTitle, TagNames.DiscogsReleaseId, TagNames.AmazonId,
+					TagNames.DigitalPurchaseFrom, TagNames.DigitalPurchaseDate, TagNames.DigitalPurchaseId,
 					TagNames.AllMusicArtistId, TagNames.AllMusicAlbumId, TagNames.WikidataArtistId, TagNames.WikidataAlbumId,
 					TagNames.WikipediaArtistId, TagNames.WikipediaAlbumId, TagNames.IMDbArtistId, ]
+	_junkTagsToClean = [ TagNames.iTunSMPB, TagNames.Genre, TagNames.Cover, TagNames.Codec, TagNames.Encoder, TagNames.EncodedBy,
+					 	TagNames.EncodingSettings, TagNames.Source, TagNames.RippingTool, TagNames.RipDate,
+						TagNames.MusicBrainzReleaseType, TagNames.UPC, TagNames.Rating, TagNames.Script, TagNames.Artists,
+						TagNames.Performer, TagNames.OriginalReleaseDate,		# think we've got a conflict with names from Picard and what i'm adding in Mp3tag ??
+						TagNames.OriginalReleaseYear, TagNames.AlbumTitleSort, TagNames.TrackTitleSort, TagNames.AlbumArtistSort,
+						TagNames.TrackArtistSort, TagNames.ComposerSort, ]
+	_tagsToRename = [ TagNames.MusicBrainzReleaseType,	# we're deleting this one in _junkTagsToClean above ???
+						TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzAlbumReleaseCountry, TagNames.MusicBrainzWorkId,
+						TagNames.MusicBrainzTrackId, TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzReleaseGroupId,
+						TagNames.MusicBrainzDiscId, TagNames.MusicBrainzTrackArtistId, TagNames.MusicBrainzAlbumId,
+						TagNames.MusicBrainzAlbumArtistId, ]
 	_approvedTags = ApprovedTagsList()
 	_keepOnCleanAll = [ TagNames.AlbumTitle, TagNames.TrackTitle, TagNames.AlbumArtist, TagNames.TrackArtist, TagNames.TrackNumber,
 						TagNames.ReplayGainTrackGain, TagNames.ReplayGainTrackPeak, TagNames.ReplayGainAlbumGain, TagNames.ReplayGainAlbumPeak,
@@ -494,41 +505,11 @@ class MusicFolderHandler:
 
 	def _cleanJunkProperties(self, musicFile : MusicFileProperties) -> None:
 		LogHelper.Verbose('XXX removing junk tags from file "{0}"', musicFile.FilePath)
-		MusicFolderHandler._removeTag(TagNames.iTunSMPB, musicFile)
-		MusicFolderHandler._removeTag(TagNames.Genre, musicFile)
-		MusicFolderHandler._removeTag(TagNames.Cover, musicFile)
-		MusicFolderHandler._removeTag(TagNames.Codec, musicFile)
-		MusicFolderHandler._removeTag(TagNames.Encoder, musicFile)
-		MusicFolderHandler._removeTag(TagNames.EncodedBy, musicFile)
-		MusicFolderHandler._removeTag(TagNames.EncodingSettings, musicFile)
-		MusicFolderHandler._removeTag(TagNames.Source, musicFile)
-		MusicFolderHandler._removeTag(TagNames.RippingTool, musicFile)
-		MusicFolderHandler._removeTag(TagNames.RipDate, musicFile)
-		MusicFolderHandler._removeTag(TagNames.MusicBrainzReleaseType, musicFile)
-		MusicFolderHandler._removeTag(TagNames.UPC, musicFile)
-		MusicFolderHandler._removeTag(TagNames.Rating, musicFile)
-		MusicFolderHandler._removeTag(TagNames.Script, musicFile)
-		MusicFolderHandler._removeTag(TagNames.Artists, musicFile)
-		MusicFolderHandler._removeTag(TagNames.Performer, musicFile)
-		MusicFolderHandler._removeTag(TagNames.OriginalReleaseDate, musicFile)		# think we've got a conflict with names from Picard and what i'm adding in Mp3tag ??
-		MusicFolderHandler._removeTag(TagNames.OriginalReleaseYear, musicFile)
-		MusicFolderHandler._removeTag(TagNames.AlbumTitleSort, musicFile)
-		MusicFolderHandler._removeTag(TagNames.TrackTitleSort, musicFile)
-		MusicFolderHandler._removeTag(TagNames.AlbumArtistSort, musicFile)
-		MusicFolderHandler._removeTag(TagNames.TrackArtistSort, musicFile)
-		MusicFolderHandler._removeTag(TagNames.ComposerSort, musicFile)
+		for tag in MusicFolderHandler._junkTagsToClean:
+			MusicFolderHandler._removeTag(tag, musicFile)
 
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzReleaseType, musicFile)	# we're deleting this one above ???
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzReleaseStatus, musicFile)
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumReleaseCountry, musicFile)
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzWorkId, musicFile)
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzTrackId, musicFile)
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzReleaseTrackId, musicFile)
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzReleaseGroupId, musicFile)
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzDiscId, musicFile)
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzTrackArtistId, musicFile)
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumId, musicFile)
-		MusicFolderHandler._cleanUpTagName(TagNames.MusicBrainzAlbumArtistId, musicFile)
+		for tag in MusicFolderHandler._tagsToRename:
+			MusicFolderHandler._cleanUpTagName(tag, musicFile)
 
 	def _cleanAllTags(self, musicFile: MusicFileProperties) -> None:
 		keepTags = MusicFolderHandler._getListOfTagsToKeepOnClean(musicFile)
