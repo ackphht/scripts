@@ -206,6 +206,7 @@ class ApprovedTagsList:
 			yield v
 
 class MusicFolderHandler:
+	#region class fields
 	_supportedFileTypesForCopy: list[str] = [".m4a", ".opus", ".wma", ".flac", ".oga", ".ogg", ".ape",]	# ".mp3", ".wav",]
 	_supportedFileTypesGlob: list[str] = ["*.m4a", "*.opus", "*.wma", "*.flac", "*.oga", "*.ogg", "*.ape",]	# "*.mp3", "*.wav",]
 	_disableWriteAccess = (stat.S_ISUID|stat.S_ISGID|stat.S_ISVTX|stat.S_IRWXU|stat.S_IRWXG|stat.S_IRWXO) ^ (stat.S_IWRITE|stat.S_IWGRP|stat.S_IWOTH)
@@ -218,12 +219,27 @@ class MusicFolderHandler:
 	#_badDashesRegex = re.compile(r"[\—\–\‐]")	# m-dash, n-dash, hyphen
 	_badDashesRegex = re.compile(r"[\u2014\u2013\u2010]")	# m-dash, n-dash, hyphen
 	_badFilenameCharsRegex = re.compile(r"[<>\\/\|\*\?:\"]")
+	_tagsToCopy = [ TagNames.AlbumTitle, TagNames.TrackTitle, TagNames.AlbumArtist, TagNames.TrackArtist, TagNames.YearReleased,
+					TagNames.Conductor, TagNames.Copyright, TagNames.RecordLabel, TagNames.Lyrics, TagNames.Composer,
+					TagNames.Lyricist, TagNames.Writer, TagNames.Producer, TagNames.Comment, TagNames.TrackNumber, TagNames.TrackCount,
+					TagNames.DiscNumber, TagNames.DiscCount, TagNames.DiscTItle, TagNames.MovementNumber, TagNames.MovementCount, TagNames.MovementName,
+					TagNames.Barcode, TagNames.CatalogNumber, TagNames.OriginalArtist, TagNames.OriginalAlbumTitle, TagNames.OriginalReleaseYear,
+					TagNames.MusicianCredits, TagNames.Engineer, TagNames.MixedBy, TagNames.Arranger, TagNames.RemixedBy,
+					TagNames.RecordedDate, TagNames.ReleasedDate, TagNames.MediaType, TagNames.ISRC,
+					TagNames.MusicBrainzAlbumArtistId, TagNames.MusicBrainzAlbumId, TagNames.MusicBrainzAlbumReleaseCountry,
+					TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzReleaseType, TagNames.MusicBrainzDiscId,
+					TagNames.MusicBrainzReleaseGroupId, TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzTrackArtistId,
+					TagNames.MusicBrainzTrackId, TagNames.MusicBrainzWorkId, TagNames.WorkTitle, TagNames.DiscogsReleaseId,
+					TagNames.AmazonId, TagNames.DigitalPurchaseFrom, TagNames.DigitalPurchaseDate, TagNames.DigitalPurchaseId,
+					TagNames.AllMusicArtistId, TagNames.AllMusicAlbumId, TagNames.WikidataArtistId, TagNames.WikidataAlbumId,
+					TagNames.WikipediaArtistId, TagNames.WikipediaAlbumId, TagNames.IMDbArtistId, ]
 	_approvedTags = ApprovedTagsList()
 	_keepOnCleanAll = [ TagNames.AlbumTitle, TagNames.TrackTitle, TagNames.AlbumArtist, TagNames.TrackArtist, TagNames.TrackNumber,
 						TagNames.ReplayGainTrackGain, TagNames.ReplayGainTrackPeak, TagNames.ReplayGainAlbumGain, TagNames.ReplayGainAlbumPeak,
 						"R128_ALBUM_GAIN", "R128_TRACK_GAIN", ]
 	_approvedTagsNativeNamesCache: dict[TagType, list[str]] = dict()
 	_keepOnCleanNativeNamesCache: dict[TagType, list[str]] = dict()
+	#endregion
 
 	def __init__(self, folderPath : pathlib.Path = None, targetFolderPath : pathlib.Path = None, sourceFolderPath : pathlib.Path = None,
 				createPlaylist : bool = False, onlyPlaylist : bool = False, playlistName : str = None, onlyTimestamp : bool = False, enableSimpleLookup : bool = False,
@@ -308,66 +324,8 @@ class MusicFolderHandler:
 		currLastAccessTime = os.path.getatime(targetMusicFile.FilePath)
 		self._cleanAllTags(targetMusicFile)
 
-		self._copyTag(TagNames.AlbumTitle, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.TrackTitle, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.AlbumArtist, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.TrackArtist, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.YearReleased, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Conductor, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Copyright, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.RecordLabel, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Lyrics, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Composer, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Lyricist, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Writer, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Producer, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Comment, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.TrackNumber, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.TrackCount, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.DiscNumber, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.DiscCount, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.DiscTItle, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MovementNumber, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MovementCount, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MovementName, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Barcode, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.CatalogNumber, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.OriginalArtist, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.OriginalAlbumTitle, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.OriginalReleaseYear, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicianCredits, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Engineer, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MixedBy, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.Arranger, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.RemixedBy, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.RecordedDate, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.ReleasedDate, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MediaType, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.ISRC, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzAlbumArtistId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzAlbumId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzAlbumReleaseCountry, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzReleaseStatus, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzReleaseType, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzDiscId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzReleaseGroupId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzReleaseTrackId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzTrackArtistId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzTrackId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.MusicBrainzWorkId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.WorkTitle, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.DiscogsReleaseId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.AmazonId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.DigitalPurchaseFrom, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.DigitalPurchaseDate, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.DigitalPurchaseId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.AllMusicArtistId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.AllMusicAlbumId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.WikidataArtistId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.WikidataAlbumId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.WikipediaArtistId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.WikipediaAlbumId, sourceMusicFile, targetMusicFile)
-		self._copyTag(TagNames.IMDbArtistId, sourceMusicFile, targetMusicFile)
+		for tag in MusicFolderHandler._tagsToCopy:
+			self._copyTag(tag, sourceMusicFile, targetMusicFile)
 
 		self._saveFile(targetMusicFile, lastModTime, currLastAccessTime, False, True)
 
