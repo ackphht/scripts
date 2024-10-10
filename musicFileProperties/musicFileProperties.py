@@ -58,6 +58,18 @@ class MusicFileProperties:
 			else:
 				yield tag
 
+	def hasTag(self, tagName: str) -> bool:
+		"""
+		for the given tagName, returns True or False for whether or not any of the mapped tag names for
+		tagName are present in the file.
+
+		If tagName is not recognized, or has no mappings, False will be returned.
+		"""
+		nativeTagNames = self._mapper.mapToNativeName(tagName)
+		for t in nativeTagNames:
+			if t in self._mutagen.tags: return True
+		return False
+
 	def getTagValue(self, tagName: str) -> list[str|int|bytes|list[str,str]]:
 		return self._getMutagenTag(tagName)
 
@@ -74,6 +86,10 @@ class MusicFileProperties:
 	def deleteTag(self, tagName: str) -> None:
 		"""removes the specified tag and its value"""
 		return self._setMutagenTag(tagName, None)
+
+	def hasNativeTag(self, nativeTagName: str) -> bool:
+		"""returns True or False for whether or not the given natvieTagName is present in the file."""
+		return nativeTagName in self._mutagen.tags
 
 	def getNativeTagValue(self, nativeTagName: str) -> list[str|int|Any]|str|Any|None:
 		return self._mutagen.tags[nativeTagName] if nativeTagName in self._mutagen.tags else None
