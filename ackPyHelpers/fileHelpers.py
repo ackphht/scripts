@@ -56,9 +56,9 @@ class FileHelpers:
 		return None
 
 	@staticmethod
-	def MultiGlob(folder: pathlib.Path, globs: list[str]) -> Iterable[pathlib.Path]:
+	def MultiGlob(folder: pathlib.Path, globs: list[str], caseSensitive: bool|None = None) -> Iterable[pathlib.Path]:
 		for g in globs:
-			for f in folder.glob(g):
+			for f in folder.glob(g, case_sensitive=caseSensitive):
 				yield f
 
 	@staticmethod
