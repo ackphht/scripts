@@ -61,7 +61,8 @@ class MusicFileProperties:
 	def hasTag(self, tagName: str) -> bool:
 		"""
 		for the given tagName, returns True or False for whether or not any of the mapped tag names for
-		tagName are present in the file.
+		tagName are present in the file. If tagName has multiple mappings, True will be returned if any
+		of them are present, or False if none are.
 
 		If tagName is not recognized, or has no mappings, False will be returned.
 		"""
