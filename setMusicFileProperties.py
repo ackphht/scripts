@@ -282,12 +282,13 @@ class MusicFolderHandler:
 		if (self._playlist or self._onlyPlaylist) and not self._onlyTimestamp:
 			self._createPlaylist()
 
-	def CopyFolderProperties(self):
+	def CopyFolderProperties(self) -> int:
 		renamedFolder = self._cleanUpFolderName(self._targetFolderPath)
 		if renamedFolder:
 			self._targetFolderPath = renamedFolder
 		self._cleanUpFilenames(self._targetFolderPath)
 
+		filesNotFound = 0
 		for tf in FileHelpers.MultiGlob(self._targetFolderPath, MusicFolderHandler._supportedFileTypesGlob):
 			sf = self._sourceFolderPath / tf.name
 			if not sf.is_file():
@@ -296,14 +297,17 @@ class MusicFolderHandler:
 					if ext != origExt:
 						sf = sf.with_suffix(ext)
 						if sf.is_file(): break
-				if not sf.is_file():
-					LogHelper.Warning(f"no source file found for file '{tf.name}'")
-					continue
+			if not sf.is_file():
+				LogHelper.Warning(f"no source file found for file '{tf.name}'")
+				filesNotFound += 1
+				continue
 			trg = MusicFileProperties(tf)
 			src = MusicFileProperties(sf)
 			self._copyFileProperties(trg, src)
 
-	def CleanFolderFiles(self, onlyJunkTags: bool = False):
+		return 1 if filesNotFound > 0 else 0
+
+	def CleanFolderFiles(self, onlyJunkTags: bool = False) -> int:
 		renamedFolder = self._cleanUpFolderName(self._folderPath)
 		if renamedFolder:
 			self._folderPath = renamedFolder
@@ -313,9 +317,12 @@ class MusicFolderHandler:
 			mf = MusicFileProperties(f)
 			self._cleanFile(mf, onlyJunkTags)
 
-	def CleanFile(self, filePath : pathlib.Path, onlyJunkTags: bool = False):
+		return 0
+
+	def CleanFile(self, filePath : pathlib.Path, onlyJunkTags: bool = False) -> int:
 		mf = MusicFileProperties(filePath)
 		self._cleanFile(mf, onlyJunkTags)
+		return 0
 
 	def _saveFile(self, musicFile: MusicFileProperties, originalLastModTime: float, originalLastAccessTime: float, quiet: bool, ignoreOnlyTimestamp: bool):
 		if self._whatIf:
@@ -818,7 +825,7 @@ class queryHelper:
 		}
 		sqliteCursor.execute(query, params)
 
-def queryDbCommand(args : argparse.Namespace):
+def queryDbCommand(args : argparse.Namespace) -> int:
 	LogHelper.Init()
 	headers = ["Id", "Filename"]
 	results = []
@@ -827,24 +834,26 @@ def queryDbCommand(args : argparse.Namespace):
 		for row in DbRowHelper.EnumRows(curs.fetchall()):
 			results.append([row.DbId, row.FilePath])
 	print(tabulate(results, headers=headers, tablefmt=_defaultTableFormat))
+	return 0
 
-def setFolderPropertiesFromDbCommand(args):
+def setFolderPropertiesFromDbCommand(args) -> int:
 	LogHelper.Init(verbose=args.verbose)
 	folder = pathlib.Path(args.folderPath)#.resolve()
 	if not folder.is_dir():
 		print(f'folder "{args.folderPath}" does not exist, is not a folder or could not be accessed')
-		return
+		return 2
 
 	MusicFolderHandler(folderPath = folder, createPlaylist = args.playlist, onlyPlaylist = args.onlyPlaylist, playlistName = args.playlistName,
 						onlyTimestamp = args.timestamp, enableSimpleLookup = args.simpleLookup, whatIf = args.whatIf)\
 		.SetFolderFilesFromDb()
+	return 0
 
-def copyFolderPropertiesCommand(args):
+def copyFolderPropertiesCommand(args) -> int:
 	LogHelper.Init(verbose=args.verbose)
 	targetFolder = pathlib.Path(args.targetFolderPath)#.resolve()
 	if not targetFolder.is_dir():
 		print(f'folder "{args.targetFolderPath}" does not exist, is not a folder or could not be accessed')
-		return
+		return 2
 
 	sourceFolder = None
 	if args.sourceFolderPath:
@@ -883,27 +892,28 @@ def copyFolderPropertiesCommand(args):
 			sourceFolder = pathlib.Path(folderName)
 	if not sourceFolder.is_dir():
 		print(f'folder "{args.sourceFolderPath}" does not exist, is not a folder or could not be accessed')
-		return
+		return 2
 
-	MusicFolderHandler(targetFolderPath = targetFolder, sourceFolderPath = sourceFolder, whatIf = args.whatIf)\
+	return MusicFolderHandler(targetFolderPath = targetFolder, sourceFolderPath = sourceFolder, whatIf = args.whatIf)\
 		.CopyFolderProperties()
 
-def cleanFilesCommand(args):
+def cleanFilesCommand(args) -> int:
 	LogHelper.Init(verbose=args.verbose)
 	p = pathlib.Path(args.path)#.resolve()
 	if p.is_dir():
-		MusicFolderHandler(folderPath = p, whatIf = args.whatIf).CleanFolderFiles(args.onlyJunk)
+		return MusicFolderHandler(folderPath = p, whatIf = args.whatIf).CleanFolderFiles(args.onlyJunk)
 	elif p.is_file():
-		MusicFolderHandler(whatIf = args.whatIf).CleanFile(p, args.onlyJunk)
+		return MusicFolderHandler(whatIf = args.whatIf).CleanFile(p, args.onlyJunk)
 	else:
 		print(f'path "{args.path}" does not exist, is not a folder or could not be accessed')
+		return 2
 
-def showFolderPropertiesCommand(args : argparse.Namespace):
+def showFolderPropertiesCommand(args : argparse.Namespace) -> int:
 	LogHelper.Init()
 	folder = pathlib.Path(args.folderPath)#.resolve()
 	if not folder.is_dir():
 		print(f'folder "{args.folderPath}" does not exist, is not a folder or could not be accessed')
-		return
+		return 2
 	headers = ['Filename', 'AlbumTitle', 'TrackArtist', 'TrackTitle', 'Year']
 	results = []
 	for f in FileHelpers.MultiGlob(folder, MusicFolderHandler._supportedFileTypesGlob):
@@ -911,13 +921,14 @@ def showFolderPropertiesCommand(args : argparse.Namespace):
 		results.append([f.name, props.AlbumTitle, props.TrackArtist, props.TrackTitle, props.Year])
 		props = None
 	print(tabulate(sorted(results, key=lambda r: r[0]), headers=headers, tablefmt=_defaultTableFormat))
+	return 0
 
-def showFilePropertiesCommand(args : argparse.Namespace):
+def showFilePropertiesCommand(args : argparse.Namespace) -> int:
 	LogHelper.Init()
 	file = pathlib.Path(args.filePath)#.resolve()
 	if not file.is_file():
 		print(f'file "{args.filePath}" does not exist, is not a folder or could not be accessed')
-		return
+		return 2
 	props = MusicFileProperties(file)
 	printData = []
 	if args.raw:
@@ -944,6 +955,7 @@ def showFilePropertiesCommand(args : argparse.Namespace):
 	#print(tabulate(printData, headers=['Property','Value'], tablefmt='fancy_grid'))
 	print(tabulate(printData, headers=['Property','Value'], tablefmt=_defaultTableFormat))
 	props = None
+	return 0
 
 def buildArguments():
 	parser = argparse.ArgumentParser()
@@ -996,7 +1008,7 @@ def buildArguments():
 def main():
 	parser = buildArguments()
 	args = parser.parse_args()
-	args.func(args)		# call the handler
+	return args.func(args)		# call the handler
 
 if __name__ == "__main__":
 	try:
