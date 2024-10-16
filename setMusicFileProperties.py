@@ -298,7 +298,7 @@ class MusicFolderHandler:
 						sf = sf.with_suffix(ext)
 						if sf.is_file(): break
 			if not sf.is_file():
-				LogHelper.Warning(f"no source file found for file '{tf.name}'")
+				LogHelper.Warning(f'no source file found for file "{tf.name}"')
 				filesNotFound += 1
 				continue
 			trg = MusicFileProperties(tf)
