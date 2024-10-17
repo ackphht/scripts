@@ -21,7 +21,7 @@ class TagNames:
 	Description = "Description"				# ??? where did i get this from ???
 	DiscNumber = "DiscNumber"
 	DiscCount = "DiscCount"
-	DiscTItle = "DiscTItle"
+	DiscSubTitle = "DiscSubTitle"
 	DiscogsReleaseId = "DiscogsReleaseId"
 	Engineer = "Engineer"
 	Genre = "Genre"

@@ -139,6 +139,7 @@ class ApprovedTagsList:
 			TagNames.TrackCount.upper(): TagNames.TrackCount,
 			TagNames.DiscNumber.upper(): TagNames.DiscNumber,
 			TagNames.DiscCount.upper(): TagNames.DiscCount,
+			TagNames.DiscSubTitle.upper(): TagNames.DiscSubTitle,
 			TagNames.Copyright.upper(): TagNames.Copyright,
 			TagNames.Conductor.upper(): TagNames.Conductor,
 			TagNames.Lyrics.upper(): TagNames.Lyrics,
@@ -223,7 +224,7 @@ class MusicFolderHandler:
 	_tagsToCopy = [ TagNames.AlbumTitle, TagNames.TrackTitle, TagNames.AlbumArtist, TagNames.TrackArtist, TagNames.YearReleased,
 					TagNames.Conductor, TagNames.Copyright, TagNames.RecordLabel, TagNames.Lyrics, TagNames.Composer,
 					TagNames.Lyricist, TagNames.Writer, TagNames.Producer, TagNames.Comment, TagNames.TrackNumber, TagNames.TrackCount,
-					TagNames.DiscNumber, TagNames.DiscCount, TagNames.DiscTItle, TagNames.MovementNumber, TagNames.MovementCount, TagNames.MovementName,
+					TagNames.DiscNumber, TagNames.DiscCount, TagNames.DiscSubTitle, TagNames.MovementNumber, TagNames.MovementCount, TagNames.MovementName,
 					TagNames.Barcode, TagNames.CatalogNumber, TagNames.OriginalArtist, TagNames.OriginalAlbumTitle, TagNames.OriginalReleaseYear,
 					TagNames.MusicianCredits, TagNames.Engineer, TagNames.MixedBy, TagNames.Arranger, TagNames.RemixedBy,
 					TagNames.RecordedDate, TagNames.ReleasedDate, TagNames.MediaType, TagNames.ISRC,
@@ -233,7 +234,7 @@ class MusicFolderHandler:
 					TagNames.MusicBrainzWorkId, TagNames.WorkTitle, TagNames.DiscogsReleaseId, TagNames.AmazonId,
 					TagNames.DigitalPurchaseFrom, TagNames.DigitalPurchaseDate, TagNames.DigitalPurchaseId,
 					TagNames.AllMusicArtistId, TagNames.AllMusicAlbumId, TagNames.WikidataArtistId, TagNames.WikidataAlbumId,
-					TagNames.WikipediaArtistId, TagNames.WikipediaAlbumId, TagNames.IMDbArtistId, ]
+					TagNames.WikipediaArtistId, TagNames.WikipediaAlbumId, TagNames.IMDbArtistId, TagNames.AcoustidId, ]
 	_junkTagsToClean = [ TagNames.iTunSMPB, TagNames.Genre, TagNames.Cover, TagNames.Codec, TagNames.Encoder, TagNames.EncodedBy,
 					 	TagNames.EncodingSettings, TagNames.Source, TagNames.RippingTool, TagNames.RipDate,
 						TagNames.MusicBrainzReleaseType, TagNames.UPC, TagNames.Rating, TagNames.Script, TagNames.Artists,
@@ -244,7 +245,7 @@ class MusicFolderHandler:
 						TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzAlbumReleaseCountry, TagNames.MusicBrainzWorkId,
 						TagNames.MusicBrainzTrackId, TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzReleaseGroupId,
 						TagNames.MusicBrainzDiscId, TagNames.MusicBrainzTrackArtistId, TagNames.MusicBrainzAlbumId,
-						TagNames.MusicBrainzAlbumArtistId, ]
+						TagNames.MusicBrainzAlbumArtistId, TagNames.DiscSubTitle, ]
 	_approvedTags = ApprovedTagsList()
 	_keepOnCleanAll = [ TagNames.AlbumTitle, TagNames.TrackTitle, TagNames.AlbumArtist, TagNames.TrackArtist, TagNames.TrackNumber,
 						TagNames.ReplayGainTrackGain, TagNames.ReplayGainTrackPeak, TagNames.ReplayGainAlbumGain, TagNames.ReplayGainAlbumPeak,
@@ -343,7 +344,9 @@ class MusicFolderHandler:
 		currLastAccessTime = os.path.getatime(targetMusicFile.FilePath)
 		self._cleanAllTags(targetMusicFile)
 
+		LogHelper.Verbose('starting copy of tags from "{0}" to "{1}"', sourceMusicFile.FilePath, targetMusicFile.FilePath)
 		for tag in MusicFolderHandler._tagsToCopy:
+			LogHelper.Verbose('>>> copying tag "{0}" from source (if present)', tag)
 			self._copyTag(tag, sourceMusicFile, targetMusicFile)
 
 		self._saveFile(targetMusicFile, lastModTime, currLastAccessTime, False, True)
