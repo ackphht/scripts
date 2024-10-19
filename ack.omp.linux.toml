@@ -120,7 +120,7 @@ alignment = 'left'
 	[blocks.segments.properties]
 		always_enabled = false
 		# status_template = '{{ if eq .Code 0 }}\uf00c{{ else }}\uf071 {{ reason .Code }}{{ end }}'
-		status_template = '{{ if eq .Code 0 }}\uf00c{{ else }}\uf071 {{ .Code }}{{ end }}'
+		status_template = '{{ if eq .Code 0 }}{{ else }} {{ .Code }}{{ end }}'
 
 [[blocks]]
 type = 'prompt'
