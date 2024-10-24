@@ -283,11 +283,9 @@ class MusicFolderHandler:
 		if (self._playlist or self._onlyPlaylist) and not self._onlyTimestamp:
 			self._createPlaylist()
 
-	def CopyFolderProperties(self) -> int:
-		renamedFolder = self._cleanUpFolderName(self._targetFolderPath)
-		if renamedFolder:
-			self._targetFolderPath = renamedFolder
-		self._cleanUpFilenames(self._targetFolderPath)
+	def CopyFolderProperties(self, noRenames: bool = False) -> int:
+		if not noRenames:
+			self.CleanUpPathNames()
 
 		filesNotFound = 0
 		for tf in FileHelpers.MultiGlob(self._targetFolderPath, MusicFolderHandler._supportedFileTypesGlob):
@@ -323,6 +321,13 @@ class MusicFolderHandler:
 	def CleanFile(self, filePath : pathlib.Path, onlyJunkTags: bool = False) -> int:
 		mf = MusicFileProperties(filePath)
 		self._cleanFile(mf, onlyJunkTags)
+		return 0
+
+	def CleanUpPathNames(self) -> int:
+		renamedFolder = self._cleanUpFolderName(self._targetFolderPath)
+		if renamedFolder:
+			self._targetFolderPath = renamedFolder
+		self._cleanUpFilenames(self._targetFolderPath)
 		return 0
 
 	def _saveFile(self, musicFile: MusicFileProperties, originalLastModTime: float, originalLastAccessTime: float, quiet: bool, ignoreOnlyTimestamp: bool):
@@ -898,7 +903,7 @@ def copyFolderPropertiesCommand(args) -> int:
 		return 2
 
 	return MusicFolderHandler(targetFolderPath = targetFolder, sourceFolderPath = sourceFolder, whatIf = args.whatIf)\
-		.CopyFolderProperties()
+		.CopyFolderProperties(args.skipRenames)
 
 def cleanFilesCommand(args) -> int:
 	LogHelper.Init(verbose=args.verbose)
@@ -907,6 +912,15 @@ def cleanFilesCommand(args) -> int:
 		return MusicFolderHandler(folderPath = p, whatIf = args.whatIf).CleanFolderFiles(args.onlyJunk)
 	elif p.is_file():
 		return MusicFolderHandler(whatIf = args.whatIf).CleanFile(p, args.onlyJunk)
+	else:
+		print(f'path "{args.path}" does not exist, is not a folder or could not be accessed')
+		return 2
+
+def cleanNamesCommand(args) -> int:
+	LogHelper.Init(verbose=args.verbose)
+	p = pathlib.Path(args.path)#.resolve()
+	if p.is_dir():
+		return MusicFolderHandler(targetFolderPath = p, whatIf = args.whatIf).CleanUpPathNames()
 	else:
 		print(f'path "{args.path}" does not exist, is not a folder or could not be accessed')
 		return 2
@@ -985,6 +999,7 @@ def buildArguments():
 	setFolderCmd = subparsers.add_parser("copyFolderProperties", aliases=["copy", "cp"], help="enumerates music files in the target folder, looks for a matching file in source folder, and copies properties from source to target")
 	setFolderCmd.add_argument("targetFolderPath", help="folder to copy file tags TO")
 	setFolderCmd.add_argument("sourceFolderPath", nargs="?", help="folder to copy file tags FROM")
+	setFolderCmd.add_argument("-n", "--skipRenames", action="store_true", help="skip doing folder and file name cleanups")
 	setFolderCmd.add_argument("-w", "--whatIf", action="store_true", help="look up properties, but don't actually save anything")
 	setFolderCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	setFolderCmd.set_defaults(func=copyFolderPropertiesCommand)
@@ -995,6 +1010,12 @@ def buildArguments():
 	setFolderCmd.add_argument("-w", "--whatIf", action="store_true", help="go thru cleaning properties, but don't actually save anything")
 	setFolderCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	setFolderCmd.set_defaults(func=cleanFilesCommand)
+
+	setFolderCmd = subparsers.add_parser("cleanUpFileNames", aliases=["names", "n"], help="cleans up folder and file names (e.g. removes fancy quotes, other fancy chars)")
+	setFolderCmd.add_argument("path")
+	setFolderCmd.add_argument("-w", "--whatIf", action="store_true", help="go thru cleaning properties, but don't actually save anything")
+	setFolderCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	setFolderCmd.set_defaults(func=cleanNamesCommand)
 
 	setFolderCmd = subparsers.add_parser("showFolderProperties", aliases=["folder", "fld"], help="enumerates music files in the folder and shows properties for each")
 	setFolderCmd.add_argument("folderPath")
