@@ -9,7 +9,7 @@ hasCmd apt-get && echo "apt-get = |$(apt-get --version | head -n 1 | awk '{print
 hasCmd zypper  && echo "zypper  = |$(zypper --version | awk '{print $2}')|" || true
 if hasCmd dnf5; then
 	echo "dnf     = |$(dnf5 --version | head -n 1 | awk '{print $3}')|"
-elif hasCmd dnf;
+elif hasCmd dnf; then
 	echo "dnf     = |$(dnf --version | head -n 1 | awk '{print $1}')|"
 fi
 hasCmd pacman  && echo "pacman  = |$(pacman --version | head -n 2 | tail -n 1 | awk '{print $3}' | sed -E 's/^v//')|" || true
