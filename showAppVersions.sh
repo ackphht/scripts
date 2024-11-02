@@ -7,7 +7,11 @@ platform=$(uname -s)
 
 hasCmd apt-get && echo "apt-get = |$(apt-get --version | head -n 1 | awk '{print $2}')|" || true
 hasCmd zypper  && echo "zypper  = |$(zypper --version | awk '{print $2}')|" || true
-hasCmd dnf     && echo "dnf     = |$(dnf --version | head -n 1 | awk '{print $1}')|" || true
+if hasCmd dnf5; then
+	echo "dnf     = |$(dnf5 --version | head -n 1 | awk '{print $3}')|"
+elif hasCmd dnf;
+	echo "dnf     = |$(dnf --version | head -n 1 | awk '{print $1}')|"
+fi
 hasCmd pacman  && echo "pacman  = |$(pacman --version | head -n 2 | tail -n 1 | awk '{print $3}' | sed -E 's/^v//')|" || true
 hasCmd eopkg   && echo "eopkg   = |$(eopkg --version | awk '{print $2}')|" || true
 hasCmd brew    && echo "brew    = |$(brew --version | awk '{print $2}')|" || true
