@@ -17,7 +17,7 @@ Copyright,cprt,COPYRIGHT,Copyright,TCOP,TCOP,Copyright
 Cover,covr,METADATA_BLOCK_PICTURE,WM/Picture,APIC,APIC, Cover Art (Front)
 Description,desc,,,,,
 DiscNumber,disk,DISCNUMBER,WM/PartOfSet,TPOS,TPOS,DiscNumber|Disc
-DiscCount,disk    # make sure this one is after above,TOTALDISCS|DISCTOTAL,TOTALDISCS,TOTALDISCS,TOTALDISCS,TotalDiscs
+DiscCount,disk    # make sure this one is after DiscNumber,TOTALDISCS|DISCTOTAL,TOTALDISCS,TOTALDISCS,TOTALDISCS,TotalDiscs
 DiscSubTitle,*:DISCSUBTITLE|*:Disc Title,DISCSUBTITLE,WM/SetSubTitle,TSST,,DiscSubTitle
 DiscogsReleaseId,*:DISCOGS_RELEASE_ID,DISCOGS_RELEASE_ID,DISCOGS_RELEASE_ID,TXXX:DISCOGS_RELEASE_ID,TXXX:DISCOGS_RELEASE_ID,Discogs_Release_Id
 Engineer,*:ENGINEER,ENGINEER,WM/Engineer|ENGINEER,TIPL:engineer|TXXX:ENGINEER,IPLS:engineer|TXXX:ENGINEER,Engineer
@@ -27,7 +27,7 @@ ISRC,*:ISRC,ISRC,WM/ISRC,TSRC,TSRC,ISRC
 Language,*:LANGUAGE,LANGUAGE,WM/Language,TLAN,TLAN,Language
 Lyricist,*:LYRICIST,LYRICIST,WM/Writer,TEXT,TEXT,Lyricist
 Lyrics,©lyr,UNSYNCEDLYRICS|LYRICS,WM/Lyrics,USLT|SYLT|TXXX:LYRICS,USLT|SYLT|TXXX:LYRICS,UnsyncedLyrics|Lyrics
-MediaType,*:MEDIA|*:MEDIATYPE,MEDIATYPE|MEDIA,WM/Media|MEDIATYPE,TMED,TMED,MediaType|Media
+MediaType,*:MEDIATYPE|*:MEDIA,MEDIATYPE|MEDIA,WM/Media|MEDIATYPE,TMED,TMED,MediaType|Media
 MixedBy,*:MIXER,MIXER,WM/Mixer|MIXER,TIPL:mix|TXXX:MIXER,IPLS:mix|TXXX:MIXER,Mixer
 MovementNumber,©mvi,MOVEMENT,MOVEMENT,MVIN,MVIN,Movement
 MovementCount,©mvc,MOVEMENTTOTAL,MOVEMENTTOTAL,MOVEMENTTOTAL,MOVEMENTTOTAL,MovementTotal
@@ -64,7 +64,7 @@ TrackArtistSort,soar,ARTISTSORT,WM/ArtistSortOrder,TSOP,TSOP,ArtistSort
 TrackTitle,©nam,TITLE,Title,TIT2,TIT2,Title
 TrackTitleSort,sonm,TITLESORT,WM/TitleSortOrder,TSOT,TSOT,TitleSort
 TrackNumber,trkn,TRACKNUMBER,WM/TrackNumber,TRCK,TRCK,Track
-TrackCount,trkn    # make sure this one is after above,TOTALTRACKS|TRACKTOTAL,TOTALTRACKS,TOTALTRACKS,TOTALTRACKS,TotalTracks
+TrackCount,trkn    # make sure this one is after TrackNumber,TOTALTRACKS|TRACKTOTAL,TOTALTRACKS,TOTALTRACKS,TOTALTRACKS,TotalTracks
 WorkTitle,©wrk,WORK,WM/Work,TXXX:WORK,TXXX:WORK,Work
 Writer,*:WRITER,WRITER,WRITER,TXXX:Writer,TXXX:WRITER,Writer
 YearReleased,©day,DATE,WM/Year,TDRC,TDRC|TYER,Year
