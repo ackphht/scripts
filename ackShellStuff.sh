@@ -99,7 +99,6 @@ if [[ "$platform" != "Darwin" ]] && hasCmd apt; then	# macOs (at least version i
 	alias aptx="${sudoCmd}apt remove"	# leaves settings	(leaving off --yes)
 	alias aptxx="${sudoCmd}apt purge"	# removes settings too
 	alias aptl='apt list --installed'
-elif hasCmd dnf5; then
 elif hasCmd dnf; then
 	if hasCmd dnf5; then
 		alias aptr="dnf5 check-upgrade"
