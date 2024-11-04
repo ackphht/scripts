@@ -27,7 +27,9 @@ def main():
 		return	# function logs everything, so just return
 
 	downloadOmp(ompInfo, testMode)
-	disableUpdateCheck(ompInfo, testMode)
+	if getCurrentOhMyPoshVer().major < 24:
+		disableUpdateCheck(ompInfo, testMode)
+	# for >= 24 -> ??? it errors right now, maybe that will get fixed ???
 
 OmpInfo = namedtuple("OmpInfo", ["ompBinPath", "isUpToDate", "installedVersion", "latestVersion", "downloadUrl"])
 def initOmpInfo(osPlatform: str, osArch: str, forceInstall: bool, whatIf: bool) -> OmpInfo:
