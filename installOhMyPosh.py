@@ -27,9 +27,7 @@ def main():
 		return	# function logs everything, so just return
 
 	downloadOmp(ompInfo, testMode)
-	if getCurrentOhMyPoshVer().major < 24:
-		disableUpdateCheck(ompInfo, testMode)
-	# for >= 24 -> ??? it errors right now, maybe that will get fixed ???
+	disableUpdateCheck(ompInfo, testMode)
 
 OmpInfo = namedtuple("OmpInfo", ["ompBinPath", "isUpToDate", "installedVersion", "latestVersion", "downloadUrl"])
 def initOmpInfo(osPlatform: str, osArch: str, forceInstall: bool, whatIf: bool) -> OmpInfo:
@@ -72,6 +70,7 @@ def downloadOmp(ompInfo: OmpInfo, whatIf: bool) -> None:
 		LogHelper.WhatIf(f'setting execute permission on file "{ompInfo.ompBinPath}"')
 
 def disableUpdateCheck(ompInfo: OmpInfo, whatIf: bool) -> None:
+	currentVer = getCurrentOhMyPoshVer()
 	# make sure the notify thing is off:
 	if not whatIf:
 		result = RunProcessHelper.runProcess([ompInfo.ompBinPath, "disable", "notice"])
@@ -79,6 +78,14 @@ def disableUpdateCheck(ompInfo: OmpInfo, whatIf: bool) -> None:
 			LogHelper.Error(f"error running oh-my-posh disable notice: exit code = {result.exitCode}{os.linesep}{result.getCombinedStdoutStderr()}")
 	else:
 		LogHelper.WhatIf(f'running command "{ompInfo.ompBinPath} disable notice"')
+
+	if currentVer.major >= 24:
+		if not whatIf:
+			result = RunProcessHelper.runProcess([ompInfo.ompBinPath, "disable", "upgrade"])
+			if result.exitCode != 0:
+				LogHelper.Error(f"error running oh-my-posh disable upgrade: exit code = {result.exitCode}{os.linesep}{result.getCombinedStdoutStderr()}")
+		else:
+			LogHelper.WhatIf(f'running command "{ompInfo.ompBinPath} disable upgrade"')
 
 def getBinPath(osPlatform: str, whatIf: bool):
 	binFldr = ".local/bin" if osPlatform == "linux" else "bin"
@@ -100,12 +107,12 @@ def cleanUpVersion(ver : str) -> str:
 
 def getCurrentOhMyPoshVer() -> Version:
 	if shutil.which("oh-my-posh"):
-		result = RunProcessHelper.runProcess(["oh-my-posh", "--version"])
+		result = RunProcessHelper.runProcess(["oh-my-posh", "version"])
 		if result.exitCode == 0:
 			ver = cleanUpVersion(result.stdout)
 			return Version.parseVersionString(ver)
 		else:
-			LogHelper.Error(f"error running oh-my-posh --version: exit code = {result.exitCode}{os.linesep}{result.getCombinedStdoutStderr()}")
+			LogHelper.Error(f"error running oh-my-posh version: exit code = {result.exitCode}{os.linesep}{result.getCombinedStdoutStderr()}")
 	return Version(0, 0, 0)
 
 def normalizeArchForOhMyPosh(arch: str) -> str:
