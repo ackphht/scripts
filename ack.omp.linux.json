@@ -2,8 +2,9 @@
 	// oh-my-posh doc: https://ohmyposh.dev/docs/
 	// nerd font icons: https://www.nerdfonts.com/cheat-sheet
 	"$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
-	"version": 2,
-	"disable_notice": true,		// disable upgrade notice (>= v19.27.0)
+	"version": 3,
+	"upgrade_notice": false,		// disable upgrade notice (>= v24.0.0)
+	"auto_upgrade": false,			// disable auto upgrade (>= v24.0.0)
 	"blocks": [
 		{
 			"type": "prompt",
@@ -47,11 +48,14 @@
 					"type": "ipify",
 					"style": "plain",
 					"foreground": "lightMagenta",
+					"template": " [{{ .IP }}]",
 					"properties": {
-						"cache_timeout": 30,
 						"http_timeout": 1000
 					},
-					"template": " [{{ .IP }}]"
+					"cache": {
+						"duration": "30m0s",
+						"strategy": "folder"
+					}
 				}*/,
 				{
 					"type": "time",
