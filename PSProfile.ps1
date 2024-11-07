@@ -92,7 +92,7 @@ if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 		Write-Verbose "$($MyInvocation.InvocationName): checking for oh-my-posh profile `"$maybeAckTheme`""
 		if (Test-Path -Path $maybeAckTheme -PathType Leaf) {
 			Write-Verbose "$($MyInvocation.InvocationName): using oh-my-posh profile `"$maybeAckTheme`""
-			oh-my-posh --init --shell pwsh --config $maybeAckTheme | Invoke-Expression
+			oh-my-posh init pwsh --config $maybeAckTheme | Invoke-Expression
 			break
 		}
 	}
