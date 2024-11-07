@@ -360,16 +360,19 @@ function DisableUnwantedServices {
 		@{ Name = 'Intel(R) Management and Security Application Local Management Service'; Start = ''; }
 		@{ Name = 'Intel(R) HD Graphics Control Panel Service*'; Start = ''; }
 		@{ Name = 'Intel(R) Graphics Command Center Service*'; Start = ''; }
+		@{ Name = 'Intel(R) System Usage Report Service*'; Start = ''; }
 		@{ Name = 'NvTelemetryContainer'; Start = ''; }				# "Container service for NVIDIA Telemetry",
 		@{ Name = 'Killer Network Service'; Start = ''; }
 		@{ Name = 'Killer Analytics Service'; Start = ''; }
-		@{ Name = 'Killer Dynamic Bandwidth Management'; Start = 'Manual'<# ??? #>; }
+		@{ Name = 'Killer Dynamic Bandwidth Management'; Start = ''; }
 		@{ Name = 'Killer Smart AP Selection Service'; Start = 'Manual'<# ??? #>; }
+		@{ Name = 'Killer Provider Data Helper Service'; Start = ''; }
 		@{ Name = 'QcomWlanSrv'; Start = 'Manual'; }				# "Qualcomm Atheros WLAN Driver Service"
 		@{ Name = 'Dell Hardware Support'; Start = 'Manual'; }
 		@{ Name = 'Dell SupportAssist*'; Start = 'Manual'; }
 		@{ Name = 'Dell Optimizer'; Start = 'Manual'; }
 		@{ Name = 'Dell Digital Delivery Services'; Start = 'Manual'; }
+		@{ Name = 'Dell TechHub'; Start = 'Manual'; }
 		@{ Name = 'Docker Desktop Service'; Start = 'Manual'; }
 		@{ Name = 'Realtek Audio Universal Service'; Start = ''; }
 		@{ Name = 'Waves Audio Services'; Start = ''; }
@@ -441,7 +444,11 @@ function DisableUnwantedScheduledTasks {
 		@{ Name = 'MicrosoftEdgeUpdateTask*'; Path=''; }
 		@{ Name = 'VivaldiUpdateCheck*'; Path=''; }
 		@{ Name = 'Firefox Default Browser Agent *'; Path='\Mozilla\'; }
-		@{ Name = 'G2MUp*'; Path='\'; }					# GoToMeeting
+		@{ Name = 'G2MUp*'; Path='\'; }							# GoToMeeting
+		@{ Name = 'DashboardNotificationManager*'; Path='\'; }	# WD Dashboard
+		@{ Name = 'RNIdle*'; Path='\'; }						# Killer network something
+		@{ Name = 'IntelSURQC*'; Path='\'; }					# Intel driver update thing (there was another one with some random looking name that i deleted before remembering to put it in here)
+		@{ Name = 'Dell SupportAssistAgent AutoUpdate'; Path='\'; }
 	) | ForEach-Object { DisableScheduledTask -allSchedTasks $allTasks -taskName $_.Name -taskPath $_.Path }
 }
 
@@ -617,6 +624,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Google Chrome.lnk', $applications, 'Google Chrome.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('Google Drive.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('GPA.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('Intel Driver & Support Assistant.lnk', $systemApps)
 		[StartMenuCleanupItem]::FromCommonPrograms('KeePass 2.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Kleopatra.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Edge.lnk', $applications)
@@ -761,6 +769,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Intune Management Extension', 'Work')
 		[StartMenuCleanupItem]::FromCommonPrograms('Symantec Endpoint Protection', 'Work')
 
+		[StartMenuCleanupItem]::FromUserStartMenu('Dashboard.lnk', $systemApps, 'WD Dashboard.lnk')
 		[StartMenuCleanupItem]::FromUserStartMenu('Notepad2-mod.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserStartMenu('Notepad3.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey Window Spy.lnk', $applications)
