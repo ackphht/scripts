@@ -51,7 +51,7 @@ class TagNames:
 	OriginalArtist = "OriginalArtist"
 	OriginalReleaseDate = "OriginalReleaseDate"
 	OriginalReleaseYear = "OriginalReleaseYear"
-	Performer = "Performer"					# added by Picard, not quite a "junk" tag, but probably will remove them
+	Performer = "MusicianCredits"	#"Performer"					# added by Picard, not quite a "junk" tag, but probably will remove them
 	Producer = "Producer"
 	RecordLabel = "RecordLabel"
 	ReleaseDate = "ReleaseDate"
