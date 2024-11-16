@@ -51,6 +51,7 @@ call :CleanTempFileType *.png
 call :CleanTempFileType *.proj
 call :CleanTempFileType *-lockfile
 call :CleanTempFileType *.rar
+call :CleanTempFileType *.reg
 call :CleanTempFileType *.scr
 call :CleanTempFileType *.ses
 call :CleanTempFileType *.shd
@@ -94,6 +95,7 @@ call :CleanTempFolder LinqPad
 call :CleanTempFolder lptmp
 call :CleanTempFolder MicroThemePackDir
 call :CleanTempFolder MM_UPNP_Images
+call :CleanTempFolder MSBuildTemp
 call :CleanTempFolder msohtml
 call :CleanTempFolder msohtml1
 call :CleanTempFolder msohtmlclip
@@ -106,6 +108,7 @@ call :CleanTempFolder PdnSetup
 call :CleanTempFolder PhotoCache
 call :CleanTempFolder RazorVSFeedbackLogs
 call :CleanTempFolder RemoteHelp
+call :CleanTempFolder Roslyn
 call :CleanTempFolder servicehub
 call :CleanTempFolder SmartScreen
 call :CleanTempFolder Ssms
@@ -124,8 +127,12 @@ call :CleanTempFolder "Temporary ASP.NET Files"
 call :CleanTempMultiFolder *.tmp
 call :CleanTempMultiFolder appInsights-*
 call :CleanTempMultiFolder calibre_*
+call :CleanTempMultiFolder chrome_BITS*
 call :CleanTempMultiFolder chrome_drag*
+call :CleanTempMultiFolder chrome_url_fetcher_*
 call :CleanTempMultiFolder dotnet-sdk-*
+call :CleanTempMultiFolder edge_BITS*
+call :CleanTempMultiFolder GoogleUpdateSetup*
 call :CleanTempMultiFolder hb.*
 call :CleanTempMultiFolder Log*
 call :CleanTempMultiFolder Micro*
