@@ -64,7 +64,7 @@
 		},
 		"codenames": [
 			// same codenames apply to server ?? or do we need to have separate list ??
-			{ "build": 26100, "codename": "" /* Sun Valley 4? Germanium? */, "major": 0, "minor": 0 },		// Win 11 24H2
+			{ "build": 26100, "codename": "Hudson Valley", "major": 0, "minor": 0 },// Win 11 24H2
 			{ "build": 22631, "codename": "Sun Valley 3", "major": 0, "minor": 0 },	// Win 11 23H2
 			{ "build": 22621, "codename": "Sun Valley 2", "major": 0, "minor": 0 },	// Win 11 22H2
 			{ "build": 22000, "codename": "Sun Valley", "major": 0, "minor": 0 },	// Win 11 RTM/21H2
