@@ -280,6 +280,13 @@ class MusicFolderHandler:
 		if (self._playlist or self._onlyPlaylist) and not self._onlyTimestamp:
 			MusicFolderHandler._createPlaylist(self._folderPath, self._playlistName, self._whatIf)
 
+	def CreatePlaylist(self):
+		renamedFolder = MusicFolderHandler._cleanUpPathNames(self._folderPath, self._whatIf)
+		if renamedFolder:
+			self._folderPath = renamedFolder
+
+		MusicFolderHandler._createPlaylist(self._folderPath, self._playlistName, self._whatIf)
+
 	def CopyFolderProperties(self, noRenames: bool = False) -> int:
 		if not noRenames:
 			self.CleanUpPathNames()
@@ -866,6 +873,17 @@ def setFolderPropertiesFromDbCommand(args) -> int:
 		.SetFolderFilesFromDb()
 	return 0
 
+def createPlaylistCommand(args) -> int:
+	LogHelper.Init(verbose=args.verbose)
+	folder = pathlib.Path(args.folderPath)#.resolve()
+	if not folder.is_dir():
+		print(f'folder "{args.folderPath}" does not exist, is not a folder or could not be accessed')
+		return 2
+
+	MusicFolderHandler(folderPath = folder, playlistName = args.playlistName, whatIf = args.whatIf)\
+		.CreatePlaylist()
+	return 0
+
 def copyFolderPropertiesCommand(args) -> int:
 	LogHelper.Init(verbose=args.verbose)
 	targetFolder = pathlib.Path(args.targetFolderPath)#.resolve()
@@ -1005,6 +1023,13 @@ def buildArguments():
 	setFolderCmd.add_argument("-w", "--whatIf", action="store_true", help="do the lookups, but don't actually save anything")
 	setFolderCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	setFolderCmd.set_defaults(func=setFolderPropertiesFromDbCommand)
+
+	setFolderCmd = subparsers.add_parser("createPlaylist", aliases=["playlist", "pl"], help="creates a playlist for music files in given folder")
+	setFolderCmd.add_argument("folderPath")
+	setFolderCmd.add_argument("-pn", "--playlistName", help="override playlist name")
+	setFolderCmd.add_argument("-w", "--whatIf", action="store_true", help="do the lookups, but don't actually save anything")
+	setFolderCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
+	setFolderCmd.set_defaults(func=createPlaylistCommand)
 
 	setFolderCmd = subparsers.add_parser("copyFolderProperties", aliases=["copy", "cp"], help="enumerates music files in the target folder, looks for a matching file in source folder, and copies properties from source to target")
 	setFolderCmd.add_argument("targetFolderPath", help="folder to copy file tags TO")
