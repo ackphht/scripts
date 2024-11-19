@@ -269,7 +269,7 @@ class MusicFolderHandler:
 
 #	@deprecated("we're not using this any more, right?")
 	def SetFolderFilesFromDb(self):
-		renamedFolder = self._cleanUpPathNames(self._folderPath)
+		renamedFolder = MusicFolderHandler._cleanUpPathNames(self._folderPath, self._whatIf)
 		if renamedFolder:
 			self._folderPath = renamedFolder
 
@@ -306,7 +306,7 @@ class MusicFolderHandler:
 		return 1 if filesNotFound > 0 else 0
 
 	def CleanFolderFiles(self, onlyJunkTags: bool = False) -> int:
-		renamedFolder = self._cleanUpPathNames(self._folderPath)
+		renamedFolder = MusicFolderHandler._cleanUpPathNames(self._folderPath, self._whatIf)
 		if renamedFolder:
 			self._folderPath = renamedFolder
 
@@ -322,7 +322,7 @@ class MusicFolderHandler:
 		return 0
 
 	def CleanUpPathNames(self) -> int:
-		renamedFolder = self._cleanUpPathNames(self._targetFolderPath)
+		renamedFolder = MusicFolderHandler._cleanUpPathNames(self._targetFolderPath, self._whatIf)
 		if renamedFolder:
 			self._targetFolderPath = renamedFolder
 		return 0
@@ -556,33 +556,38 @@ class MusicFolderHandler:
 				msg += f"{os.linesep}      tag: {tup[0]}{os.linesep}    value: {tup[1]}"
 			LogHelper.Warning(msg)
 
-	def _cleanUpPathNames(self, folderPath: pathlib.Path) -> pathlib.Path|None:
-		renamedFolder = self._cleanUpFolderName(folderPath)
+	@staticmethod
+	def _cleanUpPathNames(folderPath: pathlib.Path, whatIf: bool) -> pathlib.Path|None:
+		renamedFolder = MusicFolderHandler._cleanUpFolderName(folderPath, whatIf)
 		if renamedFolder:
 			folderPath = renamedFolder
-		self._cleanUpFilenames(folderPath)
+		MusicFolderHandler._cleanUpFilenames(folderPath, whatIf)
 		return renamedFolder
 
-	def _cleanUpFolderName(self, folderPath: pathlib.Path) -> pathlib.Path|None:
+	@staticmethod
+	def _cleanUpFolderName(folderPath: pathlib.Path, whatIf: bool) -> pathlib.Path|None:
 		# check that folder name doesn't contain any funky characters and rename it if so (like fancy quotes etc)
 		folderName = folderPath.name
+		LogHelper.Verbose('checking folder "{0}" name for bad chars', folderName)
 		if MusicFolderHandler._hasBadChars(folderName):
 			folderName = MusicFolderHandler._fixBadChars(folderName)
 			LogHelper.Message2(f"renaming folder |{folderPath.name}| to |{folderName}|")
-			if self._whatIf:
+			if whatIf:
 				LogHelper.WhatIf(f"renaming folder |{folderPath.name}| to |{folderName}|")
 			else:
 				return folderPath.rename((folderPath.parent / folderName))
 		return None
 
-	def _cleanUpFilenames(self, folderPath: pathlib.Path) -> None:
+	@staticmethod
+	def _cleanUpFilenames(folderPath: pathlib.Path, whatIf: bool) -> None:
 		# check all the file names for funky characters and rename them
 		for f in FileHelpers.MultiGlob(folderPath, MusicFolderHandler._supportedFileTypesGlob):
 			filename = f.name
+			LogHelper.Verbose('checking file "{0}" name for bad chars', filename)
 			if MusicFolderHandler._hasBadChars(filename):
 				filename = MusicFolderHandler._fixBadChars(filename)
 				LogHelper.Message2(f"renaming file |{f.name}| to |{filename}|")
-				if self._whatIf:
+				if whatIf:
 					LogHelper.WhatIf(f"renaming file |{f.name}| to |{filename}|")
 				else:
 					f = f.rename((f.parent / filename))
