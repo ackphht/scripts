@@ -116,12 +116,10 @@ class DbRowHelper:
 
 class PlaylistEntry:
 	def __init__(self, mf : MusicFileProperties, filename : str):
-		tmp = mf.DiscNumber
-		self.discNumber = tmp if tmp else 0
-		tmp = mf.TrackNumber
-		self.trackNumber = tmp if tmp else 0
-		self.trackArtist = mf.TrackArtist
-		self.trackTitle = mf.TrackTitle
+		self.discNumber = int(mf.DiscNumber[0]) if len(mf.DiscNumber) > 0 else 0
+		self.trackNumber = int(mf.TrackNumber[0]) if len(mf.TrackNumber) > 0 else 0
+		self.trackArtist = "/".join(mf.TrackArtist)
+		self.trackTitle = mf.TrackTitle[0] if len(mf.TrackTitle) > 0 else ""
 		self.filename = filename
 		self.duration = mf.DurationSeconds
 
@@ -594,12 +592,12 @@ class MusicFolderHandler:
 
 	@staticmethod
 	def _createPlaylist(folderPath: pathlib.Path, playlistName: str|None, whatIf: bool):
-		entries = []; isFirst = True; albumTitle = ''; albumArtist = ''
+		entries: list[PlaylistEntry] = []; isFirst = True; albumTitle = ''; albumArtist = ''
 		for f in FileHelpers.MultiGlob(folderPath, MusicFolderHandler._supportedFileTypesGlob):
 			mf = MusicFileProperties(f)
 			if isFirst:
-				albumTitle = playlistName if playlistName else mf.AlbumTitle
-				albumArtist = mf.AlbumArtist if mf.AlbumArtist else mf.TrackArtist
+				albumTitle = playlistName if playlistName else "/".join(mf.AlbumTitle)
+				albumArtist = "/".join(mf.AlbumArtist) if len(mf.AlbumArtist) > 0 else "/".join(mf.TrackArtist)
 				isFirst = False
 			entries.append(PlaylistEntry(mf, f.name))
 
@@ -610,6 +608,7 @@ class MusicFolderHandler:
 			albumArtistForFile = albumArtistForFile[2:] + ", A"
 		elif (albumArtistForFile.lower().startswith("an ")):
 			albumArtistForFile = albumArtistForFile[3:] + ", An"
+
 		#filename = f"{albumArtistForFile} - {albumTitle}.m3u8"
 		filename = f"{albumArtistForFile} - {albumTitle}.m3u"
 		filename = MusicFolderHandler._fixBadChars(filename)
