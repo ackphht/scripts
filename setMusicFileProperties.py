@@ -280,7 +280,7 @@ class MusicFolderHandler:
 					self._setMusicFileFromDb(mf, conn)
 
 		if (self._playlist or self._onlyPlaylist) and not self._onlyTimestamp:
-			self._createPlaylist()
+			MusicFolderHandler._createPlaylist(self._folderPath, self._playlistName, self._whatIf)
 
 	def CopyFolderProperties(self, noRenames: bool = False) -> int:
 		if not noRenames:
@@ -592,12 +592,13 @@ class MusicFolderHandler:
 				else:
 					f = f.rename((f.parent / filename))
 
-	def _createPlaylist(self):
+	@staticmethod
+	def _createPlaylist(folderPath: pathlib.Path, playlistName: str|None, whatIf: bool):
 		entries = []; isFirst = True; albumTitle = ''; albumArtist = ''
-		for f in FileHelpers.MultiGlob(self._folderPath, MusicFolderHandler._supportedFileTypesGlob):
+		for f in FileHelpers.MultiGlob(folderPath, MusicFolderHandler._supportedFileTypesGlob):
 			mf = MusicFileProperties(f)
 			if isFirst:
-				albumTitle = self._playlistName if self._playlistName else mf.AlbumTitle
+				albumTitle = playlistName if playlistName else mf.AlbumTitle
 				albumArtist = mf.AlbumArtist if mf.AlbumArtist else mf.TrackArtist
 				isFirst = False
 			entries.append(PlaylistEntry(mf, f.name))
@@ -613,10 +614,10 @@ class MusicFolderHandler:
 		filename = f"{albumArtistForFile} - {albumTitle}.m3u"
 		filename = MusicFolderHandler._fixBadChars(filename)
 		filename = MusicFolderHandler._badFilenameCharsRegex.sub("_", filename)
-		playlist = pathlib.Path((self._folderPath / filename))
+		playlist = pathlib.Path((folderPath / filename))
 
 		LogHelper.Message(f"creating playlist '{str(playlist)}'")
-		if self._whatIf:
+		if whatIf:
 			LogHelper.WhatIf(f"creating playlist file '{playlist.name}'")
 		else:
 			if playlist.is_file():
