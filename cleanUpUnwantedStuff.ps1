@@ -301,6 +301,7 @@ function CleanUpDesktopIcons {
 		'Kobo*'
 		'Logi Options+'
 		'Quick Share from Google'
+		'Exact Audio Copy'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -608,6 +609,7 @@ function CleanUpStartMenuItems {
 	$development = 'Development'
 	#$systemApps = 'Maintenance'	# shown in Explorer as 'System'
 	$systemApps = 'System'
+	$winAccessories = 'Accessories'
 	@(
 		# moves:
 		[StartMenuCleanupItem]::FromCommonPrograms('Access.lnk', $applications)
@@ -627,6 +629,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Intel Driver & Support Assistant.lnk', $systemApps)
 		[StartMenuCleanupItem]::FromCommonPrograms('KeePass 2.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Kleopatra.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('Logi Plugin Service.lnk', $systemApps)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Edge.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Edge Beta.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Mouse and Keyboard Center.lnk', $systemApps)
@@ -643,6 +646,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Private Internet Access.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Publisher.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Skype for Business.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('Sticky Notes*.lnk', $winAccessories)
 		[StartMenuCleanupItem]::FromCommonStartMenu('SumatraPDF.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('SumatraPDF.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('SyncBackSE.lnk', $applications)
@@ -654,8 +658,11 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('TeraCopy.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Waves MaxxAudioPro.lnk', $systemApps)
 		[StartMenuCleanupItem]::FromCommonPrograms('Windows Media Player.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('Windows Sandbox.lnk', $winAccessories)
 		[StartMenuCleanupItem]::FromCommonPrograms('Wireshark.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Word.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('WSL Settings.lnk', $winAccessories)
+		[StartMenuCleanupItem]::FromCommonPrograms('WSL.lnk', $winAccessories)
 		[StartMenuCleanupItem]::FromCommonPrograms('2BrightSparks\SyncBackSE x64\SyncBackSE.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('7-Zip\7-Zip File Manager.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('AIMP\AIMP.lnk', $applications, $true)
@@ -673,6 +680,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Dell\*.lnk', $systemApps, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('DVDFab 12 (x64)\DVDFab 12 (x64).lnk', $applications, 'DVDFab.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('DVDFab 13 (x64)\DVDFab 13 (x64).lnk', $applications, 'DVDFab.lnk', $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('Exact Audio Copy\Exact Audio Copy.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('FileMenu Tools\Configure FileMenu Tools.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('FileZilla FTP Client\FileZilla.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Free Download Manager\Free Download Manager.lnk', $applications, $true)
@@ -707,7 +715,8 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Azure Storage Explorer\Microsoft Azure Storage Explorer.lnk', $development, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Money Plus\Money Plus.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Mouse and Keyboard Center\Microsoft Mouse and Keyboard Center.lnk', $systemApps, $true)
-		[StartMenuCleanupItem]::FromCommonPrograms('MKVToolNix\MKVToolNix GUI.lnk', $applications, $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('MKVToolNix\MKVToolNix GUI.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('MKVToolNix\MKVToolNix.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Mp3tag\Mp3tag.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('MPC-HC\MPC-HC.lnk', $applications, 'MPC-HC.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('MPC-HC x64\MPC-HC x64.lnk', $applications, 'MPC-HC.lnk', $true)
