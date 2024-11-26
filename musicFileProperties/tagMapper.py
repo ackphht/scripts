@@ -314,7 +314,7 @@ class _mp4Mapper(_tagMapper):
 # https://mutagen.readthedocs.io/en/latest/user/vcomment.html
 #
 class _vorbisMapper(_tagMapper):
-	_specialTags: list[str] = [ TagNames.TrackCount, TagNames.DiscCount, ]
+	_specialTags: list[str] = [ TagNames.TrackNumber, TagNames.TrackCount, TagNames.DiscNumber, TagNames.DiscCount, ]
 
 	_instance = None
 	def __new__(cls):
@@ -343,15 +343,16 @@ class _vorbisMapper(_tagMapper):
 	def getSpecialHandlingTagValues(self, tagName: str, mgTags: mutagen.Tags) -> list[str|int|bytes|list[str,str]]:
 		# for TrackCount: Picard writes both TOTALTRACKS and TRACKTOTAL, Mp3tag just writes TOTALTRACKS
 		# for DiscCount: Picard writes both TOTALDISCS and DISCTOTAL, Mp3tag just writes TOTALDISCS
-		# we're just going to return first one we find
-		# TODO: when we set or delete one of these, need to make sure we clean up tags we don't want (i.e. Picard's duped ones)
+		# we're just going to return first one we find, in preferred order (when we write the values, only the first (i.e. preferred) name will get used)
 		if tagName in _vorbisMapper._specialTags:
 			vorbisName = self.mapToNativeName(tagName)
 			if vorbisName is not None:
 				for t in vorbisName:
 					v = mgTags[t] if t in mgTags else None
 					if isinstance(v, list) and len(v) > 0:
-						return v
+						# if we're returning *Number or *Count, make sure it's an int
+						# (yeah, that's all that's currently in _specialTags, but we might add more...)
+						return [int(n) for n in v] if tagName.endswith('Number') or tagName.endswith('Count') else v
 		return []
 
 	def prepareValueForSet(self, nativeValue: Any, tagName: str, nativeTagName: str, mgTags: mutagen.Tags) -> list|Any|None:
