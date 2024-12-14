@@ -61,7 +61,8 @@ function WriteVerboseMessage {
 		if (-not $PSBoundParameters.ContainsKey('Verbose')) { $VerbosePreference = $PSCmdlet.GetVariableValue('VerbosePreference') }
 		if ($VerbosePreference -ne [System.Management.Automation.ActionPreference]::Continue) { return }
 
-		$msg = if ($msgScript) { $msgScript.Invoke() } elseif ($formatParams) { $message -f $formatParams } else { $message }
+		# have to do stupid backwards $null check because if there's only one item and it's a 0 (like a return code) or similar the check fails:
+		$msg = if ($msgScript) { $msgScript.Invoke() } elseif ($null -ne $formatParams -and $formatParams.Length -gt 0) { $message -f $formatParams } else { $message }
 		if (-not $continuation) {
 			# get invocation name from first stack frame that's not this function and is not a script block:
 			foreach ($frame in (@(Get-PSCallStack) | Select-Object -Skip 1 <# skip current #>)) {
