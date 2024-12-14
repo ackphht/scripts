@@ -380,3 +380,32 @@ function HasProperty {
 	)
 	return ([PSCustomObject]$object).PSObject.Properties[$propertyName] -ne $null
 }
+
+function Get-UserChoice {
+	[CmdletBinding(SupportsShouldProcess=$true)]
+	[OutputType([int])]
+	param(
+		# choices: A list of the choices to be presented to the user.
+		# Each must have a Label property, and a Description property.
+		# 	Label: a short, human-presentable message to describe and identify the choice.
+		#		One letter in the Label should be preceded with an ampersand ('&') to indicate
+		#		what the user can use to select that choice, rather than typing the entire thing
+		# 	Description: a longer description of the choice to display if the user asks for help
+		[Parameter(Mandatory=$true)] [PSObject[]] $choices,
+		# default: The index (0-based) of the label in the choices collection element to be
+		# presented to the user as the default choice. -1 means "no default". Must be a valid index.
+		[Parameter(Mandatory=$true)] [int] $default,
+		# caption: Caption to precede or title the prompt.
+		[Parameter(Mandatory=$false)] [string] $caption,
+		# message: A longer message that describes what the choice is for.
+		[Parameter(Mandatory=$false)] [string] $message
+	)
+	if (-not $caption) {
+		Write-Host ''
+	}
+	$promptChoices = @()
+	foreach ($c in $choices) {
+		$promptChoices += [System.Management.Automation.Host.ChoiceDescription]::new($c.Label, $c.Description)
+	}
+	return $Host.UI.PromptForChoice($caption, $message, $promptChoices, $default)
+}
