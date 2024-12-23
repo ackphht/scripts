@@ -287,7 +287,7 @@ class MusicFolderHandler:
 
 		MusicFolderHandler._createPlaylist(self._folderPath, self._playlistName, self._whatIf)
 
-	def CopyFolderProperties(self, noRenames: bool = False) -> int:
+	def CopyFolderProperties(self, noRenames: bool = False, tweakModTimeBySecs: int = 0) -> int:
 		if not noRenames:
 			self.CleanUpPathNames()
 
@@ -306,7 +306,7 @@ class MusicFolderHandler:
 				continue
 			trg = MusicFileProperties(tf)
 			src = MusicFileProperties(sf)
-			self._copyFileProperties(trg, src)
+			self._copyFileProperties(trg, src, tweakModTimeBySecs=tweakModTimeBySecs)
 
 		return 1 if filesNotFound > 0 else 0
 
@@ -337,17 +337,17 @@ class MusicFolderHandler:
 			LogHelper.WhatIf(f'saving changes to file "{musicFile.FilePath.name}"')
 		else:
 			if quiet:
-				LogHelper.Verbose(f'saving change to file "{musicFile.FilePath.name}"')
+				LogHelper.Verbose(f'saving changes to file "{musicFile.FilePath.name}"')
 			else:
-				LogHelper.Message(f'saving change to file "{musicFile.FilePath.name}"')
+				LogHelper.Message(f'saving changes to file "{musicFile.FilePath.name}"')
 			musicFile.FilePath.chmod(musicFile.FilePath.stat().st_mode | stat.S_IWRITE)		# make sure it's NOT readonly
 			if ignoreOnlyTimestamp or not self._onlyTimestamp:
 				musicFile.save(True)
 			os.utime(musicFile.FilePath, (originalLastAccessTime, originalLastModTime))
 			musicFile.FilePath.chmod(musicFile.FilePath.stat().st_mode & MusicFolderHandler._disableWriteAccess)		# now make sure it IS readonly
 
-	def _copyFileProperties(self, targetMusicFile : MusicFileProperties, sourceMusicFile : MusicFileProperties, forceOverwrite: bool = False):
-		lastModTime = os.path.getmtime(sourceMusicFile.FilePath)
+	def _copyFileProperties(self, targetMusicFile : MusicFileProperties, sourceMusicFile : MusicFileProperties, tweakModTimeBySecs: int = 0, forceOverwrite: bool = False):
+		lastModTime = os.path.getmtime(sourceMusicFile.FilePath) + tweakModTimeBySecs
 		currLastAccessTime = os.path.getatime(targetMusicFile.FilePath)
 		self._cleanAllTags(targetMusicFile)
 
@@ -931,7 +931,7 @@ def copyFolderPropertiesCommand(args) -> int:
 		return 2
 
 	return MusicFolderHandler(targetFolderPath = targetFolder, sourceFolderPath = sourceFolder, whatIf = args.whatIf)\
-		.CopyFolderProperties(args.skipRenames)
+		.CopyFolderProperties(args.skipRenames, args.tweakModTimeSecs)
 
 def cleanFilesCommand(args) -> int:
 	LogHelper.Init(verbose=args.verbose)
@@ -1035,6 +1035,7 @@ def buildArguments():
 	setFolderCmd.add_argument("targetFolderPath", help="folder to copy file tags TO")
 	setFolderCmd.add_argument("sourceFolderPath", nargs="?", help="folder to copy file tags FROM")
 	setFolderCmd.add_argument("-n", "--skipRenames", action="store_true", help="skip doing folder and file name cleanups")
+	setFolderCmd.add_argument("-t", "--tweakModTimeSecs", type=int, default=0, help="when saving files, by default the source file's modification time is copied. If this flag is specified and non-zero, the mod time will tweaked by this many seconds")
 	setFolderCmd.add_argument("-w", "--whatIf", action="store_true", help="look up properties, but don't actually save anything")
 	setFolderCmd.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
 	setFolderCmd.set_defaults(func=copyFolderPropertiesCommand)
