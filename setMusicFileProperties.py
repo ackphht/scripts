@@ -124,6 +124,9 @@ class PlaylistEntry:
 		self.duration = mf.DurationSeconds
 
 class ApprovedTagsList:
+	# TODO??: this is only being used now for after we clean junk tags from a file to show
+	# 	a list of tags in the file we weren't expecting; is there a better way to do this?
+	#	and it doesn't really need to be a dict anymore either (not just doing M4A anymore...); just a set or list would be fine
 	def __init__(self) -> None:
 		self._tags = {
 			TagNames.AlbumTitle.upper(): TagNames.AlbumTitle,
@@ -190,6 +193,9 @@ class ApprovedTagsList:
 			TagNames.WikipediaArtistId.upper(): TagNames.WikipediaArtistId,
 			TagNames.WikipediaAlbumId.upper(): TagNames.WikipediaAlbumId,
 			TagNames.IMDbArtistId.upper(): TagNames.IMDbArtistId,
+			TagNames.DiscogsReleaseId.upper(): TagNames.DiscogsReleaseId,
+			TagNames.DiscogsArtistId.upper(): TagNames.DiscogsArtistId,
+			TagNames.DiscogsAlbumId.upper(): TagNames.DiscogsAlbumId,
 			# opus file's realplay gain names; don't think we need these in TagNames (??)
 			"R128_ALBUM_GAIN": "R128_ALBUM_GAIN",
 			"R128_TRACK_GAIN": "R128_TRACK_GAIN",
@@ -232,7 +238,8 @@ class MusicFolderHandler:
 					TagNames.MusicBrainzWorkId, TagNames.WorkTitle, TagNames.DiscogsReleaseId, TagNames.AmazonId,
 					TagNames.DigitalPurchaseFrom, TagNames.DigitalPurchaseDate, TagNames.DigitalPurchaseId,
 					TagNames.AllMusicArtistId, TagNames.AllMusicAlbumId, TagNames.WikidataArtistId, TagNames.WikidataAlbumId,
-					TagNames.WikipediaArtistId, TagNames.WikipediaAlbumId, TagNames.IMDbArtistId, TagNames.AcoustidId, ]
+					TagNames.WikipediaArtistId, TagNames.WikipediaAlbumId, TagNames.IMDbArtistId, TagNames.AcoustidId,
+					TagNames.DiscogsArtistId, TagNames.DiscogsAlbumId, ]
 	_junkTagsToClean = [ TagNames.iTunSMPB, TagNames.Genre, TagNames.Cover, TagNames.Codec, TagNames.Encoder, TagNames.EncodedBy,
 					 	TagNames.EncodingSettings, TagNames.Source, TagNames.RippingTool, TagNames.RipDate,
 						TagNames.MusicBrainzReleaseType, TagNames.UPC, TagNames.Rating, TagNames.Script, TagNames.Artists,
@@ -267,6 +274,10 @@ class MusicFolderHandler:
 
 #	@deprecated("we're not using this any more, right?")
 	def SetFolderFilesFromDb(self):
+		#
+		# TODO: get rid of this and all the DB stuff; not needed anymore
+		___obsolete___	# if we try to use this function, blow up
+		#
 		renamedFolder = MusicFolderHandler._cleanUpPathNames(self._folderPath, self._whatIf)
 		if renamedFolder:
 			self._folderPath = renamedFolder

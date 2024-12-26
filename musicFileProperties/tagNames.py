@@ -84,6 +84,8 @@ class TagNames:
 	WikipediaArtistId = "WikipediaArtistId"
 	WikipediaAlbumId = "WikipediaAlbumId"
 	IMDbArtistId = "IMDbArtistId"
+	DiscogsArtistId = "DiscogsArtistId"
+	DiscogsAlbumId = "DiscogsAlbumId"
 	# junk tags
 	Artists = "Artists"
 	Codec = "Codec"
