@@ -37,6 +37,13 @@ class FileHelpers:
 			shutil.move(sourceFile, targetFile)
 
 	@staticmethod
+	def GetRelPath(fromFile: pathlib.Path, toFolder: pathlib.Path) -> pathlib.Path:
+		if fromFile.is_relative_to(toFolder):
+			return fromFile.relative_to(toFolder).as_posix()
+		# if it's not relative, just keep original:
+		return fromFile
+
+	@staticmethod
 	def GetMd5(file: pathlib.Path) -> bytes:
 		return FileHelpers._getFileHash(file, "md5")
 
