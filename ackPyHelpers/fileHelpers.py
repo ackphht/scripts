@@ -39,7 +39,7 @@ class FileHelpers:
 	@staticmethod
 	def GetRelPath(fromFile: pathlib.Path, toFolder: pathlib.Path) -> pathlib.Path:
 		if fromFile.is_relative_to(toFolder):
-			return fromFile.relative_to(toFolder).as_posix()
+			return fromFile.relative_to(toFolder)
 		# if it's not relative, just keep original:
 		return fromFile
 
