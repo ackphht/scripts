@@ -302,6 +302,7 @@ function CleanUpDesktopIcons {
 		'Logi Options+'
 		'Quick Share from Google'
 		'Exact Audio Copy'
+		'Dashboard'					# WD Dashboard
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
