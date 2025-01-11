@@ -87,7 +87,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 	# = Win  /  ^ = Ctrl  /  + = Shift  /  ! = Alt
 */
 #Esc::Run("procexp.exe /e")
-^#a::Run(gOneDrive . "\Utils\RandomMusicPicker.exe randomPlaylist")
+^#a::RunAndActivate(gOneDrive . "\Utils\RandomMusicPicker.exe randomPlaylist")
 ^#b::Run(FindSyncBackPro(false))
 ^!#b::Run(FindSyncBackPro(true))
 ^#c::Run('wt.exe --window last --profile "PowerShell"')		; https://learn.microsoft.com/en-us/windows/terminal/command-line-arguments
@@ -380,7 +380,7 @@ OpenFolderWithExplicitTabs(folderName) {
 		WinWaitActive(gExplorerClassPostVista)
 		Sleep(250)
 		Send("^t")
-		Sleep(250)
+		Sleep(500)
 		;Sleep(500)
 		;Send("{F4}") ;Send("!d")
 		;Sleep(250)
