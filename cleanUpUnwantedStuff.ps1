@@ -1371,6 +1371,10 @@ function NormalizePathValue {
 	$value = [System.Environment]::ExpandEnvironmentVariables($value)			# expand it all the way out so we can replace with preferred stuff
 	WriteVerboseMessage 'expanded value = |{0}|' $value -continuation
 	$value = Convert-Path -LiteralPath $value -ErrorAction SilentlyContinue		# get rid of any relative paths
+	while ($value.EndsWith([System.IO.Path]::DirectorySeparatorChar) -or $value.EndsWith([System.IO.Path]::AltDirectorySeparatorChar)) {
+		# remove trailing backslashes
+		$value = $value.Substring(0, $value.Length - 1)
+	}
 	WriteVerboseMessage 'converted value = |{0}|' $value -continuation
 	$value = ReplaceWithEnvVars -value $value
 	WriteVerboseMessage 'returning value = |{0}|' $value -continuation
