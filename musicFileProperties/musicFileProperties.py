@@ -36,7 +36,7 @@ class MusicFileProperties:
 		self._dirty = False
 		return True
 
-	def getTagValues(self) -> Iterator[tuple[str, Any]]:
+	def getTagValues(self) -> Iterator[tuple[str, list[str|int|bytes|list[str]]]]:
 		for tn in filter(lambda t: not t.startswith("_"), dir(TagNames)):
 			val = self.getTagValue(tn)
 			if not MusicFileProperties._isEmptyValue(val):
@@ -71,7 +71,7 @@ class MusicFileProperties:
 			if t in self._mutagen.tags: return True
 		return False
 
-	def getTagValue(self, tagName: str) -> list[str|int|bytes|list[str,str]]:
+	def getTagValue(self, tagName: str) -> list[str|int|bytes|list[str]]:
 		return self._getMutagenTag(tagName)
 
 	def setTagValue(self, tagName: str, value: Any) -> None:
@@ -95,7 +95,7 @@ class MusicFileProperties:
 	def getNativeTagValue(self, nativeTagName: str) -> list[str|int|Any]|str|Any|None:
 		return self._mutagen.tags[nativeTagName] if nativeTagName in self._mutagen.tags else None
 
-	def getTagValueFromNativeName(self, nativeTagName: str) -> list[str|int|bytes|list[str,str]]:
+	def getTagValueFromNativeName(self, nativeTagName: str) -> list[str|int|bytes|list[str]]:
 		val = self._mutagen.tags[nativeTagName] if nativeTagName in self._mutagen.tags else None
 		if val is None: return []
 		return list(self._mapMutagenProperty(val, self._mapper.mapFromNativeName(nativeTagName), nativeTagName))
@@ -121,7 +121,7 @@ class MusicFileProperties:
 	def removeAllTags(self) -> None:
 		self._mutagen.tags.clear()
 
-	def _getMutagenTag(self, tagName : str) -> list[str|int|bytes|list[str,str]]:
+	def _getMutagenTag(self, tagName : str) -> list[str|int|bytes|list[str]]:
 		if self._mapper.isSpecialHandlingTag(tagName):
 			return self._mapper.getSpecialHandlingTagValues(tagName, self._mutagen.tags)
 
@@ -182,7 +182,7 @@ class MusicFileProperties:
 	def _deleteMutagenTag(self, tagName : str) -> None:
 		self._setMutagenTag(tagName, None)
 
-	def _mapMutagenProperty(self, nativeTagValue: Any, tagName: str, nativeTagName: str) -> Iterable[str|int|bytes|list[str,str]]:
+	def _mapMutagenProperty(self, nativeTagValue: Any, tagName: str, nativeTagName: str) -> Iterable[str|int|bytes|list[str]]:
 		if MusicFileProperties._isSimpleType(nativeTagValue):
 			yield nativeTagValue
 		elif isinstance(nativeTagValue, list):
