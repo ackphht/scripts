@@ -5,7 +5,7 @@ just some helper classes for my stuff
 __author__ = "AckWare"
 __version__ = "1.0.0"
 
-__all__ = ['LogHelper', 'GithubRelease', 'FileHelpers', 'RunProcessHelper', 'Version', 'DateTimeHelpers', 'staticinit']
+__all__ = ['LogHelper', 'GithubRelease', 'FileHelpers', 'RunProcessHelper', 'Version', 'DateTimeHelpers', 'SqliteConnHelper', 'staticinit']
 
 import sys
 
@@ -17,6 +17,7 @@ if sys.version_info < (3, 9):
 def staticinit(cls):
 	"""
 	a class decorator to call a static initializer method named '__static_init__', if the class defined one.
+
 	NOTE: this gets called right away; there's no delayed initialization, waiting for the first usage of
 	the class, like, e.g., .NET does it
 
@@ -37,3 +38,4 @@ from .fileHelpers import FileHelpers
 from .runProcessHelper import RunProcessHelper
 from .version import Version
 from .datetimeHelpers import DateTimeHelpers
+from .sqliteHelpers import SqliteConnHelper
