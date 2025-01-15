@@ -121,6 +121,22 @@ class MusicFileProperties:
 	def removeAllTags(self) -> None:
 		self._mutagen.tags.clear()
 
+	def getValidSplitCharsForTag(self, tagName: str) -> list[str]:
+		"""
+		for cases where we joined a tag's multiple values into a single value, this are the possible know values to use to split it back apart
+
+		but it could be empty, in which case, don't try to split the value
+		"""
+		return self._mapper.getSplitChars(tagName)
+
+	def getPreferredJoinerForTag(self, tagName: str) -> str:
+		"""
+		if you're going to join a tag's multiple value, this would be the preferred value to join them with.
+
+		but it could be empty, in which case, don't join them ??
+		"""
+		return self._mapper.getJoinChars(tagName)
+
 	def _getMutagenTag(self, tagName : str) -> list[str|int|bytes|list[str]]:
 		if self._mapper.isSpecialHandlingTag(tagName):
 			return self._mapper.getSpecialHandlingTagValues(tagName, self._mutagen.tags)

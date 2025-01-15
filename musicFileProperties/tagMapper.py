@@ -25,6 +25,8 @@ class _tagMap:
 		id3v24: list[str]
 		id3v23: list[str]
 		apev2: list[str]
+		splitChars: list[str]|None
+		joinChars: str|None
 
 	_csvFilepath = pathlib.Path(__file__).absolute().parent / "musicTagsMap.csv"
 	_tagNamesToNativeNamesMap: dict[str, "_tagMap._mappedTags"] = None
@@ -61,8 +63,10 @@ class _tagMap:
 				id3v24: list[str] = _tagMap._splitTagName(row["ID3v24"])
 				id3v23: list[str] = _tagMap._splitTagName(row["ID3v23"])
 				ape: list[str] = _tagMap._splitTagName(row["APEv2"])
+				splits: list[str] = row["SplitChars"].split() if row["SplitChars"] else None
+				joins: list[str] = row["JoinChars"] if row["JoinChars"] else None
 
-				_tagMap._tagNamesToNativeNamesMap[tagName] = _tagMap._mappedTags(mp4=mp4, vorbis=vorbis, asf=asf, id3v24=id3v24, id3v23=id3v23, apev2=ape)
+				_tagMap._tagNamesToNativeNamesMap[tagName] = _tagMap._mappedTags(mp4=mp4, vorbis=vorbis, asf=asf, id3v24=id3v24, id3v23=id3v23, apev2=ape, splitChars=splits, joinChars=joins)
 
 				_tagMap._addNativeNamesToTagNameDict(tagName, mp4, _constants.MP4TagType)
 				_tagMap._addNativeNamesToTagNameDict(tagName, vorbis, _constants.VorbisTagType)
@@ -150,6 +154,14 @@ class _tagMapper:	# abstract base class
 
 	def getSpecialHandlingTagValues(self, tagName: str, mgTags: mutagen.Tags) -> list[str|int|bytes|list[str,str]]:
 		return []
+
+	def getSplitChars(self, tagName: str) -> list[str]:
+		mapped = _tagMap._tagNamesToNativeNamesMap[tagName] if tagName in _tagMap._tagNamesToNativeNamesMap else None
+		return mapped.splitChars if mapped is not None and mapped.splitChars is not None else []
+
+	def getJoinChars(self, tagName: str) -> str:
+		mapped = _tagMap._tagNamesToNativeNamesMap[tagName] if tagName in _tagMap._tagNamesToNativeNamesMap else None
+		return mapped.joinChars if mapped is not None and mapped.joinChars is not None else ""
 
 	#region "abstract" methods
 	def mapFromNativeValue(self, nativeValue: Any, tagName: str, nativeTagName: str) -> list[str|int|bytes|list[str,str]]:
