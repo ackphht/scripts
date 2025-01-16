@@ -18,6 +18,7 @@ hasCmd brew    && echo "brew    = |$(brew --version | awk '{print $2}')|" || tru
 hasCmd apk     && echo "apk     = |$(apk --version | awk '{print $2}' | sed -E 's/,$//')|" || true
 hasCmd dpkg    && echo "dpkg    = |$(dpkg --version | head -n 1 | awk '{print $7}')|" || true
 hasCmd rpm     && echo "rpm     = |$(rpm --version | awk '{print $3}')|" || true
+hasCmd pkcon   && echo "pkcon   = |$(pkcon --version | awk '{print $1}')|" || true
 hasCmd busybox && echo "busybox = |$(busybox | head -n 1 | awk '{print $2}')|" || true
 hasCmd bash    && echo "bash    = |$(bash --version | head -n 1 | awk '{print $4}')|" ||	echo 'bash    = |<n/a>|'
 hasCmd zsh     && echo "zsh     = |$(zsh --version | awk '{print $2}')|" ||					echo 'zsh     = |<n/a>|'
