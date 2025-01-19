@@ -93,6 +93,8 @@ class TagNames:
 	Encoder = "Encoder"
 	EncodingSettings = "EncodingSettings"
 	iTunSMPB = "iTunSMPB"
+	FileOwner = "FileOwner"
+	OriginalFileName = "OriginalFileName"
 	Rating = "Rating"
 	RipDate = "RipDate"
 	RippingTool = "RippingTool"
