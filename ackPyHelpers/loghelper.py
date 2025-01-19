@@ -80,6 +80,12 @@ class LogHelper:
 	Fore   = AnsiFore()
 	Back   = AnsiBack()
 	Style  = AnsiStyle()
+
+	LargeDivider = "#" * 80
+	MediumDivider = "=" * 80
+	SmallDivider = "-" * 80
+	XSmallDivider = "·" * 80
+
 	_verboseEnabled = False
 
 	@staticmethod
