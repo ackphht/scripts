@@ -266,6 +266,7 @@ def initFontsToInstall(ghRelease : GithubRelease) -> NerdFontCollection:
 	# second name(s) (the "fontFilenameBase"s) are the filenames to look for/extract/install in the downloaded archive
 	#    name in the archive will be "{basename}-*.(t|o)tf"
 	fontsToInstall.addFontDefn("FantasqueSansMono", ["FantasqueSansMNerdFont"])#, "FantasqueSansMNerdFontMono"])
+	# the real CascadiaCode has a NF variant now, but the symbols are tiny, so we'll keep this one:
 	fontsToInstall.addFontDefn("CascadiaCode", ["CaskaydiaCoveNerdFont"])#, "CaskaydiaCoveNerdFontMono"])
 	fontsToInstall.addFontDefn("Meslo", ["MesloLGSNerdFont"])#, "MesloLGSDZNerdFont"])
 	if sys.platform == "win32":
@@ -318,7 +319,10 @@ def installFontFromTarXz(fontDfn : NerdFontDefn, osHelper : OSHelper) -> None:
 	for f in tf.getnames():
 		if fontDfn.shouldExtract(f):
 			LogHelper.Message(f"installing font |{f}|")
-			tf.extract(f, path=osHelper.fontsFldr)
+			if sys.version_info >= (3, 12):
+				tf.extract(f, path=osHelper.fontsFldr, filter='data')
+			else:
+				tf.extract(f, path=osHelper.fontsFldr)
 			osHelper.installFont(osHelper.fontsFldr / f)
 		else:
 			LogHelper.Verbose(f"skipping font file |{f}|")
