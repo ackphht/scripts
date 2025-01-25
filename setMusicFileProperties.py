@@ -245,7 +245,10 @@ class MusicFolderHandler:
 						TagNames.MusicBrainzReleaseType, TagNames.UPC, TagNames.Rating, TagNames.Script, TagNames.Artists,
 						TagNames.Performer, TagNames.OriginalReleaseDate,		# think we've got a conflict with names from Picard and what i'm adding in Mp3tag ??
 						TagNames.OriginalReleaseYear, TagNames.AlbumTitleSort, TagNames.TrackTitleSort, TagNames.AlbumArtistSort,
-						TagNames.TrackArtistSort, TagNames.ComposerSort, ]
+						TagNames.TrackArtistSort, TagNames.ComposerSort, TagNames.FileOwner, TagNames.OriginalFileName, ]
+	_extraJunkTagsByType: dict[str, list[str]] = {
+		".opus": [ TagNames.ReplayGainAlbumGain, TagNames.ReplayGainAlbumPeak, TagNames.ReplayGainTrackGain, TagNames.ReplayGainTrackPeak, ]
+	}
 	_tagsToRename = [ TagNames.MusicBrainzReleaseType,	# we're deleting this one in _junkTagsToClean above ???
 						TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzAlbumReleaseCountry, TagNames.MusicBrainzWorkId,
 						TagNames.MusicBrainzTrackId, TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzReleaseGroupId,
@@ -321,21 +324,24 @@ class MusicFolderHandler:
 
 		return 1 if filesNotFound > 0 else 0
 
-	def CleanFolderFiles(self, onlyJunkTags: bool = False) -> int:
+	def CleanFolderFiles(self, onlyJunkTags: bool = False, extraTagsToClean: list[str] = None) -> int:
+		"""returns 0 if no issues, or 1 if anything like unexpected tags"""
 		renamedFolder = MusicFolderHandler._cleanUpPathNames(self._folderPath, self._whatIf)
 		if renamedFolder:
 			self._folderPath = renamedFolder
 
+		result = 0
 		for f in FileHelpers.MultiGlob(self._folderPath, MusicFolderHandler._supportedFileTypesGlob):
 			mf = MusicFileProperties(f)
-			self._cleanFile(mf, onlyJunkTags)
+			tmpResult = self._cleanFile(mf, onlyJunkTags, extraTagsToClean)
+			if tmpResult > result: result = tmpResult
 
-		return 0
+		return result
 
-	def CleanFile(self, filePath : pathlib.Path, onlyJunkTags: bool = False) -> int:
+	def CleanFile(self, filePath : pathlib.Path, onlyJunkTags: bool = False, extraTagsToClean: list[str] = None) -> int:
+		"""returns 0 if no issues, or 1 if anything like unexpected tags"""
 		mf = MusicFileProperties(filePath)
-		self._cleanFile(mf, onlyJunkTags)
-		return 0
+		return self._cleanFile(mf, onlyJunkTags, extraTagsToClean)
 
 	def CleanUpPathNames(self) -> int:
 		renamedFolder = MusicFolderHandler._cleanUpPathNames(self._targetFolderPath, self._whatIf)
@@ -343,7 +349,10 @@ class MusicFolderHandler:
 			self._targetFolderPath = renamedFolder
 		return 0
 
-	def _saveFile(self, musicFile: MusicFileProperties, originalLastModTime: float, originalLastAccessTime: float, quiet: bool, ignoreOnlyTimestamp: bool):
+	def _saveFile(self, musicFile: MusicFileProperties, originalLastModTime: float, originalLastAccessTime: float, quiet: bool, ignoreOnlyTimestamp: bool) -> None:
+		if not musicFile.HasChanges:
+			LogHelper.Verbose('no changes in file "{0}"', musicFile.FilePath.name)
+			return
 		if self._whatIf:
 			LogHelper.WhatIf(f'saving changes to file "{musicFile.FilePath.name}"')
 		else:
@@ -520,22 +529,32 @@ class MusicFolderHandler:
 		#	self._logSetProperty("TotalDiscs", "1")
 		#	musicFile.TotalDiscs = 1
 
-	def _cleanFile(self, musicFile : MusicFileProperties, onlyJunkTags: bool):
+	def _cleanFile(self, musicFile : MusicFileProperties, onlyJunkTags: bool, extraTagsToClean: list[str] = None) -> int:
 		lastModTime = os.path.getmtime(musicFile.FilePath)
 		currLastAccessTime = os.path.getatime(musicFile.FilePath)
 
 		if onlyJunkTags:
-			self._cleanJunkProperties(musicFile)
+			self._cleanJunkProperties(musicFile, extraTagsToClean)
 		else:
 			self._cleanAllTags(musicFile)
 
-		self._showUnexpectedTags(musicFile)
+		result = self._showUnexpectedTags(musicFile)
 		self._saveFile(musicFile, lastModTime, currLastAccessTime, False, True)
 
-	def _cleanJunkProperties(self, musicFile : MusicFileProperties) -> None:
+		return result
+
+	def _cleanJunkProperties(self, musicFile : MusicFileProperties, extraTagsToClean: list[str] = None) -> None:
 		LogHelper.Verbose('XXX removing junk tags from file "{0}"', musicFile.FilePath)
 		for tag in MusicFolderHandler._junkTagsToClean:
 			MusicFolderHandler._removeTag(tag, musicFile)
+		if musicFile.FilePath.suffix.lower() in MusicFolderHandler._extraJunkTagsByType:
+			for tag in MusicFolderHandler._extraJunkTagsByType[musicFile.FilePath.suffix.lower()]:
+				MusicFolderHandler._removeTag(tag, musicFile)
+		if extraTagsToClean:
+			for tag in extraTagsToClean:
+				mapped = musicFile.mapToNativeTagName(tag)
+				isNativeName = mapped is None or len(mapped) == 0
+				MusicFolderHandler._removeTag(tag, musicFile, isNativeTagName=isNativeName)
 
 		for tag in MusicFolderHandler._tagsToRename:
 			MusicFolderHandler._cleanUpTagName(tag, musicFile)
@@ -546,7 +565,7 @@ class MusicFolderHandler:
 		# can't delete the tags while we're iterating the list of them, it throws off the iterator, so make list first:
 		LogHelper.Verbose('XXX building list of (almost) all tags to remove from file "{0}"', musicFile.FilePath)
 		for t in musicFile.getNativeTagNames():
-			if t not in keepTags:
+			if t.casefold() not in keepTags:
 				LogHelper.Verbose('adding native tag "{0}" for removal', t)
 				tagsToDelete.add(t)
 			else: LogHelper.Verbose('keeping native tag "{0}"', t)
@@ -556,12 +575,12 @@ class MusicFolderHandler:
 			LogHelper.Verbose('XXX removing native tag "{0}"', t)
 			musicFile.deleteNativeTagValue(t)
 
-	def _showUnexpectedTags(self, musicFile: MusicFileProperties) -> None:
+	def _showUnexpectedTags(self, musicFile: MusicFileProperties) -> int:
 		nativeApprovedTags = MusicFolderHandler._getListOfApprovedTags(musicFile)
 		unexpectedTags = []
 		for t,v in musicFile.getNativeTagValues():
 			if t.startswith('$$'): continue
-			if t not in nativeApprovedTags:
+			if t.casefold() not in nativeApprovedTags:
 				strV = str(v)
 				if len(strV) > 120:
 					strV = strV[:117] + "..."
@@ -571,6 +590,8 @@ class MusicFolderHandler:
 			for tup in unexpectedTags:
 				msg += f"{os.linesep}      tag: {tup[0]}{os.linesep}    value: {tup[1]}"
 			LogHelper.Warning(msg)
+			return 1
+		return 0
 
 	@staticmethod
 	def _cleanUpPathNames(folderPath: pathlib.Path, whatIf: bool) -> pathlib.Path|None:
@@ -725,23 +746,28 @@ class MusicFolderHandler:
 		tags = []
 		for a in approvedTags:
 			n = musicFile.mapToNativeTagName(a)
-			if len(n) > 0: tags.extend(n)
-			else: tags.append(a)
+			if len(n) > 0: tags.extend([t.casefold() for t in n])
+			else: tags.append(a.casefold())
 		return tags
 
 	@staticmethod
-	def _copyTag(tagName: str, source: MusicFileProperties, target: MusicFileProperties):
+	def _copyTag(tagName: str, source: MusicFileProperties, target: MusicFileProperties) -> None:
 		val = source.getTagValue(tagName)
 		if val:
 			target.setTagValue(tagName, val)
 
 	@staticmethod
-	def _removeTag(tagName: str, target: MusicFileProperties):
+	def _removeTag(tagName: str, target: MusicFileProperties, isNativeTagName: bool = False) -> None:
+		# MusicFIleProperties.deleteTag() will check if file actually has the tag
+		# before trying to remove it and setting the isDirty flag...
 		LogHelper.Verbose('XXX removing tag "{0}"', tagName)
-		val = target.deleteTag(tagName)
+		if isNativeTagName:
+			target.deleteNativeTagValue(tagName)
+		else:
+			target.deleteTag(tagName)
 
 	@staticmethod
-	def _cleanUpTagName(tagName: str, target: MusicFileProperties):
+	def _cleanUpTagName(tagName: str, target: MusicFileProperties) -> None:
 		# we're handling old tag names mapped to new names in the mapping file and in how we're saving the tags,
 		# so all we have to do is get and re-save the property, if it's there:
 		LogHelper.Verbose('>>> resaving tag name "{0}" to make sure name is correct', tagName)
