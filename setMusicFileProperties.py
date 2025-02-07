@@ -247,7 +247,7 @@ class MusicFolderHandler:
 						TagNames.OriginalReleaseYear, TagNames.AlbumTitleSort, TagNames.TrackTitleSort, TagNames.AlbumArtistSort,
 						TagNames.TrackArtistSort, TagNames.ComposerSort, TagNames.FileOwner, TagNames.OriginalFileName, ]
 	_extraJunkTagsByType: dict[str, list[str]] = {
-		".opus": [ TagNames.ReplayGainAlbumGain, TagNames.ReplayGainAlbumPeak, TagNames.ReplayGainTrackGain, TagNames.ReplayGainTrackPeak, ]
+		".opus": [ TagNames.ReplayGainAlbumGain, TagNames.ReplayGainTrackGain, ]	# TrackPeak, maybe AlbumPeak, can still get added by ReplayGain
 	}
 	_tagsToRename = [ TagNames.MusicBrainzReleaseType,	# we're deleting this one in _junkTagsToClean above ???
 						TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzAlbumReleaseCountry, TagNames.MusicBrainzWorkId,
