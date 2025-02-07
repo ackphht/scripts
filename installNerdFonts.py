@@ -269,6 +269,7 @@ def initFontsToInstall(ghRelease : GithubRelease) -> NerdFontCollection:
 	# the real CascadiaCode has a NF variant now, but the symbols are tiny, so we'll keep this one:
 	fontsToInstall.addFontDefn("CascadiaCode", ["CaskaydiaCoveNerdFont"])#, "CaskaydiaCoveNerdFontMono"])
 	fontsToInstall.addFontDefn("Meslo", ["MesloLGSNerdFont"])#, "MesloLGSDZNerdFont"])
+	fontsToInstall.addFontDefn("UbuntuMono", ["UbuntuMonoNerdFont"])#, "UbuntuMonoNerdFontMono"])
 	if sys.platform == "win32":
 		fontsToInstall.addFontDefn("ComicShannsMono", ["ComicShannsMonoNerdFont"])
 		fontsToInstall.addFontDefn("Hack", ["HackNerdFont"])
