@@ -5,7 +5,7 @@ import sys
 from typing import NamedTuple
 from ackPyHelpers import LogHelper
 
-def main():
+def main() -> int:
 	class ansi(NamedTuple):
 		name: str
 		val: str
