@@ -132,12 +132,12 @@ elif hasCmd zypper; then
 	alias aptl='zypper search --installed-only'
 	alias zp='zypper'
 elif hasCmd pacman; then
-	alias aptr="${sudoCmd}pacman -Syy"	# --sync --refresh x 2 to force updae
+	alias aptr="${sudoCmd}pacman --sync --refresh" #-Syy"	# --sync --refresh x 2 to force updae
 	alias aptul='pacman --query --upgrades'
 	alias aptu="${sudoCmd}pacman --sync --sysupgrade --noconfirm"
 	alias aptc="${sudoCmd}pacman --sync --clean --noconfirm"
 	alias apts='pacman --sync --search'
-	alias aptn='pacman --query --info'
+	alias aptn='pacman --query --info' #--sync --info' <- pretty much the same, --query one shows why pkg is installed
 	alias apti="${sudoCmd}pacman --sync"
 	alias aptx="${sudoCmd}pacman --remove --recursive"
 	alias aptxx="${sudoCmd}pacman --remove --recursive --nosave"
