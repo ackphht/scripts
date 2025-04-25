@@ -330,8 +330,9 @@ class Executables:
 
 	@staticmethod
 	def CreateIcoFile(sourceImgs : Iterator[pathlib.Path], icoOutputFile : pathlib.Path, ignoreWhatIf : bool = False) -> RunProcessHelper.RunProcessResults:
-		args = [Constants.PathToImageMagick, "convert"]
-		for img in sourceImgs:
+		#args = [Constants.PathToImageMagick, "convert"]
+		args = [Constants.PathToImageMagick]	# "convert" is deprecated; it's the default now, i guess ??
+		for img in sourceImgs:					# TODO: should reverse the order? but that will cause everything already done to get regenerated
 			args.append(img)
 		args.append(icoOutputFile)
 		return Helpers.RunProcess(args, f"creating ICO file '{Helpers.GetRelativePath(icoOutputFile)}'", ignoreWhatIf)
