@@ -86,7 +86,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 	Starting programs
 	# = Win  /  ^ = Ctrl  /  + = Shift  /  ! = Alt
 */
-#Esc::Run("procexp.exe /e")
++#Esc::Run("procexp.exe /e")
 ^#a::RunAndActivate(gOneDrive . "\Utils\RandomMusicPicker.exe randomPlaylist")
 ^#b::Run(FindSyncBackPro(false))
 ^!#b::Run(FindSyncBackPro(true))
@@ -103,7 +103,8 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^#n::RunAndActivate(FindNotepad3())
 ^!#n::RunNotepadPlusPlus()
 ^#o::RunOneNote()
-!#p::RunAndActivate("shell:AppsFolder\8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy!bitwardendesktop")
+;!#p::RunAndActivate("shell:AppsFolder\8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy!bitwardendesktop")
+!#p::RunAndActivate(EnvGet("LocalAppData") . "\Programs\Bitwarden\Bitwarden.exe")
 ^#s::RunAndActivate(gOneDrive . "\Utils\RandomMusicPicker.exe randomSongs")
 +#t::Run("control.exe AdminTools")		; think there used to be a CLSID for this but doesn't exist anymore ??
 ^#x::Run('wt.exe --window last --profile "Command Prompt"')
@@ -226,7 +227,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 	SendInput(guid)
 }
 ^#!m:: {
-	static pattern := "https://www\.amazon\.com/music/player/albums/(\w+)\?.*"
+	static pattern := "https://www\.amazon\.com/.+?/dp/(\w+)/.*"
 	maybeUrl := A_Clipboard
 	if (RegExMatch(maybeUrl, pattern)) {
 		A_Clipboard := RegExReplace(maybeUrl, pattern, "https://www.amazon.com/dp/$1")
