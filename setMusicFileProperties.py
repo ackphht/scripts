@@ -301,7 +301,7 @@ class MusicFolderHandler:
 
 		MusicFolderHandler._createPlaylist(self._folderPath, self._playlistName, self._whatIf)
 
-	def CopyFolderProperties(self, noRenames: bool = False, tweakModTimeBySecs: int = 0) -> int:
+	def CopyFolderProperties(self, noRenames: bool = False, tweakModTimeBySecs: int = 0, keepTags: bool = False, onlyJunkTags: bool = False) -> int:
 		if not noRenames:
 			self.CleanUpPathNames()
 
@@ -320,7 +320,7 @@ class MusicFolderHandler:
 				continue
 			trg = MusicFileProperties(tf)
 			src = MusicFileProperties(sf)
-			self._copyFileProperties(trg, src, tweakModTimeBySecs=tweakModTimeBySecs)
+			self._copyFileProperties(trg, src, tweakModTimeBySecs=tweakModTimeBySecs, keepTags=keepTags, onlyJunkTags=onlyJunkTags)
 
 		return 1 if filesNotFound > 0 else 0
 
@@ -366,9 +366,14 @@ class MusicFolderHandler:
 			os.utime(musicFile.FilePath, (originalLastAccessTime, originalLastModTime))
 			musicFile.FilePath.chmod(musicFile.FilePath.stat().st_mode & MusicFolderHandler._disableWriteAccess)		# now make sure it IS readonly
 
-	def _copyFileProperties(self, targetMusicFile : MusicFileProperties, sourceMusicFile : MusicFileProperties, tweakModTimeBySecs: int = 0, forceOverwrite: bool = False):
+	def _copyFileProperties(self, targetMusicFile : MusicFileProperties, sourceMusicFile : MusicFileProperties, tweakModTimeBySecs: int = 0,
+						 	forceOverwrite: bool = False, keepTags: bool = False, onlyJunkTags: bool = False):
 		lastModTime = os.path.getmtime(sourceMusicFile.FilePath) + tweakModTimeBySecs
 		currLastAccessTime = os.path.getatime(targetMusicFile.FilePath)
+		if not keepTags:
+			if onlyJunkTags:
+				self._cleanJunkProperties(targetMusicFile)
+			else:
 		self._cleanAllTags(targetMusicFile)
 
 		LogHelper.Verbose('starting copy of tags from "{0}" to "{1}"', sourceMusicFile.FilePath, targetMusicFile.FilePath)
@@ -968,7 +973,7 @@ def copyFolderPropertiesCommand(args) -> int:
 		return 2
 
 	return MusicFolderHandler(targetFolderPath = targetFolder, sourceFolderPath = sourceFolder, whatIf = args.whatIf)\
-		.CopyFolderProperties(args.skipRenames, args.tweakModTimeSecs)
+		.CopyFolderProperties(args.skipRenames, args.tweakModTimeSecs, args.keepTags, args.onlyCleanJunkTags)
 
 def cleanFilesCommand(args) -> int:
 	LogHelper.Init(verbose=args.verbose)
@@ -1071,6 +1076,8 @@ def buildArguments():
 	setFolderCmd = subparsers.add_parser("copyFolderProperties", aliases=["copy", "cp"], help="enumerates music files in the target folder, looks for a matching file in source folder, and copies properties from source to target")
 	setFolderCmd.add_argument("targetFolderPath", help="folder to copy file tags TO")
 	setFolderCmd.add_argument("sourceFolderPath", nargs="?", help="folder to copy file tags FROM")
+	setFolderCmd.add_argument("-k", "--keepTags", action="store_true", help="do not remove existing tags in target files; if both --keepTags and --onlyCleanJunkTags are specified, --keepTags wins (i.e. no tags will be removed)")
+	setFolderCmd.add_argument("-j", "--onlyCleanJunkTags", action="store_true", help="when removing existing tags in target files, only remove junk tags")
 	setFolderCmd.add_argument("-n", "--skipRenames", action="store_true", help="skip doing folder and file name cleanups")
 	setFolderCmd.add_argument("-t", "--tweakModTimeSecs", type=int, default=0, help="when saving files, by default the source file's modification time is copied. If this flag is specified and non-zero, the mod time will tweaked by this many seconds")
 	setFolderCmd.add_argument("-w", "--whatIf", action="store_true", help="look up properties, but don't actually save anything")
