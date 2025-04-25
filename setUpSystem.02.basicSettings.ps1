@@ -241,6 +241,8 @@ function ConfigureWindowsAndExplorer {
 	if ($osDetails.ReleaseVersion.Major -ge 6) {	# Vista and up
 		# make sure current account has user right to create symlinks:
 		[AckWare.LsaHelper]::AddUserRight($env:Username, 'SeCreateSymbolicLinkPrivilege')
+		# enable "Lock pages in memory" priv (needed for Large Page Support):
+		[AckWare.LsaHelper]::AddUserRight($env:Username, 'SeLockMemoryPrivilege')
 	}
 
 	if ($osDetails.ReleaseVersion.Major -in @(10, 11)) {	# TODO?: maybe could check based on build number, so it would for servers, too, and handle future version of Windows
