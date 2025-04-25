@@ -30,7 +30,7 @@
 	The friendly name of the virtual switch to connect the new virtual machine to an existing virtual switch to provide connectivity to a network. The default is 'Default Switch'.
 
 	.Parameter enableSecureBoot
-	Whether or not to enable secure boot. Boolena; the default is $true.
+	Whether or not to enable secure boot. The default is $true.
 
 	.Inputs
 	None.
