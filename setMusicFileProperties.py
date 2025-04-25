@@ -374,7 +374,7 @@ class MusicFolderHandler:
 			if onlyJunkTags:
 				self._cleanJunkProperties(targetMusicFile)
 			else:
-		self._cleanAllTags(targetMusicFile)
+				self._cleanAllTags(targetMusicFile)
 
 		LogHelper.Verbose('starting copy of tags from "{0}" to "{1}"', sourceMusicFile.FilePath, targetMusicFile.FilePath)
 		for tag in MusicFolderHandler._tagsToCopy:
@@ -670,6 +670,10 @@ class MusicFolderHandler:
 			with playlist.open(mode='wt', encoding='utf-8-sig') as pl:
 				pl.write("#EXTM3U\n")
 				if albumTitle:
+					if albumArtist:
+						pl.write(f"#PLAYLIST:{albumArtist} - {albumTitle}\n")
+					else:
+						pl.write(f"#PLAYLIST:{albumTitle}\n")
 					pl.write(f"#EXTALB:{albumTitle}\n")
 				if albumArtist:
 					pl.write(f"#EXTART:{albumArtist}\n")
