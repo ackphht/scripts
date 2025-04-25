@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	[switch] $install
@@ -18,6 +18,7 @@ if ($install) {
 	}
 	return
 }
+$startNow = [DateTime]::Now
 # in case we're running < .net 4.6, make sure TLS 1.2 is enabled:
 if ([System.Net.ServicePointManager]::SecurityProtocol -ne 0 <# SystemDefault (added in 4.7/Core) #> -and
 	([System.Net.ServicePointManager]::SecurityProtocol -band [System.Net.SecurityProtocolType]::Tls12) -eq 0)
@@ -52,11 +53,14 @@ function AddPathValue {
 	}
 }
 
+#$now = [DateTime]::Now
+
 $ackIsWindows = ($PSEdition -ne 'Core' -or $IsWindows)
 #
 # fix up some paths:
 #
 if ($ackIsWindows) {
+	#$now = [DateTime]::Now
 	AddPathValue -pathVarName 'Path' -value $PSScriptRoot -prepend
 	$properModulesDir = "$env:LocalAppData\PowerShell\Modules"
 	$documentsModulesDI = Get-Item -Path (Join-Path (Split-Path -Path $PROFILE -Parent) 'Modules') -ErrorAction SilentlyContinue
@@ -68,13 +72,16 @@ if ($ackIsWindows) {
 	}
 	Remove-Variable -Name 'properModulesDir'
 	Remove-Variable -Name 'documentsModulesDI'
+	#Write-Host "tweaking Path #1 took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 }
 $scriptsDir = (Join-Path -Path $HOME -ChildPath 'scripts')
 if (Test-Path -Path $scriptsDir -PathType Container) {
+	#$now = [DateTime]::Now
 	AddPathValue -pathVarName 'Path' -value $scriptsDir -prepend
 	AddPathValue -pathVarName 'PSModulePath' -value $scriptsDir -prepend
 	function _updateScriptsFldr { Push-Location -Path (Join-Path -Path $HOME -ChildPath 'scripts')<#can't use var#>; git pull; Pop-Location; }
 	New-Alias -Name 'scup' -Value '_updateScriptsFldr'
+	#Write-Host "tweaking Path #2 took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 }
 Remove-Variable -Name 'scriptsDir'
 
@@ -82,6 +89,7 @@ Remove-Variable -Name 'scriptsDir'
 # add oh-my-posh:
 #
 if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
+	#$now = [DateTime]::Now
 	$themePaths = @()
 	if (Test-Path -Path env:OneDrive) {
 		$themePaths += [System.IO.Path]::Combine($env:OneDrive, 'Documents', 'omp', 'ack.omp.{0}')	# Join-Path has different signature on desktop posh, so can't use that
@@ -91,8 +99,10 @@ if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 	foreach ($maybeAckTheme in @($themePaths | ForEach-Object { $t = $_; @('toml', 'jsonc', 'json') | ForEach-Object { $t -f $_ } })) {
 		Write-Verbose "$($MyInvocation.InvocationName): checking for oh-my-posh profile `"$maybeAckTheme`""
 		if (Test-Path -Path $maybeAckTheme -PathType Leaf) {
+			#Write-Host "    finding OhMyPosh profile took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 			Write-Verbose "$($MyInvocation.InvocationName): using oh-my-posh profile `"$maybeAckTheme`""
 			oh-my-posh init pwsh --config $maybeAckTheme | Invoke-Expression
+			#Write-Host "    initing OhMyPosh took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 			break
 		}
 	}
@@ -101,6 +111,7 @@ if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 	Remove-Variable -Name 't'
 	if ($ackIsWindows) { Set-Alias -Name 'omp' -Value 'oh-my-posh.exe'}
 	else { Set-Alias -Name 'omp' -Value 'oh-my-posh' }
+	#Write-Host "adding OhMyPosh stuff total took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 }
 #
 # import some modules:
@@ -110,25 +121,50 @@ if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 #	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
 #	Import-Module -Name $moduleName -NoClobber
 #}
+
+# Teminal-Icons has gotten *really* slow to load, and project seems to be dead
+# found way to load in the background, prompt comes up quicker, but still sits
+# there not accepting input until Terminal-Icons is loaded, so that's not gonna work
+# the icons and the colors are nice, but not that nice
+<#
 $moduleName = 'Terminal-Icons'
+#$now = [DateTime]::Now
 if ((Get-Module -Name $moduleName -ListAvailable)) {
-	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
-	Import-Module -Name $moduleName
-	$theme = Get-TerminalIconsTheme
-	if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-fa-book') }
-	if (-not $theme.Color.Types.Files.ContainsKey('.epub')) { $theme.Color.Types.Files.Add('.epub', '9e7a41') }
-	if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-fa-book') }
-	if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9e7a41') }
-	Remove-Variable -Name 'theme'
+	#Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
+	#Import-Module -Name $moduleName
+	#$theme = Get-TerminalIconsTheme
+	#if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-fa-book') }
+	#if (-not $theme.Color.Types.Files.ContainsKey('.epub')) { $theme.Color.Types.Files.Add('.epub', '9e7a41') }
+	#if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-fa-book') }
+	#if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9e7a41') }
+	#Remove-Variable -Name 'theme'
+
+	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`" with PowerShell.OnIdle"
+	# load in OnIdle: from https://github.com/devblackops/Terminal-Icons/issues/150
+	Register-EngineEvent -SourceIdentifier 'PowerShell.OnIdle' -MaxTriggerCount 1 -Action {
+		Import-Module -Name 'Terminal-Icons' -Global
+		$theme = Get-TerminalIconsTheme
+		#if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-fa-book') }
+		if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-oct-book') }
+		if (-not $theme.Color.Types.Files.ContainsKey('.epub')) { $theme.Color.Types.Files.Add('.epub', '9E7A41') }
+		#if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-fa-book') }
+		if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-oct-book') }
+		if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9E7A41') }
+	} | Out-Null
 }
+#Write-Host "checking/adding Terminal-Icons module took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+#>
 
 $moduleName = 'AckWare.AckLib'
+#$now = [DateTime]::Now
 if ((Get-Module -Name $moduleName -ListAvailable)) {
 	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
 	Import-Module -Name $moduleName
 }
+#Write-Host "checking/adding AckWare.AckLib module took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 
 $moduleName = 'gsudoModule'
+#$now = [DateTime]::Now
 if ((Get-Module -Name $moduleName -ListAvailable)) {
 	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
 	Import-Module -Name $moduleName
@@ -136,34 +172,42 @@ if ((Get-Module -Name $moduleName -ListAvailable)) {
 #} else {
 #	Set-Alias -Name 'sudo' -Value 'Invoke-Elevated'
 }
+#Write-Host "checking/adding gsudo module took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 
 if ($ackIsWindows) {
+	#$now = [DateTime]::Now
 	$moduleName = 'AckWingetHelpers'
 	if ((Get-Module -Name $moduleName -ListAvailable)) {
 		Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
 		Import-Module -Name $moduleName
 	}
+	#Write-Host "checking/adding AckWingetHelpers module took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 }
 
 Remove-Variable -Name 'moduleName'
 #
 # misc:
 #
+#$now = [DateTime]::Now
 $psReadLineProfile = Get-Command -Name 'PSReadLineProfile.ps1' -ErrorAction SilentlyContinue
 if ($psReadLineProfile) {
 	Write-Verbose "$($MyInvocation.InvocationName): adding PSReadlineProfile `"$($psReadLineProfile.Path)`""
 	. $psReadLineProfile.Path
 }
 Remove-Variable -Name 'psReadLineProfile'
+#Write-Host "checking/adding PSReadLine profile took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 
 # support having a profile that's system specific, not shared and not in git:
+#$now = [DateTime]::Now
 $SystemProfile = Join-Path -Path $HOME -ChildPath '.system_profile.ps1'
 if (Test-Path -Path $SystemProfile -PathType Leaf) {
 	Write-Verbose "$($MyInvocation.InvocationName): importing local profile `"$SystemProfile`""
 	. $SystemProfile
 }
 Remove-Variable -Name 'SystemProfile'
+#Write-Host "checking/adding system_profile.ps1 took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 
+#$now = [DateTime]::Now
 if ((Get-Variable -Name 'PSStyle' -ErrorAction Ignore)) {
 	Write-Verbose "$($MyInvocation.InvocationName): adjusting PSStyle to my liking"
 	# at least with posh 7, they made Debug, Verbose, Warning all the same color; change them:
@@ -176,6 +220,7 @@ if ((Get-Variable -Name 'PSStyle' -ErrorAction Ignore)) {
 		}
 	}
 }
+#Write-Host "checking/tweaking PSStyle took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 
 function Test-IsElevated {
 	[OutputType([bool])]
@@ -188,6 +233,7 @@ function Test-IsElevated {
 }
 
 if ($ackIsWindows) {
+	#$now = [DateTime]::Now
 	$winBuild = [System.Environment]::OSVersion.Version.Build
 	if ($winBuild -ge 10240 <# Win10 #> -and ($PSEdition -ne 'Core' -or $winBuild -ge 22000 <# Win11 (cmdlets are broken on Win10 in Core) #>)) {
 		function Remove-AppxCompletely {
@@ -232,6 +278,7 @@ if ($ackIsWindows) {
 		New-Alias -Name 'forceStoreAppsUpdate' -Value 'Update-StoreAppsAvailableUpgrades'	# old name
 	}
 	Remove-Variable -Name 'winBuild'
+	#Write-Host "checking/adding AppX functions took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 }
 
 Remove-Variable -Name 'ackIsWindows'
@@ -243,6 +290,7 @@ function Get-DecodedCommand { param([Parameter(Mandatory=$true)][string]$c) retu
 # some tab completions:
 #
 # dotnet CLI (https://learn.microsoft.com/en-us/dotnet/core/tools/enable-tab-autocomplete#powershell)
+#$now = [DateTime]::Now
 if ((Get-Command -Name 'dotnet' -CommandType Application -ErrorAction Ignore)) {
 	Register-ArgumentCompleter -Native -CommandName 'dotnet' -ScriptBlock {
 		param($wordToComplete, $commandAst, $cursorPosition)
@@ -252,8 +300,10 @@ if ((Get-Command -Name 'dotnet' -CommandType Application -ErrorAction Ignore)) {
 			}
 	}
 }
+#Write-Host "checking/adding dotnet autocompletes took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 
 # winget (https://github.com/microsoft/winget-cli/blob/master/doc/Completion.md#powershell)
+#$now = [DateTime]::Now
 if ((Get-Command -Name 'winget' -CommandType Application -ErrorAction Ignore)) {
 	Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
 		param($wordToComplete, $commandAst, $cursorPosition)
@@ -267,6 +317,17 @@ if ((Get-Command -Name 'winget' -CommandType Application -ErrorAction Ignore)) {
 			}
 	}
 }
+#Write-Host "checking/adding winget autocompletes took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+
+#$now = [DateTime]::Now
+if ((Get-Command -Name 'dsc.exe' -CommandType Application -ErrorAction Ignore)) {
+	dsc.exe completer powershell | Out-String | Invoke-Expression
+}
+#Write-Host "checking/adding dsc autocompletes took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 
 # some more aliases:
 New-Alias -Name 'll' -Value 'Get-ChildItem'
+
+#Write-Host "loading Profile took total $(([DateTime]::Now - $startNow).TotalMilliseconds) ms"
+#Remove-Variable -Name 'startNow'
+#Remove-Variable -Name 'now'
