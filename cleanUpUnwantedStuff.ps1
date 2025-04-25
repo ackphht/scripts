@@ -303,6 +303,8 @@ function CleanUpDesktopIcons {
 		'Quick Share from Google'
 		'Exact Audio Copy'
 		'Dashboard'					# WD Dashboard
+		'Bitwarden'
+		'Obsidian'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -451,6 +453,7 @@ function DisableUnwantedScheduledTasks {
 		@{ Name = 'RNIdle*'; Path='\'; }						# Killer network something
 		@{ Name = 'IntelSURQC*'; Path='\'; }					# Intel driver update thing (there was another one with some random looking name that i deleted before remembering to put it in here)
 		@{ Name = 'Dell SupportAssistAgent AutoUpdate'; Path='\'; }
+		@{ Name = 'Office Apps Prewarm*'; Path='\Microsoft\Office\'; }
 	) | ForEach-Object { DisableScheduledTask -allSchedTasks $allTasks -taskName $_.Name -taskPath $_.Path }
 }
 
@@ -785,6 +788,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey Window Spy.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey Dash.lnk', $applications)
+		[StartMenuCleanupItem]::FromUserPrograms('Bitwarden.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Cloud Nine Keyboard Application.lnk', $systemApps)
 		[StartMenuCleanupItem]::FromUserPrograms('Fiddler 4.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Fiddler Classic.lnk', $applications)
@@ -798,6 +802,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('Microsoft Teams.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Nearby Share from Google.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('NSIS.lnk', $development)
+		[StartMenuCleanupItem]::FromUserPrograms('Obsidian.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Outlook.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Quick Share from Google.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserStartMenu('SumatraPDF.lnk', $applications)
@@ -823,6 +828,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('grepWin\grepWin.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('HandBrake\HandBrake.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('FrostWire 6\FrostWire 6.lnk', $applications, 'FrostWire.lnk', $true)
+		[StartMenuCleanupItem]::FromUserPrograms('ImHex\ImHex.lnk', $development, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Inkscape\Inkscape.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Inkscape\Inkview.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('IrfanView\IrfanView 4*.lnk', $applications, 'IrfanView.lnk')
@@ -1446,7 +1452,7 @@ function CleanUpStartMenuItem {
 			}
 			# do move (might have '*' in Source, so expand it; the move doesn't work with folders and a '*' in the source, think our exception handling move only works for single folder):
 			foreach ($srcPath in @(Convert-Path -Path $startMenuItem.Source)) {
-				WriteStatusMessage "${script:msgIndent}moving item: |$(GetStartMenuPathForLogging -path $srcPath)| to |$(GetStartMenuPathForLogging -path $trg)|"
+				WriteStatusMessage "    moving item: |$(GetStartMenuPathForLogging -path $srcPath)| to |$(GetStartMenuPathForLogging -path $trg)|"
 				$canDeleteSource = $false
 				try {
 					# telling cmdlet to make all errors 'terminating' errors so that the catch will see them
