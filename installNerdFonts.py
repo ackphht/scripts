@@ -265,6 +265,7 @@ def initFontsToInstall(ghRelease : GithubRelease) -> NerdFontCollection:
 	# first name ("fontName") is the name as they show up in the Github downloads list;
 	# second name(s) (the "fontFilenameBase"s) are the filenames to look for/extract/install in the downloaded archive
 	#    name in the archive will be "{basename}-*.(t|o)tf"
+	fontsToInstall.addFontDefn("NerdFontsSymbolsOnly", ["SymbolsNerdFont"])#, "SymbolsNerdFontMono"])
 	fontsToInstall.addFontDefn("FantasqueSansMono", ["FantasqueSansMNerdFont"])#, "FantasqueSansMNerdFontMono"])
 	# the real CascadiaCode has a NF variant now, but the symbols are tiny, so we'll keep this one:
 	fontsToInstall.addFontDefn("CascadiaCode", ["CaskaydiaCoveNerdFont"])#, "CaskaydiaCoveNerdFontMono"])
