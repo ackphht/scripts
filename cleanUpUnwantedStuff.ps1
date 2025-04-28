@@ -269,6 +269,7 @@ function CleanUpDesktopIcons {
 		'SourceTree'
 		'Stellarium'
 		'Microsoft Edge'
+		'Google Chrome'
 		'McAfee*'
 		'HandBrake'
 		'SQL Operations Studio'
@@ -305,6 +306,7 @@ function CleanUpDesktopIcons {
 		'Dashboard'					# WD Dashboard
 		'Bitwarden'
 		'Obsidian'
+		'Brave'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -381,9 +383,9 @@ function DisableUnwantedServices {
 		@{ Name = 'Realtek Audio Universal Service'; Start = ''; }
 		@{ Name = 'Waves Audio Services'; Start = ''; }
 		@{ Name = 'Waves Audio Universal Services'; Start = ''; }
-		@{ Name = 'Microsoft Edge Update Service (edgeupdate)'; Start = 'Manual'; }
-		@{ Name = 'Microsoft Edge Update Service (edgeupdatem)'; Start = 'Manual'; }
+		@{ Name = 'Microsoft Edge Update Service (edgeupdate*)'; Start = 'Manual'; }	# "(edgeupdate)" defaults is "Automatic (Delayed)", "(edgeupdatem)" is "Manual (Triggered)"
 		@{ Name = 'SyncBackPro Schedules Monitor'; Start = 'Manual'; }
+		@{ Name = 'Google Updater *Service'; Start = 'Manual'; }	# default for both is "Automatic"
 		#@{ Name = 'OptionsPlusUpdaterService'; Start = 'Manual'; }		# Logitech Options+ Updater; nevermind, apparently needed
 		#@{ Name = 'xxxxxxxxxxxxxxxx'; Start = ''; }
 	) | ForEach-Object { DisableService $_; }
@@ -433,7 +435,9 @@ function DisableUnwantedScheduledTasks {
 	@(
 		@{ Name = 'User_Feed_Synchronization*'; Path='\'; }
 		@{ Name = 'Adobe Flash Player Updater'; Path=''; }
-		#@{ Name = 'GoogleUpdateTask*'; Path=''; }
+		@{ Name = 'GoogleUpdateTask*'; Path=''; }
+		@{ Name = 'GoogleUpdaterTask*'; Path='GoogleSystem\GoogleUpdater'; }	# disabling this also disables updates for Google Drive & QuickShare, but doesn't seem to ever update them anyway...
+		@{ Name = 'GoogleUpdaterTask*'; Path='GoogleUser\GoogleUpdater'; }
 		@{ Name = 'FreeDownloadManager*'; Path=''; }
 		@{ Name = 'Intel *'; Path=''; }
 		@{ Name = 'Dell SupportAssistAgent AutoUpdate'; Path=''; }
@@ -448,6 +452,7 @@ function DisableUnwantedScheduledTasks {
 		@{ Name = 'MicrosoftEdgeUpdateTask*'; Path=''; }
 		@{ Name = 'VivaldiUpdateCheck*'; Path=''; }
 		@{ Name = 'Firefox Default Browser Agent *'; Path='\Mozilla\'; }
+		@{ Name = 'BraveSoftwareUpdateTask*'; Path=''; }
 		@{ Name = 'G2MUp*'; Path='\'; }							# GoToMeeting
 		@{ Name = 'DashboardNotificationManager*'; Path='\'; }	# WD Dashboard
 		@{ Name = 'RNIdle*'; Path='\'; }						# Killer network something
@@ -506,6 +511,8 @@ function CleanUpRegistryAutoruns {
 		@{ Name = 'SPEnroll'; Value = '' }						# Quest Software, Inc. (some password reset stupid thing at work)
 		@{ Name = 'Vivaldi Update Notifier'; Value = '' }
 		@{ Name = 'Microsoft Edge'; Value = '' }
+		@{ Name = 'BraveSoftware Update'; Value = '' }
+		@{ Name = 'GoogleUpdaterTask*'; Value = '' }			# name includes a version number, sigh
 		@{ Name = 'IAStorIcon'; Value = '' }
 		@{ Name = 'Free Download Manager'; Value = '' }
 		@{ Name = 'RtkAudUService'; Value = '' }				# Realtek HD Audio Universal Service
@@ -525,9 +532,15 @@ function CleanUpRegistryAutoruns {
 	foreach ($app in $autorunsToLookFor) {
 		foreach ($location in $placesToCheck) {
 			WriteVerboseMessage 'looking for Autorun |{0}| in |{1}|' @($(if ($app.Name) { $app.Name } else { $app.Value }),$location)
-			if ($app.Name) {
+			if ($app.Name -and $app.Name -notmatch '\*') {
 				if ((Get-RegistryKeyValue -registryPath $location -valueName $app.Name)) {
 					DisableRegistryAutorun -regPath $location -valueName $app.Name -friendlyName $app.Name
+				}
+			} elseif ($app.Name) {
+				foreach ($regVal in Get-RegistryKeyValues -registryPath $location) {
+					if ($regVal.Value -like $app.Name) {
+						DisableRegistryAutorun -regPath $location -valueName $regVal.Value -friendlyName $regVal.Value
+					}
 				}
 			} elseif ($app.Value) {
 				foreach ($regVal in Get-RegistryKeyValues -registryPath $location) {
@@ -789,6 +802,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey Dash.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Bitwarden.lnk', $applications)
+		[StartMenuCleanupItem]::FromUserPrograms('Brave.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Cloud Nine Keyboard Application.lnk', $systemApps)
 		[StartMenuCleanupItem]::FromUserPrograms('Fiddler 4.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Fiddler Classic.lnk', $applications)
@@ -796,6 +810,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('Firefox.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Firefox Private Browsing.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('GIMP*.lnk', $applications, 'GIMP.lnk')
+		[StartMenuCleanupItem]::FromUserPrograms('Google Chrome.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('ILSpy.lnk', $development)
 		[StartMenuCleanupItem]::FromUserPrograms('Lens.lnk', $development)
 		[StartMenuCleanupItem]::FromUserPrograms('MaxxAudio Pro by Waves*.lnk', $systemApps)
