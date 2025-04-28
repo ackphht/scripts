@@ -640,7 +640,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('foobar2000.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('GIMP*.lnk', $applications, 'GIMP.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('Git Extensions.lnk', $development)
-		[StartMenuCleanupItem]::FromCommonPrograms('Google Chrome.lnk', $applications, 'Google Chrome.lnk')
+		[StartMenuCleanupItem]::FromCommonPrograms('Google Chrome.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Google Drive.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('GPA.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Intel Driver & Support Assistant.lnk', $systemApps)
