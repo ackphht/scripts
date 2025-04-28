@@ -436,8 +436,8 @@ function DisableUnwantedScheduledTasks {
 		@{ Name = 'User_Feed_Synchronization*'; Path='\'; }
 		@{ Name = 'Adobe Flash Player Updater'; Path=''; }
 		@{ Name = 'GoogleUpdateTask*'; Path=''; }
-		@{ Name = 'GoogleUpdaterTask*'; Path='GoogleSystem\GoogleUpdater'; }	# disabling this also disables updates for Google Drive & QuickShare, but doesn't seem to ever update them anyway...
-		@{ Name = 'GoogleUpdaterTask*'; Path='GoogleUser\GoogleUpdater'; }
+		@{ Name = 'GoogleUpdaterTask*'; Path='GoogleSystem\GoogleUpdater\'; }	# disabling this also disables updates for Google Drive & QuickShare, but doesn't seem to ever update them anyway...
+		@{ Name = 'GoogleUpdaterTask*'; Path='GoogleUser\GoogleUpdater\'; }
 		@{ Name = 'FreeDownloadManager*'; Path=''; }
 		@{ Name = 'Intel *'; Path=''; }
 		@{ Name = 'Dell SupportAssistAgent AutoUpdate'; Path=''; }
