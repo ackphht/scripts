@@ -246,7 +246,12 @@ if [[ "$platform" == "Linux" || "$platform" =~ "BSD" || "$platform" == "DragonFl
 	fi
 fi
 
-hasCmd nano && alias nano='nano -lLA -T 4' || true
+if hasCmd nano; then
+	alias nano='nano -lLA -T 4'
+	if [[ -z $EDITOR ]]; then
+		export EDITOR=nano
+	fi
+fi
 
 # default prompt in case oh-my-posh (below) isn't installed
 case $currShell in
