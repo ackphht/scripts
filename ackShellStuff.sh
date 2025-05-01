@@ -1,5 +1,5 @@
 #
-# add this to .bashrc (or .zshrc [will it work ??] or whatever) (and might need to go at the bottom of file [e.g. Ubuntu]):
+# add this to .bashrc (or .zshrc or whatever) (and might need to go at the bottom of file [e.g. Ubuntu]):
 #	test -r ~/scripts/ackShellStuff.sh && source ~/scripts/ackShellStuff.sh || true
 #
 
