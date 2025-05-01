@@ -27,7 +27,7 @@ hasCmd git     && echo "git     = |$(git --version | awk '{print $3}')|" ||					
 hasCmd snap    && echo "snap    = |$(snap --version | head -n 1 | awk '{print $2}')|" ||	echo "snap    = |<n/a>|"
 hasCmd flatpak && echo "flatpak = |$(flatpak --version | awk '{print $2}')|" ||				echo "flatpak = |<n/a>|"
 hasCmd java    && echo "java    = |$(java --version 2>/dev/null | head -n 1)|" ||			echo 'java    = |<n/a>|'	# show whole version line for this one
-hasCmd perl    && echo "perl    = |$(perl --version | head -n 2 | tail -n 1 | sed -E 's/^(.+)\(v([\.0-9]+)\)(.+)$/\2/')|" || echo 'perl    = |<n/a>|'
+hasCmd perl    && echo "perl    = |$(perl --version 2>/dev/null | head -n 2 | tail -n 1 | sed -E 's/^(.+)\(v([\.0-9]+)\)(.+)$/\2/')|" || echo 'perl    = |<n/a>|'
 hasCmd ruby    && echo "ruby    = |$(ruby --version | awk '{print $2}')|" ||				echo "ruby    = |<n/a>|"
 hasCmd go      && echo "go      = |$(go version | awk '{print $3}' | sed -E 's/^go//')|" ||	echo "go      = |<n/a>|"
 hasCmd rustc   && echo "rustc   = |$(rustc --version | awk '{print $2}')|" ||					echo "rustc   = |<n/a>|"
