@@ -102,6 +102,8 @@ class _tagMapper:	# abstract base class
 
 	@staticmethod
 	def getTagType(mgTags: mutagen.Tags) -> TagType:
+		if mgTags is None:
+			return TagType.NoTags
 		name = mgTags.__class__.__name__
 		if name == "MP4Tags":
 			return TagType.MP4
@@ -117,13 +119,17 @@ class _tagMapper:	# abstract base class
 			ver = mgTags.version
 			if ver >= (2, 4, 0):
 				return TagType.ID3v24
-			if ver >= (2, 3, 0):
-				return TagType.ID3v23
+#			if ver >= (2, 3, 0):
+#				return TagType.ID3v23
+			return TagType.ID3v23
 		raise TypeError(f'unrecognized mutagen tag type: "{mgTags.__class__.__module__}.{mgTags.__class__.__name__}"') #LookupError #NameError #TypeError
 
 	@staticmethod
-	def getTagMapper(mgTags: mutagen.Tags) -> "_tagMapper":
-		name = _tagMapper.getTagType(mgTags)
+	def getTagMapper(mgFile: mutagen.FileType) -> "_tagMapper":
+		# if file has no tags, mutagen returns None for MP3 and files with APEv2 tags, so add an empty tags
+		if mgFile.tags is None:
+			mgFile.add_tags()
+		name = _tagMapper.getTagType(mgFile.tags)
 		if name == TagType.MP4:
 			return _mp4Mapper()
 		if name == TagType.FLACVorbis or name == TagType.OggVorbis:
@@ -136,6 +142,8 @@ class _tagMapper:	# abstract base class
 			return _id3v24Mapper()
 		if name == TagType.ID3v23:
 			return _id3v23Mapper()
+		if name == TagType.NoTags:	# shouldn't get here (??) but just in case
+			raise TypeError(f'unrecognized mutagen tag type: "{mgFile.tags.__class__.__module__}.{mgFile.tags.__class__.__name__}"') #LookupError #NameError #TypeError
 
 	def mapFromNativeName(self, nativeTagName: str) -> str:
 		d = _tagMap._nativeNamesToTagNamesMap[self._getTagType()]

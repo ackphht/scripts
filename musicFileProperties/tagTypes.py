@@ -4,6 +4,7 @@
 from enum import StrEnum
 
 class TagType(StrEnum):
+	NoTags = "NoTags"
 	MP4 = "MP4"
 	FLACVorbis = "FLACVorbis"
 	OggVorbis = "OggVorbis"

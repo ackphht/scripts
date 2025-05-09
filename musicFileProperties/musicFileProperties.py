@@ -23,7 +23,7 @@ class MusicFileProperties:
 		self._musicFilePath = musicFilePath
 		self._dirty = False
 		self._mutagen: mutagen.FileType = mutagen.File(self._musicFilePath)
-		self._mapper = _tagMapper.getTagMapper(self._mutagen.tags)
+		self._mapper = _tagMapper.getTagMapper(self._mutagen)
 		self._tagtype = _tagMapper.getTagType(self._mutagen.tags)
 
 	def save(self, removePadding = False) -> bool:
