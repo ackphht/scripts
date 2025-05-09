@@ -160,6 +160,8 @@ class ApprovedTagsList:
 			TagNames.ReplayGainTrackPeak.upper(): TagNames.ReplayGainTrackPeak,
 			TagNames.ReplayGainAlbumGain.upper(): TagNames.ReplayGainAlbumGain,
 			TagNames.ReplayGainAlbumPeak.upper(): TagNames.ReplayGainAlbumPeak,
+			TagNames.R128TrackGain.upper(): TagNames.R128TrackGain,
+			TagNames.R128AlbumGain.upper(): TagNames.R128AlbumGain,
 			TagNames.MusicBrainzDiscId.upper(): TagNames.MusicBrainzDiscId,
 			TagNames.MusicBrainzAlbumId.upper(): TagNames.MusicBrainzAlbumId,
 			TagNames.MusicBrainzTrackArtistId.upper(): TagNames.MusicBrainzTrackArtistId,
@@ -196,9 +198,6 @@ class ApprovedTagsList:
 			TagNames.DiscogsReleaseId.upper(): TagNames.DiscogsReleaseId,
 			TagNames.DiscogsArtistId.upper(): TagNames.DiscogsArtistId,
 			TagNames.DiscogsAlbumId.upper(): TagNames.DiscogsAlbumId,
-			# opus file's realplay gain names; don't think we need these in TagNames (??)
-			"R128_ALBUM_GAIN": "R128_ALBUM_GAIN",
-			"R128_TRACK_GAIN": "R128_TRACK_GAIN",
 		}
 
 	def __len__(self) -> int:
@@ -247,7 +246,7 @@ class MusicFolderHandler:
 						TagNames.OriginalReleaseYear, TagNames.AlbumTitleSort, TagNames.TrackTitleSort, TagNames.AlbumArtistSort,
 						TagNames.TrackArtistSort, TagNames.ComposerSort, TagNames.FileOwner, TagNames.OriginalFileName, ]
 	_extraJunkTagsByType: dict[str, list[str]] = {
-		".opus": [ TagNames.ReplayGainAlbumGain, TagNames.ReplayGainTrackGain, ]	# TrackPeak, maybe AlbumPeak, can still get added by ReplayGain
+		# ".opus": [ TagNames.ReplayGainAlbumGain, TagNames.ReplayGainTrackGain, ]	# TrackPeak, maybe AlbumPeak, can still get added by ReplayGain => let's keep them
 	}
 	_tagsToRename = [ TagNames.MusicBrainzReleaseType,	# we're deleting this one in _junkTagsToClean above ???
 						TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzAlbumReleaseCountry, TagNames.MusicBrainzWorkId,
@@ -257,7 +256,7 @@ class MusicFolderHandler:
 	_approvedTags = ApprovedTagsList()
 	_keepOnCleanAll = [ TagNames.AlbumTitle, TagNames.TrackTitle, TagNames.AlbumArtist, TagNames.TrackArtist, TagNames.TrackNumber,
 						TagNames.ReplayGainTrackGain, TagNames.ReplayGainTrackPeak, TagNames.ReplayGainAlbumGain, TagNames.ReplayGainAlbumPeak,
-						"R128_ALBUM_GAIN", "R128_TRACK_GAIN", ]
+						TagNames.R128TrackGain, TagNames.R128AlbumGain, ]
 	_approvedTagsNativeNamesCache: dict[TagType, list[str]] = dict()
 	_keepOnCleanNativeNamesCache: dict[TagType, list[str]] = dict()
 	#endregion
