@@ -103,6 +103,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^#n::RunAndActivate(FindNotepad3())
 ^!#n::RunNotepadPlusPlus()
 ^#o::RunOneNote()
+!#o::RunAndActivate(EnvGet("LocalAppData") . "\Programs\Obsidian\Obsidian.exe")
 ;!#p::RunAndActivate("shell:AppsFolder\8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy!bitwardendesktop")
 !#p::RunAndActivate(EnvGet("LocalAppData") . "\Programs\Bitwarden\Bitwarden.exe")
 ^#s::RunAndActivate(gOneDrive . "\Utils\RandomMusicPicker.exe randomSongs")
@@ -235,7 +236,8 @@ GroupAdd "Explorer", gExplorerClassPostVista
 }
 $^q:: {	; '$' needed so that we can do the Send below without getting in a loop??
 	activeWinProcName := WinGetProcessName("A")
-	if (activeWinProcName != "OUTLOOK.EXE" && activeWinProcName != "devenv.exe" && activeWinProcName != "kleopatra.exe") {
+	if (activeWinProcName != "WindowsTerminal.exe" && activeWinProcName != "OUTLOOK.EXE" &&
+			activeWinProcName != "devenv.exe" && activeWinProcName != "kleopatra.exe") {
 		SendInput("{LAlt down}{F4}{LAlt up}")
 	} else {
 		Send("^q")
