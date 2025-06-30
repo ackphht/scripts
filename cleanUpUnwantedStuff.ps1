@@ -307,6 +307,7 @@ function CleanUpDesktopIcons {
 		'Bitwarden'
 		'Obsidian'
 		'Brave'
+		'Koodo Reader'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -645,6 +646,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('GPA.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Intel Driver & Support Assistant.lnk', $systemApps)
 		[StartMenuCleanupItem]::FromCommonPrograms('KeePass 2.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('Koodo Reader.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Kleopatra.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Logi Plugin Service.lnk', $systemApps)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Edge.lnk', $applications)
@@ -710,6 +712,8 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('IDrive\IDrive.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('ImageMagick\ImageMagick Display.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('ImHex\ImHex.lnk', $applications, $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('Inkscape\Inkscape.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('Inkscape\Inkview.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Intel\Intel(R) Rapid Storage Technology.lnk', $systemApps, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\JetBrains DataGrip*.lnk', $development, 'DataGrip.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\JetBrains PyCharm*.lnk', $development, 'PyCharm.lnk', $true)
@@ -780,6 +784,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 18', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 19', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 20', $development)
+		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 21', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('PostSharp*', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Python 2.7', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Python 3.*', $development)
@@ -812,6 +817,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('GIMP*.lnk', $applications, 'GIMP.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('Google Chrome.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('ILSpy.lnk', $development)
+		[StartMenuCleanupItem]::FromUserPrograms('Koodo Reader.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Lens.lnk', $development)
 		[StartMenuCleanupItem]::FromUserPrograms('MaxxAudio Pro by Waves*.lnk', $systemApps)
 		[StartMenuCleanupItem]::FromUserPrograms('Microsoft Teams.lnk', $applications)
