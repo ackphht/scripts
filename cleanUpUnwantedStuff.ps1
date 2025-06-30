@@ -218,7 +218,10 @@ function CleanUpOtherFiles {
 		"$env:LocalAppData\GitKraken\Update.exe"
 		"$env:LocalAppData\Postman\Update.exe"
 		"$env:LocalAppData\SourceTree\Update.exe"
-	) |	ForEach-Object { RenameUnwantedFiles $_; }
+	) |	ForEach-Object { RenameUnwantedFiles -filePattern $_ }
+	@(
+		"$env:LocalAppData\koodo-reader-updater\installer.exe"
+	) |	ForEach-Object { DeleteUnwantedFiles -filePattern $_ }
 }
 
 function CleanUpCrapFolders {
@@ -933,12 +936,13 @@ function KillBackgroundProcesses {
 
 function RenameUnwantedFiles {
 	[CmdletBinding(SupportsShouldProcess=$true)]
+	[OutputType([void])]
 	param (
-		[Parameter(Mandatory=$true)] [string]$filePattern
+		[Parameter(Mandatory=$true)] [string] $filePattern
 	)
-	WriteVerboseMessage 'checking pattern |{0}|' $_
-	if (Test-Path $filePattern) {
-		WriteVerboseMessage 'renaming files for pattern |{0}|' $_ -continuation
+	WriteVerboseMessage 'checking pattern |{0}|' $filePattern
+	if ((Test-Path -Path $filePattern)) {
+		WriteVerboseMessage 'renaming files for pattern |{0}|' $filePattern -continuation
 		$files = @(Get-ChildItem $filePattern | ForEach-Object { $_.FullName })
 		for ($index = 0; $index -lt $files.Count; $index++) {
 			if ($index -eq 0) {
@@ -946,6 +950,23 @@ function RenameUnwantedFiles {
 			}
 			RenameFile $files[$index]
 		}
+	}
+}
+
+function DeleteUnwantedFiles {
+	[CmdletBinding(SupportsShouldProcess=$true)]
+	[OutputType([void])]
+	param (
+		[Parameter(Mandatory=$true)] [string] $filePattern
+	)
+	WriteVerboseMessage 'checking pattern |{0}|' $filePattern
+	if ((Test-Path -Path $filePattern)) {
+		WriteVerboseMessage 'deleting files for pattern |{0}|' $filePattern -continuation
+		Get-ChildItem -Path $filePattern |
+			ForEach-Object {
+				WriteStatusMessage "deleting file |$_|"
+				Remove-Item -Path $_ -Force
+			}
 	}
 }
 
