@@ -87,9 +87,9 @@ GroupAdd "Explorer", gExplorerClassPostVista
 	# = Win  /  ^ = Ctrl  /  + = Shift  /  ! = Alt
 */
 +#Esc::Run("procexp.exe /e")
-^#a::RunAndActivate(gOneDrive . "\Utils\RandomMusicPicker.exe randomPlaylist")
-^#b::Run(FindSyncBackPro(false))
-^!#b::Run(FindSyncBackPro(true))
+^#a::RunAndActivate(gOneDrive . "\Utils\RandomMusicPicker.exe randomPlaylist", , , , "Random Playlist")
+^#b::RunAndActivate(FindSyncBackPro(false), , , , "SyncBackPro")
+^!#b::RunAndActivate(FindSyncBackPro(true), , , , "SyncBackPro")
 ^#c::Run('wt.exe --window last --profile "PowerShell"')		; https://learn.microsoft.com/en-us/windows/terminal/command-line-arguments
 ^!#c::RunElevated("wt.exe", '--window last --profile "PowerShell"')
 ^+#c::Run(FindPowerShellCore(), EnvGet("UserProfile"))
@@ -98,15 +98,17 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^!#e::RunElevated("wt.exe", '--window last --profile "Windows PowerShell"')
 ^+#e::Run(FindPowerShell(), EnvGet("UserProfile"))
 ^+!#e::RunElevated(FindPowerShell(), '-NoExit -Command &{Set-Location -LiteralPath "$env:UserProfile"}')
+^#g::RunAndActivate(EnvGet("LocalAppData") . "\Programs\SourceGit\SourceGit.exe", , , "Avalonia-91408bfc-b8e9-4ad1-95f1-1a4134f2662c")
 ^#h::ToggleSuperHiddenFiles()
-^#m::LookForAndRunMsdnHelp()
-^#n::RunAndActivate(FindNotepad3())
+;^#m::LookForAndRunMsdnHelp()
+^#m::RunAndActivate(EnvGet("UserProfile") . "\Development\MyProjects\AckAptMaint\publish\win-x64\AckAptMaint.exe", , , , "AckApt DB Maintenance")
+^#n::RunAndActivate(FindNotepad3(), , , , , true)
 ^!#n::RunNotepadPlusPlus()
 ^#o::RunOneNote()
-!#o::RunAndActivate(EnvGet("LocalAppData") . "\Programs\Obsidian\Obsidian.exe")
+!#o::RunAndActivate(EnvGet("LocalAppData") . "\Programs\Obsidian\Obsidian.exe", , , , "Obsidian")
 ;!#p::RunAndActivate("shell:AppsFolder\8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy!bitwardendesktop")
-!#p::RunAndActivate(EnvGet("LocalAppData") . "\Programs\Bitwarden\Bitwarden.exe")
-^#s::RunAndActivate(gOneDrive . "\Utils\RandomMusicPicker.exe randomSongs")
+!#p::RunAndActivate(EnvGet("LocalAppData") . "\Programs\Bitwarden\Bitwarden.exe", , , , "Bitwarden")
+^#s::RunAndActivate(gOneDrive . "\Utils\RandomMusicPicker.exe randomSongs", , , , "Random Songs")
 +#t::Run("control.exe AdminTools")		; think there used to be a CLSID for this but doesn't exist anymore ??
 ^#x::Run('wt.exe --window last --profile "Command Prompt"')
 ^#!x::RunElevated("wt.exe", '--window last --profile "Command Prompt"')
@@ -278,17 +280,12 @@ FindApp(regAppPathName, programFilesRelPath := "", fallbackExe := "") {
 }
 
 RunOneNote() {
-	if (WinExist("ahk_exe onenote.exe")) {
-		OutputDebug('RunOneNote: activating existing OneNote instance')
-		WinActivate("ahk_exe onenote.exe")
+	OutputDebug('RunOneNote: no existing OneNote instance found, getting path')
+	oneNotePath := FindApp("OneNote")
+	if (oneNotePath != "") {
+		RunAndActivate(oneNotePath)
 	} else {
-		OutputDebug('RunOneNote: no existing OneNote instance found, getting path')
-		oneNotePath := FindApp("OneNote")
-		if (oneNotePath != "") {
-			RunAndActivate(oneNotePath)
-		} else {
-			MsgBox("Could not find OneNote.")
-		}
+		MsgBox("Could not find OneNote.")
 	}
 }
 
@@ -328,7 +325,7 @@ FindSyncBackPro(asAdmin := false) {
 RunNotepadPlusPlus() {
 	notepadPlusPlusPath := FindNotepadPlusPus()
 	if (notepadPlusPlusPath != "") {
-		RunAndActivate(notepadPlusPlusPath)
+		RunAndActivate(notepadPlusPlusPath, , , "Notepad++")
 	} else {
 		MsgBox("Could not find Notepad++.")
 	}
@@ -434,13 +431,39 @@ OpenFolderDefault(folderName, asAdmin := false) {
 	;}
 }
 
-RunAndActivate(target, arguments := "", workingDir := "") {
+RunAndActivate(target, arguments := "", workingDir := "", className := "", winTitle := "", allowMult := false) {
+	; if there are args, can't just check for an existing app; just "start" a new one
+	; and let the app figure it out if there's only supposed to be one instance:
 	if (arguments) {
 		Run(target . " " . arguments, workingDir,, &newAppPid)
-	} else {
-		Run(target, workingDir,, &newAppPid)
+		if (newAppPid) {	; 'target' has to point to an actual .exe in order to get back a valid process id; if you try to start something like a url or a document (doing a ShellExecute kinda thing), this will not be populated
+			WinWait("ahk_pid " . newAppPid)
+			WinActivate("ahk_pid " . newAppPid)
+		}
+		return
 	}
-	if (newAppPid) {	; 'target' has to point to an actual .exe in order to get back a valid process id; if you try to start something like a url or a document (doing a ShellExecute kinda thing), this will not be populated
+	; otherwise if not explicitly told to start a new one, try to find
+	; an existing one and activate that, if there is one:
+	if (!allowMult) {
+		trgHwnd := 0
+		if (className) {
+			trgHwnd := WinExist("ahk_class " . className)
+		} else if (winTitle) {
+			trgHwnd := WinExist(winTitle)	; default search mode if to find text anywhere in the title; see SetTitleMatchMode
+		} else {
+			SplitPath(target, &name, , &ext)
+			if (ext = "exe") {
+				trgHwnd := WinExist("ahk_exe " . name)
+			}
+		}
+		if (trgHwnd > 0) {
+			WinActivate("ahk_id " . trgHwnd)
+			return
+		}
+	}
+	; there's not one, so start a new instance:
+	Run(target, workingDir,, &newAppPid)
+	if (newAppPid) {
 		WinWait("ahk_pid " . newAppPid)
 		WinActivate("ahk_pid " . newAppPid)
 	}
