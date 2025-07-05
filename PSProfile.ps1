@@ -1,7 +1,8 @@
 ﻿#Requires -Version 5.1
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
-	[switch] $install
+	[switch] $install,
+	[switch] $showTimes
 )
 if ($install) {
 	Write-Verbose "`$PROFILE = |$PROFILE|; this file = |$PSCommandPath|"
@@ -18,7 +19,21 @@ if ($install) {
 	}
 	return
 }
-$startNow = [DateTime]::Now
+
+# using $script: doesn't work here, all the vars still get leaked,
+# so keep track and explicitly remove them at the end
+# ffs...
+$localVars = @( 'localVars', 'localFuncs', 'install', 'showTimes', 'startNow', 'currentNow', 'ackIsWindows',
+				'properModulesDir', 'documentsModulesDI', 'scriptsDir',
+				'maybeAckTheme', 'themePaths', 't', 'moduleName', 'theme',
+				'psReadLineProfile', 'SystemProfile', 'winBuild'
+			)
+$localFuncs = @('function:_getts', 'function:_showTime')
+
+function _getts { if ($showTimes) { return [System.DateTime]::Now } else { return 0 } }
+function _showTime { param([System.DateTime]$start, [string]$desc) if ($showTimes) { Write-Host "${desc} took $(([DateTime]::Now - $start).TotalMilliseconds) ms" } }
+
+$startNow = _getts
 # in case we're running < .net 4.6, make sure TLS 1.2 is enabled:
 if ([System.Net.ServicePointManager]::SecurityProtocol -ne 0 <# SystemDefault (added in 4.7/Core) #> -and
 	([System.Net.ServicePointManager]::SecurityProtocol -band [System.Net.SecurityProtocolType]::Tls12) -eq 0)
@@ -27,7 +42,20 @@ if ([System.Net.ServicePointManager]::SecurityProtocol -ne 0 <# SystemDefault (a
 	[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor [System.Net.SecurityProtocolType]::Tls12
 }
 
-function AddPathValue {
+function Test-IsElevated {
+	[CmdletBinding(SupportsShouldProcess=$false)]
+	[OutputType([bool])]
+	param()
+	if (($PSEdition -ne 'Core' -or $IsWindows)) {	# can't use ackIsWindows here
+		return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')
+	} else {
+		return ((id -u) -eq 0)
+	}
+}
+
+function Add-PathValue {
+	[CmdletBinding(SupportsShouldProcess=$true)]
+	[OutputType([void])]
 	param(
 		[Parameter(Mandatory=$true)] [string] $pathVarName,
 		[Parameter(Mandatory=$true)] [string] $value,
@@ -49,47 +77,49 @@ function AddPathValue {
 		$changed = $true
 	}
 	if ($changed) {
-		[System.Environment]::SetEnvironmentVariable($pathVarName, ($values -join [System.IO.Path]::PathSeparator), $target)
+		if ($PSCmdlet.ShouldProcess($pathVarName, 'SetEnvironmentVariable')) {
+			[System.Environment]::SetEnvironmentVariable($pathVarName, ($values -join [System.IO.Path]::PathSeparator), $target)
+		}
 	}
 }
 
-#$now = [DateTime]::Now
+$currentNow = _getts
 
 $ackIsWindows = ($PSEdition -ne 'Core' -or $IsWindows)
 #
 # fix up some paths:
 #
 if ($ackIsWindows) {
-	#$now = [DateTime]::Now
-	AddPathValue -pathVarName 'Path' -value $PSScriptRoot -prepend
+	$currentNow = _getts
+	Add-PathValue -pathVarName 'Path' -value $PSScriptRoot -prepend
 	$properModulesDir = "$env:LocalAppData\PowerShell\Modules"
 	$documentsModulesDI = Get-Item -Path (Join-Path (Split-Path -Path $PROFILE -Parent) 'Modules') -ErrorAction SilentlyContinue
 	# add $properModulesDir to PSModulePath:
 	if ((Test-Path -Path $properModulesDir -PathType Container) -and
 			# but only if the Modules folder in the Documents folder (sigh) isn't a junction/symlink pointing to it:
 			-not ($documentsModulesDI -and $documentsModulesDI.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint) -and $properModulesDir -in @($documentsModulesDI.Target))) {
-		AddPathValue -pathVarName 'PSModulePath' -value $properModulesDir -prepend
+		Add-PathValue -pathVarName 'PSModulePath' -value $properModulesDir -prepend
 	}
-	Remove-Variable -Name 'properModulesDir'
-	Remove-Variable -Name 'documentsModulesDI'
-	#Write-Host "tweaking Path #1 took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+	_showTime $currentNow 'tweaking Path #1'
 }
 $scriptsDir = (Join-Path -Path $HOME -ChildPath 'scripts')
 if (Test-Path -Path $scriptsDir -PathType Container) {
-	#$now = [DateTime]::Now
-	AddPathValue -pathVarName 'Path' -value $scriptsDir -prepend
-	AddPathValue -pathVarName 'PSModulePath' -value $scriptsDir -prepend
+	$currentNow = _getts
+	Add-PathValue -pathVarName 'Path' -value $scriptsDir -prepend
+	Add-PathValue -pathVarName 'PSModulePath' -value $scriptsDir -prepend
+	# don't remove this one at the end:
 	function _updateScriptsFldr { Push-Location -Path (Join-Path -Path $HOME -ChildPath 'scripts')<#can't use var#>; git pull; Pop-Location; }
-	New-Alias -Name 'scup' -Value '_updateScriptsFldr'
-	#Write-Host "tweaking Path #2 took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+	if (-not [bool](Get-Alias -Name 'scup' -ErrorAction Ignore)) {
+		New-Alias -Name 'scup' -Value '_updateScriptsFldr'
+	}
+	_showTime $currentNow 'tweaking Path #2'
 }
-Remove-Variable -Name 'scriptsDir'
 
 #
 # add oh-my-posh:
 #
 if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
-	#$now = [DateTime]::Now
+	$currentNow = _getts
 	$themePaths = @()
 	if (Test-Path -Path env:OneDrive) {
 		$themePaths += [System.IO.Path]::Combine($env:OneDrive, 'Documents', 'omp', 'ack.omp.{0}')	# Join-Path has different signature on desktop posh, so can't use that
@@ -99,19 +129,18 @@ if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 	foreach ($maybeAckTheme in @($themePaths | ForEach-Object { $t = $_; @('toml', 'jsonc', 'json') | ForEach-Object { $t -f $_ } })) {
 		Write-Verbose "$($MyInvocation.InvocationName): checking for oh-my-posh profile `"$maybeAckTheme`""
 		if (Test-Path -Path $maybeAckTheme -PathType Leaf) {
-			#Write-Host "    finding OhMyPosh profile took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+			_showTime $currentNow '    finding OhMyPosh profile'
 			Write-Verbose "$($MyInvocation.InvocationName): using oh-my-posh profile `"$maybeAckTheme`""
 			oh-my-posh init pwsh --config $maybeAckTheme | Invoke-Expression
-			#Write-Host "    initing OhMyPosh took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+			_showTime $currentNow '    initing OhMyPosh'
 			break
 		}
 	}
-	Remove-Variable -Name 'maybeAckTheme'
-	Remove-Variable -Name 'themePaths'
-	Remove-Variable -Name 't'
-	if ($ackIsWindows) { Set-Alias -Name 'omp' -Value 'oh-my-posh.exe'}
-	else { Set-Alias -Name 'omp' -Value 'oh-my-posh' }
-	#Write-Host "adding OhMyPosh stuff total took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+	if (-not [bool](Get-Alias -Name 'omp' -ErrorAction Ignore)) {
+		if ($ackIsWindows) { Set-Alias -Name 'omp' -Value 'oh-my-posh.exe' }
+		else { Set-Alias -Name 'omp' -Value 'oh-my-posh' }
+	}
+	_showTime $currentNow 'total time adding OhMyPosh stuff'
 }
 #
 # import some modules:
@@ -128,7 +157,7 @@ if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 # the icons and the colors are nice, but not that nice
 <#
 $moduleName = 'Terminal-Icons'
-#$now = [DateTime]::Now
+#$currentNow = _getts
 if ((Get-Module -Name $moduleName -ListAvailable)) {
 	#Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
 	#Import-Module -Name $moduleName
@@ -137,7 +166,6 @@ if ((Get-Module -Name $moduleName -ListAvailable)) {
 	#if (-not $theme.Color.Types.Files.ContainsKey('.epub')) { $theme.Color.Types.Files.Add('.epub', '9e7a41') }
 	#if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-fa-book') }
 	#if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9e7a41') }
-	#Remove-Variable -Name 'theme'
 
 	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`" with PowerShell.OnIdle"
 	# load in OnIdle: from https://github.com/devblackops/Terminal-Icons/issues/150
@@ -152,62 +180,114 @@ if ((Get-Module -Name $moduleName -ListAvailable)) {
 		if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9E7A41') }
 	} | Out-Null
 }
-#Write-Host "checking/adding Terminal-Icons module took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+_showTime $currentNow 'checking/adding Terminal-Icons module'
 #>
 
 $moduleName = 'AckWare.AckLib'
-#$now = [DateTime]::Now
+$currentNow = _getts
 if ((Get-Module -Name $moduleName -ListAvailable)) {
 	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
 	Import-Module -Name $moduleName
 }
-#Write-Host "checking/adding AckWare.AckLib module took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+_showTime $currentNow 'checking/adding AckWare.AckLib module'
 
-$moduleName = 'gsudoModule'
-#$now = [DateTime]::Now
-if ((Get-Module -Name $moduleName -ListAvailable)) {
-	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
-	Import-Module -Name $moduleName
-#	Set-Alias -Name 'sudo' -Value 'Invoke-Gsudo'	# their usage is different but really should use explicit calls anyway
-#} else {
-#	Set-Alias -Name 'sudo' -Value 'Invoke-Elevated'
+#$moduleName = 'gsudoModule'
+#$currentNow = _getts
+#if ((Get-Module -Name $moduleName -ListAvailable)) {
+#	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
+#	Import-Module -Name $moduleName
+##	Set-Alias -Name 'sudo' -Value 'Invoke-Gsudo'	# their usage is different but really should use explicit calls anyway
+##} else {
+##	Set-Alias -Name 'sudo' -Value 'Invoke-Elevated'
+#}
+#_showTime $currentNow 'checking/adding gsudo module'
+
+$currentNow = _getts
+if ([bool](Get-Command -Name 'sudo' -CommandType Application -ErrorAction Ignore)) {
+	function Invoke-Sudo {
+		[CmdletBinding(SupportsShouldProcess=$false)]
+		[OutputType([void])]
+		param(
+			[Parameter(Mandatory = $true, ParameterSetName = 'ByCommand', Position = 0, ValueFromPipeline)] [string] $command,
+			[Parameter(Mandatory = $false, ParameterSetName = 'ByCommand', Position = 1, ValueFromRemainingArguments)] [string[]] $commandArgs,
+			[Parameter(Mandatory = $true, ParameterSetName = 'ByScriptBlock', Position = 0, ValueFromPipeline)] [scriptblock] $commandScriptBlock
+		)
+		begin {
+			# if we just specify a simple name, like 'sudo' (which we'd need on linux), we get an infinite loop, so get full path:
+			$sudoCmd = (Get-Command -Name 'sudo' -CommandType Application | Select-Object -First 1).Path
+			$currPoshCmd = (Get-Process -id $PID).MainModule.FileName
+			Write-Verbose "$($MyInvocation.InvocationName): `$sudoCmd = |$sudoCmd|, `$currPoshCmd = |$currPoshCmd|"
+		}
+		process {}
+		end {
+			if ($commandScriptBlock) {
+				Write-Verbose "$($MyInvocation.InvocationName): single arg is a scriptblock; running that"
+				$encCmd = Get-EncodedCommand -c $commandScriptBlock.ToString()
+				& $sudoCmd $currPoshCmd -Nologo -EncodedCommand $encCmd
+			} else {
+				$cmdToRun = (Get-Command -Name $command -CommandType Application,Cmdlet,ExternalScript,Function,Alias -ErrorAction Ignore | Select-Object -First 1)
+				Write-Verbose "$($MyInvocation.InvocationName): command to run type = |$($cmdToRun.CommandType)|, path = |$($cmdToRun.Path)|"
+				if (-not $cmdToRun) {
+					throw "Could not find command `"$command`""
+				} elseif ($cmdToRun.CommandType -eq 'Application') {
+					Write-Verbose "$($MyInvocation.InvocationName): running application $command"
+					if ($commandArgs -ne $null -and $commandArgs.Count -gt 0) {
+						& $sudoCmd $command @commandArgs
+					} else {
+						& $sudoCmd $command
+					}
+				} else {	# it's a Cmdlet or ExternalScript or Function or Alias
+					Write-Verbose "$($MyInvocation.InvocationName): running cmdlet/script/function/alias $command"
+					$theCmd = $command
+					if ($cmdToRun.CommandType -eq 'Alias') { $theCmd = $cmdToRun.ResolvedCommandName }
+					# TODO?: should we make sure command and commandArgs are quoted? maybe only if they actually need it? will that break anything?
+					if ($commandArgs -ne $null -and $commandArgs.Count -gt 0) {
+						$encCmd = Get-EncodedCommand -c ($theCmd + ' ' + ($commandArgs -join ' '))
+					} else {
+						$encCmd = Get-EncodedCommand -c $theCmd
+					}
+					& $sudoCmd $currPoshCmd -Nologo -EncodedCommand $encCmd
+				}
+			}
+		}
+	}
+	if (-not [bool](Get-Alias -Name 'sudo' -ErrorAction Ignore)) {
+		Set-Alias -Name 'sudo' -Value 'Invoke-Sudo'
+	}
 }
-#Write-Host "checking/adding gsudo module took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+_showTime $currentNow 'checking/adding Invoke-Sudo function and alias'
 
 if ($ackIsWindows) {
-	#$now = [DateTime]::Now
+	$currentNow = _getts
 	$moduleName = 'AckWingetHelpers'
 	if ((Get-Module -Name $moduleName -ListAvailable)) {
 		Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
 		Import-Module -Name $moduleName
 	}
-	#Write-Host "checking/adding AckWingetHelpers module took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+	_showTime $currentNow 'checking/adding AckWingetHelpers module'
 }
 
-Remove-Variable -Name 'moduleName'
 #
 # misc:
 #
-#$now = [DateTime]::Now
+$currentNow = _getts
 $psReadLineProfile = Get-Command -Name 'PSReadLineProfile.ps1' -ErrorAction SilentlyContinue
 if ($psReadLineProfile) {
 	Write-Verbose "$($MyInvocation.InvocationName): adding PSReadlineProfile `"$($psReadLineProfile.Path)`""
 	. $psReadLineProfile.Path
 }
-Remove-Variable -Name 'psReadLineProfile'
-#Write-Host "checking/adding PSReadLine profile took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+_showTime $currentNow 'checking/adding PSReadLine profile'
 
 # support having a profile that's system specific, not shared and not in git:
-#$now = [DateTime]::Now
+$currentNow = _getts
 $SystemProfile = Join-Path -Path $HOME -ChildPath '.system_profile.ps1'
 if (Test-Path -Path $SystemProfile -PathType Leaf) {
 	Write-Verbose "$($MyInvocation.InvocationName): importing local profile `"$SystemProfile`""
 	. $SystemProfile
 }
-Remove-Variable -Name 'SystemProfile'
-#Write-Host "checking/adding system_profile.ps1 took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+_showTime $currentNow 'checking/adding system_profile.ps1'
 
-#$now = [DateTime]::Now
+$currentNow = _getts
 if ((Get-Variable -Name 'PSStyle' -ErrorAction Ignore)) {
 	Write-Verbose "$($MyInvocation.InvocationName): adjusting PSStyle to my liking"
 	# at least with posh 7, they made Debug, Verbose, Warning all the same color; change them:
@@ -220,20 +300,10 @@ if ((Get-Variable -Name 'PSStyle' -ErrorAction Ignore)) {
 		}
 	}
 }
-#Write-Host "checking/tweaking PSStyle took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
-
-function Test-IsElevated {
-	[OutputType([bool])]
-	param()
-	if (($PSEdition -ne 'Core' -or $IsWindows)) {	# can't use ackIsWindows here
-		return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')
-	} else {
-		return ((id -u) -eq 0)
-	}
-}
+_showTime $currentNow 'checking/tweaking PSStyle'
 
 if ($ackIsWindows) {
-	#$now = [DateTime]::Now
+	$currentNow = _getts
 	$winBuild = [System.Environment]::OSVersion.Version.Build
 	if ($winBuild -ge 10240 <# Win10 #> -and ($PSEdition -ne 'Core' -or $winBuild -ge 22000 <# Win11 (cmdlets are broken on Win10 in Core) #>)) {
 		function Remove-AppxCompletely {
@@ -275,13 +345,12 @@ if ($ackIsWindows) {
 				Invoke-CimMethod -MethodName UpdateScanMethod |
 				Out-Null
 		}
-		New-Alias -Name 'forceStoreAppsUpdate' -Value 'Update-StoreAppsAvailableUpgrades'	# old name
+		if (-not [bool](Get-Alias -Name 'forceStoreAppsUpdate' -ErrorAction Ignore)) {
+			New-Alias -Name 'forceStoreAppsUpdate' -Value 'Update-StoreAppsAvailableUpgrades'	# old name
+		}
 	}
-	Remove-Variable -Name 'winBuild'
-	#Write-Host "checking/adding AppX functions took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+	_showTime $currentNow 'checking/adding AppX functions'
 }
-
-Remove-Variable -Name 'ackIsWindows'
 
 function Get-EncodedCommand { param([Parameter(Mandatory=$true)][string]$c) return ([System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($c))) }
 function Get-DecodedCommand { param([Parameter(Mandatory=$true)][string]$c) return ([System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($c))) }
@@ -290,7 +359,7 @@ function Get-DecodedCommand { param([Parameter(Mandatory=$true)][string]$c) retu
 # some tab completions:
 #
 # dotnet CLI (https://learn.microsoft.com/en-us/dotnet/core/tools/enable-tab-autocomplete#powershell)
-#$now = [DateTime]::Now
+$currentNow = _getts
 if ((Get-Command -Name 'dotnet' -CommandType Application -ErrorAction Ignore)) {
 	Register-ArgumentCompleter -Native -CommandName 'dotnet' -ScriptBlock {
 		param($wordToComplete, $commandAst, $cursorPosition)
@@ -300,34 +369,38 @@ if ((Get-Command -Name 'dotnet' -CommandType Application -ErrorAction Ignore)) {
 			}
 	}
 }
-#Write-Host "checking/adding dotnet autocompletes took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+_showTime $currentNow 'checking/adding dotnet autocompletes'
 
-# winget (https://github.com/microsoft/winget-cli/blob/master/doc/Completion.md#powershell)
-#$now = [DateTime]::Now
-if ((Get-Command -Name 'winget' -CommandType Application -ErrorAction Ignore)) {
-	Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
-		param($wordToComplete, $commandAst, $cursorPosition)
-		# don't think we need to tweak encodings for this:
-		#[Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
-		$local:word = $wordToComplete.Replace('"', '""')
-		$local:ast = $commandAst.ToString().Replace('"', '""')
-		winget complete --word="$local:word" --commandline "$local:ast" --position $cursorPosition |
-			ForEach-Object {
-				[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
-			}
+if ($ackIsWindows) {
+	# winget (https://github.com/microsoft/winget-cli/blob/master/doc/Completion.md#powershell)
+	$currentNow = _getts
+	if ((Get-Command -Name 'winget' -CommandType Application -ErrorAction Ignore)) {
+		Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
+			param($wordToComplete, $commandAst, $cursorPosition)
+			# don't think we need to tweak encodings for this:
+			#[Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
+			$local:word = $wordToComplete.Replace('"', '""')
+			$local:ast = $commandAst.ToString().Replace('"', '""')
+			winget complete --word="$local:word" --commandline "$local:ast" --position $cursorPosition |
+				ForEach-Object {
+					[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+				}
+		}
 	}
+	_showTime $currentNow 'checking/adding winget autocompletes'
 }
-#Write-Host "checking/adding winget autocompletes took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
 
-#$now = [DateTime]::Now
+$currentNow = _getts
 if ((Get-Command -Name 'dsc.exe' -CommandType Application -ErrorAction Ignore)) {
 	dsc.exe completer powershell | Out-String | Invoke-Expression
 }
-#Write-Host "checking/adding dsc autocompletes took $(([DateTime]::Now - $now).TotalMilliseconds) ms"
+_showTime $currentNow 'checking/adding dsc autocompletes'
 
 # some more aliases:
-New-Alias -Name 'll' -Value 'Get-ChildItem'
+if (-not [bool](Get-Alias -Name 'll' -ErrorAction Ignore)) {
+	New-Alias -Name 'll' -Value 'Get-ChildItem'
+}
 
-#Write-Host "loading Profile took total $(([DateTime]::Now - $startNow).TotalMilliseconds) ms"
-#Remove-Variable -Name 'startNow'
-#Remove-Variable -Name 'now'
+_showTime $startNow 'total time loading Profile'
+Remove-Item -Path $localFuncs -ErrorAction Ignore
+Remove-Variable -Name $localVars -ErrorAction Ignore
