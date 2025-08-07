@@ -252,7 +252,7 @@ class MusicFolderHandler:
 						TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzAlbumReleaseCountry, TagNames.MusicBrainzWorkId,
 						TagNames.MusicBrainzTrackId, TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzReleaseGroupId,
 						TagNames.MusicBrainzDiscId, TagNames.MusicBrainzTrackArtistId, TagNames.MusicBrainzAlbumId,
-						TagNames.MusicBrainzAlbumArtistId, TagNames.DiscSubTitle, ]
+						TagNames.MusicBrainzAlbumArtistId, TagNames.DiscSubTitle, TagNames.Lyrics, ]
 	_approvedTags = ApprovedTagsList()
 	_keepOnCleanAll = [ TagNames.AlbumTitle, TagNames.TrackTitle, TagNames.AlbumArtist, TagNames.TrackArtist, TagNames.TrackNumber,
 						TagNames.ReplayGainTrackGain, TagNames.ReplayGainTrackPeak, TagNames.ReplayGainAlbumGain, TagNames.ReplayGainAlbumPeak,
@@ -778,9 +778,10 @@ class MusicFolderHandler:
 	def _cleanUpTagName(tagName: str, target: MusicFileProperties) -> None:
 		# we're handling old tag names mapped to new names in the mapping file and in how we're saving the tags,
 		# so all we have to do is get and re-save the property, if it's there:
-		LogHelper.Verbose('>>> resaving tag name "{0}" to make sure name is correct', tagName)
+		LogHelper.Verbose('??? checking for tag name "{0}" to make sure name is correct', tagName)
 		val = target.getTagValue(tagName)
 		if not val: return
+		LogHelper.Verbose('>>> resaving tag name "{0}" to make sure name is correct', tagName)
 		target.setTagValue(tagName, val)
 
 class sqliteConnHelper:

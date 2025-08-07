@@ -169,7 +169,7 @@ class MusicFileProperties:
 		if not self._mapper.isSpecialHandlingTag(tagName):
 			# if property is empty/None, delete the property:
 			if MusicFileProperties._isEmptyValue(value):
-				LogHelper.Verbose('value for tag "{0}" is None or empty: removing native tag(s) "{1}", if any', tagName, nativeTagNames)
+				LogHelper.Verbose('value for tag "{0}" is None or empty: if present, removing native tag(s) "{1}"', tagName, nativeTagNames)
 				for t in nativeTagNames:
 					if t in self._mutagen.tags:
 						LogHelper.Verbose('    removing native tag "{0}"', t)
