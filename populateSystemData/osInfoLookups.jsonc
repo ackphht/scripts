@@ -12,9 +12,11 @@
 					and append to name after a period
 			*/
 			"client": [
-				{ "build": 26200, "name": "11.canary" /*'11.canary.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
-				{ "build": 26120, "name": "11.dev" /*'11.dev.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
-				// remove next one once beta advances to higher build number:
+				{ "build": 27000, "name": "11.canary" /*'11.canary.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				{ "build": 26220, "name": "11.dev" /*'11.dev.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				// ??? remove next one once beta advances to higher build number ???:
+				{ "build": 26200, "name": "11" /*'11.25H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				{ "build": 26120, "name": "11.beta" /*'11.beta.1234'*/, "addRegRelease": false, "addBuildNumber": true, "addBuildLab": false, "addUbr": true },
 				{ "build": 26100, "name": "11" /*'11.24H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
 				{ "build": 22635, "name": "11.beta" /*'11.beta.1234'*/, "addRegRelease": false, "addBuildNumber": true, "addBuildLab": false, "addUbr": true },
 				{ "build": 22621, "name": "11" /*'11.22H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
@@ -64,6 +66,7 @@
 		},
 		"codenames": [
 			// same codenames apply to server ?? or do we need to have separate list ??
+			{ "build": 26200, "codename": "TBA", "major": 0, "minor": 0 },// Win 11 24H2
 			{ "build": 26100, "codename": "Hudson Valley", "major": 0, "minor": 0 },// Win 11 24H2
 			{ "build": 22631, "codename": "Sun Valley 3", "major": 0, "minor": 0 },	// Win 11 23H2
 			{ "build": 22621, "codename": "Sun Valley 2", "major": 0, "minor": 0 },	// Win 11 22H2
@@ -288,6 +291,7 @@
 		"names": {},
 		"versions": [],
 		"codenames": [
+			{ "major": 26, "minor": -1, "codename": "Tahoe", "build": 0 },
 			{ "major": 15, "minor": -1, "codename": "Sequoia", "build": 0 },
 			{ "major": 14, "minor": -1, "codename": "Sonoma", "build": 0 },
 			{ "major": 13, "minor": -1, "codename": "Ventura", "build": 0 },
