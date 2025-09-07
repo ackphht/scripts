@@ -363,6 +363,7 @@ function DisableUnwantedServices {
 		@{ Name = 'Intel(R) PROSet/Wireless Event Log'; Start = ''; }
 		@{ Name = 'Intel(R) PROSet/Wireless Registry Service'; Start = ''; }
 		@{ Name = 'Intel(R) PROSet/Wireless Zero Configuration Service'; Start = ''; }
+		@{ Name = 'Intel® PROSet/Wireless Service'; Start = ''; }
 		@{ Name = 'Intel(R) Rapid Storage Technology'; Start = ''; }
 		@{ Name = 'Intel(R) Storage Middleware Service'; Start = ''; }
 		@{ Name = 'Intel® SGX AESM'; Start = 'Manual'; }
@@ -371,6 +372,7 @@ function DisableUnwantedServices {
 		@{ Name = 'Intel(R) HD Graphics Control Panel Service*'; Start = ''; }
 		@{ Name = 'Intel(R) Graphics Command Center Service*'; Start = ''; }
 		@{ Name = 'Intel(R) System Usage Report Service*'; Start = ''; }
+		@{ Name = 'Intel® Graphics Software'; Start = ''; }
 		@{ Name = 'NvTelemetryContainer'; Start = ''; }				# "Container service for NVIDIA Telemetry",
 		@{ Name = 'Killer Network Service'; Start = ''; }
 		@{ Name = 'Killer Analytics Service'; Start = ''; }
@@ -739,6 +741,9 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Azure Storage Explorer\Microsoft Azure Storage Explorer.lnk', $development, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Money Plus\Money Plus.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Mouse and Keyboard Center\Microsoft Mouse and Keyboard Center.lnk', $systemApps, $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('mitmproxy\mitmdump.lnk', $development)
+		[StartMenuCleanupItem]::FromCommonPrograms('mitmproxy\mitmproxy.lnk', $development)
+		[StartMenuCleanupItem]::FromCommonPrograms('mitmproxy\mitmweb.lnk', $development, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('MKVToolNix\MKVToolNix GUI.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('MKVToolNix\MKVToolNix.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Mp3tag\Mp3tag.lnk', $applications, $true)
@@ -767,6 +772,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('VeraCrypt\VeraCrypt.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('WinRAR\WinRAR.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('WinMerge\WinMerge.lnk', $applications, $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('XnView MP\XnView MP.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Zoom\Zoom.lnk', $applications, $true)
 		# first move VS links to their own folders; then below we'll move those folders to Development:
 		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio Installer.lnk', $development)
