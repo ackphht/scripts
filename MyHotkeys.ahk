@@ -127,11 +127,12 @@ GroupAdd "Explorer", gExplorerClassPostVista
 +#d::OpenFolder(A_MyDocuments)
 ^+#d::OpenFolder(EnvGet("UserProfile") . "\Downloads")
 ^+#f::OpenFolder(EnvGet("UserProfile") . "\Development\foss")
++#g::OpenFolder(EnvGet("GoogleDrive"))
 +#h::OpenFolder(EnvGet("UserProfile"))
 ^+#h::OpenFolder(StrReplace(EnvGet("UserProfile"), "C:\", "D:\"))
 +#l::OpenFolder(EnvGet("LocalAppData"))
 +#m::OpenFolder(EnvGet("UserProfile") . "\Music\MyMusic")
-+#o::OpenFolder(EnvGet("UserProfile") . "\OneDrive")
++#o::OpenFolder(EnvGet("OneDrive"))
 +#p::OpenFolder(EnvGet("UserProfile") . "\Pictures")
 ^+#p::OpenFolder(gProgramFiles)								; open program files
 !+#p::OpenFolder(gProgramFiles32)							; open program files (x86)
