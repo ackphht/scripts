@@ -161,6 +161,8 @@ function ConfigureWindowsAndExplorer {
 	$hkcuCtrlPnlIntl = "$hkcuCtrlPnl\International"
 	$hklmPoliciesMicrosoft = "$hklmSoftware\Policies\Microsoft"
 
+	# disable Windows Script Host
+	SetRegistryEntry -p "$hkcuSoftwareMicrosoft\Windows Script Host\Settings" -n 'Enabled' -v 0 -t 'DWord'
 	# disable prefixing 'Shortcut to' when creating shortcuts
 	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'link' -v ([byte[]](0x00,0x00,0x00,0x00)) -t 'Binary'
 	# DateTime preferences:
