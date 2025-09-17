@@ -26,6 +26,7 @@ $script:regClassesRootPath = 'HKLM:\Software\Classes'
 $script:regSysClassesRootPath = 'HKLM:\Software\Classes'
 $script:regUserClassesRootPath = 'HKCU:\Software\Classes'
 $script:regUserFileExtsPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts'
+$script:regServicesPath = 'HKLM:\SYSTEM\CurrentControlSet\Services'
 $script:regDefaultPropName = '(Default)'
 $script:regDefaultIconName = 'DefaultIcon'
 $script:msgIndent = '   '
@@ -372,7 +373,7 @@ function DisableUnwantedServices {
 		@{ Name = 'Intel(R) HD Graphics Control Panel Service*'; Start = ''; }
 		@{ Name = 'Intel(R) Graphics Command Center Service*'; Start = ''; }
 		@{ Name = 'Intel(R) System Usage Report Service*'; Start = ''; }
-		@{ Name = 'Intel® Graphics Software'; Start = ''; }
+		@{ Name = 'IntelGraphicsSoftwareService'; Start = ''; }		# "Intel® Graphics Software"
 		@{ Name = 'NvTelemetryContainer'; Start = ''; }				# "Container service for NVIDIA Telemetry",
 		@{ Name = 'Killer Network Service'; Start = ''; }
 		@{ Name = 'Killer Analytics Service'; Start = ''; }
@@ -422,8 +423,32 @@ function DisableService {
 					# can stop service and disable it at same time with Set-Service, but doesn't work right for some services, so we'll do it in two steps
 					WriteStatusMessage "${script:msgIndent}stopping service |$($_.DisplayName)|"
 					Stop-Service -Name $_.Name -WhatIf:$WhatIfPreference
-					WriteStatusMessage "${script:msgIndent}setting service |$($_.DisplayName)| to '$desiredStartMode'"
-					Set-Service -InputObject $_ -StartupType $desiredStartMode -WhatIf:$WhatIfPreference
+					WriteStatusMessage "${script:msgIndent}setting service |$($_.DisplayName)| to '$desiredStartMode)'"
+					try {
+						Set-Service -InputObject $_ -StartupType $desiredStartMode -ErrorAction Stop <# to get try/catch to work...#> -WhatIf:$WhatIfPreference
+					} catch <#[Microsoft.PowerShell.Commands.ServiceCommandException]#> {
+						WriteVerboseMessage 'Set-Service threw an exception:'
+						if ($_.Exception.InnerException -and `
+							$_.Exception.InnerException -is [System.ComponentModel.Win32Exception] -and `
+							$_.Exception.InnerException.NativeErrorCode -eq 5 <# Access Denied #>)
+						{
+							# some stupid services give "Access is denied" error even when running as admin, but we can maybe still
+							# poke the registry: we tried to do it the 'right' way, but oh well
+							WriteVerboseMessage 'Set-Service got AccessDenied, checking if we can poke registry value directly'
+							$regPath = Join-Path $script:regServicesPath $service.Name
+							if (Test-Path -Path $regPath) {
+								$regStartMode = [int][System.ServiceProcess.ServiceStartMode]$desiredStartMode
+								WriteVerboseMessage "setting registry entry '${regPath}\@Start' to '$regStartMode'"
+								Set-RegistryEntry -registryPath $regPath -valueName 'Start' -valueData $regStartMode -valueType 'DWord'
+							} else {
+								WriteWarningishMessage "Unable to change service start type to '$desiredStartMode' for service '$service.Name':`n    Set-Service got 'AccessDenied', and could not find registry entry for |$regPath|`n    maybe try using the service's actual name instead of display name?"
+								throw
+							}
+						} else {
+							WriteVerboseMessage 'Set-Service threw an exception, but don''t know how to handle it'
+							throw $_
+						}
+					}
 				} else {
 					WriteStatusMessageLow "${script:msgIndent}service |$($_.DisplayName)| already disabled; skipping..."
 				}
