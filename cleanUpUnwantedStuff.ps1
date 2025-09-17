@@ -415,10 +415,6 @@ function DisableService {
 		WriteSubHeaderMessage "found $($services.Count) services to disable for param |$($service.Name)|"
 		$services |
 			ForEach-Object {
-				## why the heck am i using WMI for this??
-				#$wmiService = Get-WmiObject -Query "SELECT * FROM Win32_Service WHERE Name='$($_.ServiceName)'";
-				#if ($wmiService -eq $null) { Write-Warning "${script:msgIndent}could not find WMI object for service |$_.DisplayName|; will try to disable anyway"; }
-				#if (($wmiService -eq $null -or $wmiService.StartMode -ne $desiredStartMode) -or $_.Status -ne "Stopped") {
 				if ($_.StartType -ne $desiredStartMode -or $_.Status -ne 'Stopped') {
 					# can stop service and disable it at same time with Set-Service, but doesn't work right for some services, so we'll do it in two steps
 					WriteStatusMessage "${script:msgIndent}stopping service |$($_.DisplayName)|"
