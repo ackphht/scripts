@@ -422,10 +422,10 @@ function DisableService {
 				if ($_.StartType -ne $desiredStartMode -or $_.Status -ne 'Stopped') {
 					# can stop service and disable it at same time with Set-Service, but doesn't work right for some services, so we'll do it in two steps
 					WriteStatusMessage "${script:msgIndent}stopping service |$($_.DisplayName)|"
-					Stop-Service -Name $_.Name -WhatIf:$WhatIfPreference
+					Stop-Service -Name $_.Name
 					WriteStatusMessage "${script:msgIndent}setting service |$($_.DisplayName)| to '$desiredStartMode)'"
 					try {
-						Set-Service -InputObject $_ -StartupType $desiredStartMode -ErrorAction Stop <# to get try/catch to work...#> -WhatIf:$WhatIfPreference
+						Set-Service -InputObject $_ -StartupType $desiredStartMode -ErrorAction Stop <# to get try/catch to work...#>
 					} catch <#[Microsoft.PowerShell.Commands.ServiceCommandException]#> {
 						WriteVerboseMessage 'Set-Service threw an exception:'
 						if ($_.Exception.InnerException -and `
