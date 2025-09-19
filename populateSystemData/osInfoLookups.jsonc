@@ -292,6 +292,8 @@
 		"versions": [],
 		"codenames": [
 			{ "major": 26, "minor": -1, "codename": "Tahoe", "build": 0 },
+			// ??? apps built targeting v15 and lower will see '16', while apps targeting newer will see '26' ???:
+			{ "major": 16, "minor": -1, "codename": "Tahoe", "build": 0 },
 			{ "major": 15, "minor": -1, "codename": "Sequoia", "build": 0 },
 			{ "major": 14, "minor": -1, "codename": "Sonoma", "build": 0 },
 			{ "major": 13, "minor": -1, "codename": "Ventura", "build": 0 },
