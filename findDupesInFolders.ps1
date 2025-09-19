@@ -30,7 +30,7 @@ WriteVerboseMessage -message 'total input folders count {0}' -formatParams $reso
 $hashes = [Dictionary[string,FileInfo[]]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($fldr in $resolvedFldrs) {
 	WriteVerboseMessage -message 'reading files in folder |{0}|' -formatParams $fldr.FullName
-	Get-ChildItem $fldr -Include '*.pdf','*.chm','*.djvu' -File -Recurse |
+	Get-ChildItem -LiteralPath $fldr -File -Recurse |
 		ForEach-Object {
 			$fileInfo = $_
 			$h = Get-FileHash -Algorithm $hashType -LiteralPath $fileInfo.FullName
