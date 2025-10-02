@@ -12,3 +12,4 @@ class TagType(StrEnum):
 	APEv2 = "APEv2"
 	ID3v24 = "ID3v24"
 	ID3v23 = "ID3v23"
+	ID3v22 = "ID3v22"

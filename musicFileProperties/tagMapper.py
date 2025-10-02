@@ -13,6 +13,7 @@ class _constants:
 	AsfTagType = "asf"
 	Id3v24TagType = "id3v24"
 	Id3v23TagType = "id3v23"
+	Id3v22TagType = "id3v22"
 	ApeV2TagType = "apev2"
 
 	Mp4CustomPropertyPrefix = "----:com.apple.iTunes:"
@@ -119,9 +120,9 @@ class _tagMapper:	# abstract base class
 			ver = mgTags.version
 			if ver >= (2, 4, 0):
 				return TagType.ID3v24
-#			if ver >= (2, 3, 0):
-#				return TagType.ID3v23
-			return TagType.ID3v23
+			if ver >= (2, 3, 0):
+				return TagType.ID3v23
+			return TagType.ID3v22
 		raise TypeError(f'unrecognized mutagen tag type: "{mgTags.__class__.__module__}.{mgTags.__class__.__name__}"') #LookupError #NameError #TypeError
 
 	@staticmethod
@@ -140,7 +141,7 @@ class _tagMapper:	# abstract base class
 			return _apeV2Mapper()
 		if name == TagType.ID3v24:
 			return _id3v24Mapper()
-		if name == TagType.ID3v23:
+		if name == TagType.ID3v23 or name == TagType.ID3v22:	# mutagen maps ID3v22 tags to ID3v23, so just use that mapper
 			return _id3v23Mapper()
 		if name == TagType.NoTags:	# shouldn't get here (??) but just in case
 			raise TypeError(f'unrecognized mutagen tag type: "{mgFile.tags.__class__.__module__}.{mgFile.tags.__class__.__name__}"') #LookupError #NameError #TypeError
