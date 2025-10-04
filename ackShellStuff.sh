@@ -117,6 +117,7 @@ elif hasCmd dnf; then
 	alias aptx="${sudoCmd}dnf remove"	# these both do the same thing
 	alias aptxx="${sudoCmd}dnf remove"	# but to keep the same aliases available...
 	alias aptl='dnf list --installed'
+	alias aptuc="aptul | wc -l"
 elif hasCmd zypper; then
 	alias aptr="${sudoCmd}zypper refresh" # --force'	# if output is piped into, e.g. grep, it displays a warning about not having a 'stable CLI interface', 'use with caution'; ???
 	alias aptul="${sudoCmd}zypper list-updates"		# no idea why this requires sudo now...
@@ -130,8 +131,9 @@ elif hasCmd zypper; then
 	alias aptx="${sudoCmd}zypper remove --clean-deps"
 	alias aptxx="${sudoCmd}zypper remove --clean-deps"
 	alias aptl='zypper search --installed-only'
+	alias aptuc="aptul | wc -l"
 	alias zp='zypper'
-elif hasCmd pacman; then
+elif hasCmd pacman; then		# arch-based
 	alias aptr="${sudoCmd}pacman --sync --refresh" #-Syy"	# --sync --refresh x 2 to force updae
 	alias aptul='pacman --query --upgrades'
 	alias aptu="${sudoCmd}pacman --sync --sysupgrade --noconfirm"
@@ -142,9 +144,10 @@ elif hasCmd pacman; then
 	alias aptx="${sudoCmd}pacman --remove --recursive"
 	alias aptxx="${sudoCmd}pacman --remove --recursive --nosave"
 	alias aptl='pacman --query'
+	alias aptuc="aptul | wc -l"
 	# just to store this somewhere: to list all explicitly installed packages that aren't required by something else:
 	#	pacman --query --explicit --unrequired (or pacman -Qet if wanna be lazy)
-elif hasCmd apk; then
+elif hasCmd apk; then			# alpine
 	alias aptr="${sudoCmd}apk update"
 	alias aptul='apk list --upgradable'
 	alias aptu="${sudoCmd}apk upgrade --available"
@@ -155,7 +158,7 @@ elif hasCmd apk; then
 	alias aptx="${sudoCmd}apk del"
 	alias aptxx="${sudoCmd}apk del"
 	alias aptl='apk list --installed'
-elif hasCmd eopkg; then
+elif hasCmd eopkg; then			# solaris
 	alias aptr="${sudoCmd}eopkg update-repo"
 	alias aptul='eopkg list-upgrades --install-info'
 	alias aptu="${sudoCmd}eopkg upgrade --yes-all"
@@ -178,7 +181,7 @@ elif hasCmd brew; then
 	alias aptx='brew uninstall'
 	alias aptxx='brew uninstall'
 	alias aptl='brew list'
-elif hasCmd pkg; then
+elif hasCmd pkg; then			# FreeBSD
 	alias aptr="${sudoCmd}pkg update --force"
 	alias aptul='pkg upgrade --dry-run'
 	alias aptu="${sudoCmd}pkg upgrade --yes"
