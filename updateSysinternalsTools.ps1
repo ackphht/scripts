@@ -16,7 +16,9 @@ Set-StrictMode -Version Latest
 
 function WriteWorkingMessage { param([string] $msg) Write-Host $msg -ForegroundColor DarkYellow; }
 
+# https://learn.microsoft.com/en-us/sysinternals/downloads/
 $downloadUrl = 'https://download.sysinternals.com/files/SysinternalsSuite.zip'
+#$downloadUrlArm64 = 'https://download.sysinternals.com/files/SysinternalsSuite-ARM64.zip'
 $targetFolder = Convert-Path -Path '~/Apps/SysInternals' -ErrorAction Stop
 $tmpFolder = [Path]::GetTempPath()
 $tmpFile = Join-Path $tmpFolder ([Path]::GetRandomFileName() + '.zip')
