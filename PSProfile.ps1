@@ -356,6 +356,15 @@ function Get-EncodedCommand { param([Parameter(Mandatory=$true)][string]$c) retu
 function Get-DecodedCommand { param([Parameter(Mandatory=$true)][string]$c) return ([System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($c))) }
 function Get-EnumValues { param([Parameter(Mandatory=$true)][type]$enumType) [System.Enum]::GetValues($enumType) | ForEach-Object { [PSCustomObject]@{ Value = [int]$_; Name = $_.ToString(); } } }
 
+# ackfetch.ps1
+if ((Test-Path -Path ~/scripts/ackfetch.ps1 -PathType Leaf) -and (-not [bool](Get-Alias -Name 'af' -ErrorAction Ignore))) {
+	Set-Alias -Name 'af' -Value ~/scripts/ackfetch.ps1
+}
+# fastfetch
+if ([bool](Get-Command -Name fastfetch -ErrorAction Ignore) -and (-not [bool](Get-Alias -Name 'ff' -ErrorAction Ignore))) {
+	Set-Alias -Name 'ff' -Value (Get-Command -Name fastfetch).Source
+}
+
 #
 # some tab completions:
 #
