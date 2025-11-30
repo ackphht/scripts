@@ -101,7 +101,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^#g::RunAndActivate(EnvGet("LocalAppData") . "\Programs\SourceGit\SourceGit.exe", , , "Avalonia-91408bfc-b8e9-4ad1-95f1-1a4134f2662c")
 ^#h::ToggleSuperHiddenFiles()
 ;^#m::LookForAndRunMsdnHelp()
-^#m::RunAndActivate(EnvGet("UserProfile") . "\Development\MyProjects\AckAptMaint\publish\win-x64\AckAptMaint.exe", , , , "AckApt DB Maintenance")
+^#m::RunAndActivate(EnvGet("UserProfile") . "\dev\MyProjects\AckAptMaint\publish\win-x64\AckAptMaint.exe", , , , "AckApt DB Maintenance")
 ^#n::RunAndActivate(FindNotepad3(), , , , , true)
 ^!#n::RunNotepadPlusPlus()
 ^#o::RunOneNote()
@@ -126,7 +126,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 +#c::Run("control.exe")				; open Control Panel
 +#d::OpenFolder(A_MyDocuments)
 ^+#d::OpenFolder(EnvGet("UserProfile") . "\Downloads")
-^+#f::OpenFolder(EnvGet("UserProfile") . "\Development\foss")
+;^+#f::OpenFolder(EnvGet("UserProfile") . "\dev\foss")
 +#g::OpenFolder(EnvGet("GoogleDrive"))
 +#h::OpenFolder(EnvGet("UserProfile"))
 ^+#h::OpenFolder(StrReplace(EnvGet("UserProfile"), "C:\", "D:\"))
@@ -137,7 +137,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^+#p::OpenFolder(gProgramFiles)								; open program files
 !+#p::OpenFolder(gProgramFiles32)							; open program files (x86)
 ^!#p::OpenFolder(EnvGet("LocalAppData") . "\Programs")				; open user program files
-+#q::OpenFolder(EnvGet("UserProfile") . "\Development\MyProjects")
++#q::OpenFolder(EnvGet("UserProfile") . "\dev\MyProjects")
 ^+#s:: {
 	OpenFolder(A_ProgramsCommon)
 	OpenFolder(A_Programs)
@@ -567,8 +567,8 @@ LookForAndOpenWarezFolder() {
 
 LookForAndOpenWorkProjectsFolder() {
 	userProfile := EnvGet("UserProfile")
-	if (InStr(FileExist(userProfile . "\Development"), "D")) {
-		OpenFolder(userProfile . "\Development")
+	if (InStr(FileExist(userProfile . "\dev"), "D")) {
+		OpenFolder(userProfile . "\dev")
 	} else if (InStr(FileExist("C:\Dev"), "D")) {
 		OpenFolder("C:\Dev")
 	}
