@@ -760,7 +760,9 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 7 (x86).lnk', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 7 (x64).lnk', $development, 'LINQPad 7.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 8 (x86).lnk', $development)
-		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 8 (x64).lnk', $development, 'LINQPad 8.lnk', $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 8 (x64).lnk', $development, 'LINQPad 8.lnk')
+		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 9 (x86).lnk', $development)
+		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 9 (x64).lnk', $development, 'LINQPad 9.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('McAfee\McAfee® AntiVirus Plus.lnk', $systemApps, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('MediaMonkey\MediaMonkey.lnk', $applications, 'MediaMonkey [skinned].lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Azure Storage Explorer\Microsoft Azure Storage Explorer.lnk', $development, $true)
@@ -782,6 +784,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('PostgreSQL 13\pgAdmin 4.lnk', $development, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('PowerShell\PowerShell 6*.lnk', $development, 'PowerShell 6.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('PowerToys (Preview)\PowerToys (Preview).lnk', $applications, 'PowerToys.lnk', $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('qBittorrent\qBittorrent.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Sigil\Sigil.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Steam\*.url', 'Games')		# steam uses a protocol handler ('steam://') to launch its games
 		[StartMenuCleanupItem]::FromCommonPrograms('Steam\*.lnk', 'Games', $true)
@@ -803,10 +806,12 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio Installer.lnk', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio 2019.lnk', 'Visual Studio 2019')
 		[StartMenuCleanupItem]::FromCommonPrograms('Blend for Visual Studio 2019.lnk', 'Visual Studio 2019')
-		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio 2022 Current.lnk', 'Visual Studio 2022', 'Visual Studio 2022.lnk')	# think this name and next one were bugs...
-		[StartMenuCleanupItem]::FromCommonPrograms('Blend for Visual Studio 2022 Current.lnk', 'Visual Studio 2022', 'Blend for Visual Studio 2022.lnk')
+		#[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio 2022 Current.lnk', 'Visual Studio 2022', 'Visual Studio 2022.lnk')	# think this name and next one were bugs...
+		#[StartMenuCleanupItem]::FromCommonPrograms('Blend for Visual Studio 2022 Current.lnk', 'Visual Studio 2022', 'Blend for Visual Studio 2022.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio 2022.lnk', 'Visual Studio 2022')
 		[StartMenuCleanupItem]::FromCommonPrograms('Blend for Visual Studio 2022.lnk', 'Visual Studio 2022')
+		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio.lnk', 'Visual Studio', 'Visual Studio.lnk')		# as of VS 2026, they're going to just keep updating the same one, so no year in name anymore (??)
+		[StartMenuCleanupItem]::FromCommonPrograms('Blend for Visual Studio.lnk', 'Visual Studio', 'Blend for Visual Studio.lnk')
 
 		[StartMenuCleanupItem]::FromCommonPrograms('Amazon Web Services', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Azure', $development)
@@ -819,13 +824,16 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 19', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 20', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 21', $development)
+		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 22', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('PostSharp*', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Python 2.7', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Python 3.*', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('TortoiseSVN', $development)
+		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio 2017', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio 2019', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio 2022', $development)
+		[StartMenuCleanupItem]::FromCommonPrograms('Visual Studio 2026', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Windows Kits', $development)
 
 		[StartMenuCleanupItem]::FromCommonPrograms('ForeScout SecureConnector', 'Work')
@@ -1182,6 +1190,8 @@ function CleanUpPathVars {
 		'*\Python\Launcher\'
 		'*\TortoiseGit\bin'
 		#'*\gsudo\*'
+		'*\PowerToys\DSCModules'
+		'*\PowerToys'
 	)
 	if ($VerbosePreference -eq 'Continue') {
 		WriteVerboseMessage 'removals:'
