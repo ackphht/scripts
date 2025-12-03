@@ -7,10 +7,17 @@ hasCmd() {
 		return 1
 	fi
 }
-
-
-platform=$(uname -s)
-
+################################
+platform=$(uname -s | tr '[:upper:]' '[:lower:]')
+################################
+if [[ -f /etc/os-release ]]; then
+	distro=$(awk -F'=' '/^ID=/ {print $2}' /etc/os-release | tr '[:upper:]' '[:lower:]' | tr -d '"')
+elif [[ -f /etc/lsb-release ]]; then	# probably a decent fallback ???
+	distro=$(awk -F'=' '/^DISTRIB_ID=/ {print $2}' /etc/lsb-release | tr '[:upper:]' '[:lower:]' | tr -d '"')
+else
+	distro="unknown"
+fi
+################################
 currShell=$(readlink -f /proc/$$/exe 2>/dev/null)
 if [[ -z "$currShell" ]]; then
 	case $platform in
@@ -27,51 +34,53 @@ if [[ "${currShell:0:1}" == "-" ]]; then currShell=${currShell:1}; fi	# sometime
 
 echo "detected platform: $platform"
 echo "detected current shell: $currShell"
-
+################################
 if hasCmd sudo; then
 	sudoCmd='sudo '
 else
 	sudoCmd=''		# ???????
 fi
-
-if [[ "$platform" != "Darwin" ]] && hasCmd apt; then	# macOs (at least version i have) has some java app called apt; don't know what it is
-	echo "using apt as package manager"
+################################
+if [[ "$platform" != "darwin" ]] && hasCmd apt; then	# macOs (at least version i have) has some java app called apt; don't know what it is
 	${sudoCmd}apt update
 	apti="${sudoCmd}apt install --yes"
+	pkgMgr="apt"
 elif hasCmd dnf; then
-	echo "using dnf as package manager"
 	if hasCmd dnf5; then
 		dnf5 advisory summary --refresh
 	else
 		dnf updateinfo --refresh
 	fi
 	apti="${sudoCmd}dnf install --assumeyes"
+	pkgMgr="dnf"
 elif hasCmd zypper; then
-	echo "using zypper as package manager"
 	${sudoCmd}zypper refresh
 	apti="${sudoCmd}zypper install --no-recommends --no-confirm"
+	pkgMgr="zypper"
 elif hasCmd pacman; then		# arch-based
-	echo "using pacman as package manager"
 	${sudoCmd}pacman --sync --refresh
 	apti="${sudoCmd}pacman --sync --noconfirm"
+	pkgMgr="pacman"
 elif hasCmd apk; then			# alpine
-	echo "using apk as package manager"
 	${sudoCmd}apk update
 	apti="${sudoCmd}apk add"
+	pkgMgr="apk"
 elif hasCmd eopkg; then			# solaris
-	echo "using eopkg as package manager"
 	${sudoCmd}eopkg update-repo
 	apti="${sudoCmd}eopkg install --yes-all"
+	pkgMgr="eopkg"
 elif hasCmd brew; then
-	echo "using brew as package manager"
 	brew update
 	apti='brew install'
+	pkgMgr="brew"
 elif hasCmd pkg; then			# FreeBSD
-	echo "using pkg as package manager"
 	${sudoCmd}pkg update --force
 	apti="${sudoCmd}pkg install --yes"
+	pkgMgr="pkg"
 fi
-
+echo "using '$pkgMgr' as package manager"
+################################
+mkdir --parents ~/.local/bin
 ################################
 # set up scripts folder:
 if [[ -z "$WSL_DISTRO_NAME" ]]; then
@@ -124,7 +133,17 @@ fi
 ################################
 # try adding some more utils we need/like:
 ${apti} lsb-release nano joe jc jq tree 7zip zstd fastfetch
-
+################################
+if (! hasCmd python); then		# some already have this; debian based have a package that creates a sumlink; for the rest, make our own
+	if [[ "$pkgMgr" = "apt" ]]: then
+		${apti} python-is-python3
+	else
+		ln -s $(which python3) ~/.local/bin/python
+	fi
+fi
+if (! hasCmd py); then		# what python guys say to use on Windows, and ... i kind of like it; easier
+	ln -s $(which python3) ~/.local/bin/py
+fi
 ################################
 # clean up:
-unset platform currShell sudoCmd apti
+#unset platform currShell sudoCmd apti
