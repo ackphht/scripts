@@ -132,10 +132,10 @@ fi
 #
 ################################
 # try adding some more utils we need/like:
-${apti} lsb-release nano joe jc jq tree 7zip zstd fastfetch
+${apti} lsb-release nano jc jq tree 7zip zstd fastfetch #joe
 ################################
 if (! hasCmd python); then		# some already have this; debian based have a package that creates a sumlink; for the rest, make our own
-	if [[ "$pkgMgr" = "apt" ]]: then
+	if [[ "$pkgMgr" = "apt" ]]; then
 		${apti} python-is-python3
 	else
 		ln -s $(which python3) ~/.local/bin/python
