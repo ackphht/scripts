@@ -131,9 +131,6 @@ fi
 # chsh -s $(getPath zsh) $USER
 #
 ################################
-# try adding some more utils we need/like:
-${apti} lsb-release nano jc jq tree 7zip zstd fastfetch #joe
-################################
 if (! hasCmd python); then		# some already have this; debian based have a package that creates a sumlink; for the rest, make our own
 	if [[ "$pkgMgr" = "apt" ]]; then
 		${apti} python-is-python3
@@ -144,6 +141,17 @@ fi
 if (! hasCmd py); then		# what python guys say to use on Windows, and ... i kind of like it; easier
 	ln -s $(which python3) ~/.local/bin/py
 fi
+################################
+# try adding some more utils we need/like (do one at a time so if one fails can keep going):
+${apti} lsb-release || true
+${apti} nano || true
+${apti} jc || true
+${apti} jq || true
+${apti} tree || true
+${apti} 7zip || true
+${apti} zstd || true
+${apti} fastfetch || true
+#${apti} joe || true
 ################################
 # clean up:
 #unset platform currShell sudoCmd apti
