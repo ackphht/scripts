@@ -241,14 +241,14 @@ class MusicFolderHandler:
 					TagNames.DiscogsArtistId, TagNames.DiscogsAlbumId, ]
 	_junkTagsToClean = [ TagNames.iTunSMPB, TagNames.Genre, TagNames.Cover, TagNames.Codec, TagNames.Encoder, TagNames.EncodedBy,
 					 	TagNames.EncodingSettings, TagNames.Source, TagNames.RippingTool, TagNames.RipDate,
-						TagNames.MusicBrainzReleaseType, TagNames.UPC, TagNames.Rating, TagNames.Script, TagNames.Artists,
+						TagNames.UPC, TagNames.Rating, TagNames.Script, TagNames.Artists,
 						TagNames.Performer, TagNames.OriginalReleaseDate,		# think we've got a conflict with names from Picard and what i'm adding in Mp3tag ??
 						TagNames.OriginalReleaseYear, TagNames.AlbumTitleSort, TagNames.TrackTitleSort, TagNames.AlbumArtistSort,
 						TagNames.TrackArtistSort, TagNames.ComposerSort, TagNames.FileOwner, TagNames.OriginalFileName, ]
 	_extraJunkTagsByType: dict[str, list[str]] = {
 		# ".opus": [ TagNames.ReplayGainAlbumGain, TagNames.ReplayGainTrackGain, ]	# TrackPeak, maybe AlbumPeak, can still get added by ReplayGain => let's keep them
 	}
-	_tagsToRename = [ TagNames.MusicBrainzReleaseType,	# we're deleting this one in _junkTagsToClean above ???
+	_tagsToRename = [ TagNames.MusicBrainzReleaseType,
 						TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzAlbumReleaseCountry, TagNames.MusicBrainzWorkId,
 						TagNames.MusicBrainzTrackId, TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzReleaseGroupId,
 						TagNames.MusicBrainzDiscId, TagNames.MusicBrainzTrackArtistId, TagNames.MusicBrainzAlbumId,
