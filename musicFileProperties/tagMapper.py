@@ -28,6 +28,7 @@ class _tagMap:
 		apev2: list[str]
 		splitChars: list[str]|None
 		joinChars: str|None
+		splitCharsRe: str|None
 
 	_csvFilepath = pathlib.Path(__file__).absolute().parent / "musicTagsMap.csv"
 	_tagNamesToNativeNamesMap: dict[str, "_tagMap._mappedTags"] = None
@@ -66,8 +67,11 @@ class _tagMap:
 				ape: list[str] = _tagMap._splitTagName(row["APEv2"])
 				splits: list[str] = row["SplitChars"].split() if row["SplitChars"] else None
 				joins: list[str] = row["JoinChars"] if row["JoinChars"] else None
+				splitCharsRe: str = '|'.join([f"\\{x}" for x in splits]) if splits else None
 
-				_tagMap._tagNamesToNativeNamesMap[tagName] = _tagMap._mappedTags(mp4=mp4, vorbis=vorbis, asf=asf, id3v24=id3v24, id3v23=id3v23, apev2=ape, splitChars=splits, joinChars=joins)
+				_tagMap._tagNamesToNativeNamesMap[tagName] = _tagMap._mappedTags(mp4=mp4, vorbis=vorbis, asf=asf,
+																	 	id3v24=id3v24, id3v23=id3v23, apev2=ape,
+																		splitChars=splits, joinChars=joins, splitCharsRe=splitCharsRe)
 
 				_tagMap._addNativeNamesToTagNameDict(tagName, mp4, _constants.MP4TagType)
 				_tagMap._addNativeNamesToTagNameDict(tagName, vorbis, _constants.VorbisTagType)
@@ -168,13 +172,24 @@ class _tagMapper:	# abstract base class
 		mapped = _tagMap._tagNamesToNativeNamesMap[tagName] if tagName in _tagMap._tagNamesToNativeNamesMap else None
 		return mapped.splitChars if mapped is not None and mapped.splitChars is not None else []
 
+	def _getSplitCharsRe(self, tagName: str) -> str|None:
+		mapped = _tagMap._tagNamesToNativeNamesMap[tagName] if tagName in _tagMap._tagNamesToNativeNamesMap else None
+		return mapped.splitCharsRe if mapped is not None else None
+
 	def getJoinChars(self, tagName: str) -> str:
 		mapped = _tagMap._tagNamesToNativeNamesMap[tagName] if tagName in _tagMap._tagNamesToNativeNamesMap else None
 		return mapped.joinChars if mapped is not None and mapped.joinChars is not None else ""
 
 	#region "abstract" methods
+	#
+	# TODO: why does this have list[...|list[str,str]]??
+	#		(1) list[str,str] is obviously wrong
+	#		but (2) can this really return list[list[]] ???
+	#
 	def mapFromNativeValue(self, nativeValue: Any, tagName: str, nativeTagName: str) -> list[str|int|bytes|list[str,str]]:
-		raise NotImplementedError()
+		# we'll have already checked for lists, so incoming should just be a single value,
+		# but some types (APE) store multi values in same tag object, so could be multiple outgoing
+		raise nativeValue
 
 	def prepareValueForSet(self, nativeValue: Any, tagName: str, nativeTagName: str, mgTags: mutagen.Tags) -> list|Any|None:
 		raise NotImplementedError()
@@ -235,8 +250,6 @@ class _mp4Mapper(_tagMapper):
 		super().__init__()
 
 	def mapFromNativeValue(self, val: Any, tagName: str, nativeTagName: str) -> list[str|int|bytes|list[str,str]]:
-		# we'll have already checked for lists, so incoming should just be a single value,
-		# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 		if isinstance(val, mutagen.mp4.MP4FreeForm):
 			if val.dataformat == mutagen.mp4.AtomDataType.INTEGER:
 				# don't think we need to worry about parsing this: for standard tags,
@@ -352,12 +365,6 @@ class _vorbisMapper(_tagMapper):
 	def _getMappedTagProp(self, mappedTag: "_tagMap._mappedTags") -> list[str]:
 		return mappedTag.vorbis
 
-	# the vorbis tags are always just returned as strings (right?) so don't need to do this one (right?)
-	#def _mapNativeValue(self, nativeValue: Any, tagName: str, nativeTagName: str) -> list[str|int|bytes|list[str,str]]:
-	#	# we'll have already checked for lists, so incoming should just be a single value,
-	#	# but some types (APE) store multi values in same tag object, so could be multiple outgoing
-	#	raise NotImplementedError()
-
 	def isSpecialHandlingTag(self, tagName: str) -> bool:
 		return tagName in _vorbisMapper._specialTags
 
@@ -400,8 +407,6 @@ class _asfMapper(_tagMapper):
 		super().__init__()
 
 	def mapFromNativeValue(self, val: Any, tagName: str, nativeTagName: str) -> list[str|int|bytes|list[str,str]]:
-		# we'll have already checked for lists, so incoming should just be a single value,
-		# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 		# could be ASFUnicodeAttribute, ASFByteArrayAttribute, ASFBoolAttribute, ASFDWordAttribute, ASFQWordAttribute, ASFWordAttribute, ASFGUIDAttribute
 		# but base class for all those is ASFBaseAttribute, we can just use its .value:
 		if isinstance(val, mutagen.asf._attrs.ASFBaseAttribute):
@@ -462,8 +467,6 @@ class _apeV2Mapper(_tagMapper):
 		super().__init__()
 
 	def mapFromNativeValue(self, val: Any, tagName: str, nativeTagName: str) -> list[str|int|bytes|list[str,str]]:
-		# we'll have already checked for lists, so incoming should just be a single value,
-		# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 		result = []
 		if isinstance(val, mutagen.apev2.APETextValue):
 			# the value of APRTextValue types can contain multi values,
@@ -471,7 +474,8 @@ class _apeV2Mapper(_tagMapper):
 			for v in val:
 				result.append(v)
 		elif isinstance(val, mutagen.apev2.APEBinaryValue):
-			result.append(val.value)	# assume binary types are always single, since \x00 could be valid here ???
+			# assume binary types are always single, since \x00 could be valid here so can't split on that, and ???
+			result.append(val.value)
 		return result
 
 	def isSpecialHandlingTag(self, tagName: str) -> bool:
@@ -533,8 +537,6 @@ class _id3Mapper(_tagMapper):	# abstract base class
 		super().__init__()
 
 	def mapFromNativeValue(self, val: Any, tagName: str, nativeTagName: str) -> list[str|int|bytes|list[str,str]]:
-		# we'll have already checked for lists, so incoming should just be a single value,
-		# but some types (APE) store multi values in same tag object, so could be multiple outgoing
 		#
 		# tags that will need special handling:
 		# APIC (tag key tries to include description, which may or may not be there)

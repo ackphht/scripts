@@ -1,7 +1,7 @@
 #!python3
 # -*- coding: utf-8 -*-
 
-import pathlib
+import pathlib, re
 from sqlite3 import NotSupportedError
 from typing import Any, Iterable, Iterator
 import mutagen					# https://mutagen.readthedocs.io/en/latest/api/mp4.html
@@ -71,7 +71,7 @@ class MusicFileProperties:
 			if t in self._mutagen.tags: return True
 		return False
 
-	def getTagValue(self, tagName: str) -> list[str|int|bytes|list[str]]:
+	def getTagValue(self, tagName: str) -> list[str|int|bytes]:
 		return self._getMutagenTag(tagName)
 
 	def setTagValue(self, tagName: str, value: Any) -> None:
@@ -137,7 +137,8 @@ class MusicFileProperties:
 		"""
 		return self._mapper.getJoinChars(tagName)
 
-	def _getMutagenTag(self, tagName : str) -> list[str|int|bytes|list[str]]:
+#	def _getMutagenTag(self, tagName : str) -> list[str|int|bytes|list[str]]:	# why is this possibly returning lists of lists?
+	def _getMutagenTag(self, tagName : str) -> list[str|int|bytes]:
 		if self._mapper.isSpecialHandlingTag(tagName):
 			return self._mapper.getSpecialHandlingTagValues(tagName, self._mutagen.tags)
 
@@ -152,9 +153,16 @@ class MusicFileProperties:
 		# those cached values, which seems like a bad thing; also the list we return may get modified by caller;
 		# so we always create a new list:
 		results = []
+		splitOn = self._mapper._getSplitCharsRe(tagName)
 		for nativeTagValue,nativeTagName in tagValues:
 			for v in self._mapMutagenProperty(nativeTagValue, tagName, nativeTagName):
-				results.append(v)
+				if splitOn and isinstance(v, str) and len(v) > 0:
+					for v2 in re.split(splitOn, v):
+						v2 = v2.strip()
+						if len(v2) > 0:
+							results.append(v2)
+				else:
+					results.append(v)
 		return results
 
 	def _setMutagenTag(self, tagName : str, value : Any) -> None:
@@ -178,20 +186,25 @@ class MusicFileProperties:
 				return
 
 		# we're only going to set the first nativeTagName from the mapping; if there are others, remove them:
+		joiner = self._mapper.getJoinChars(tagName)
 		for idx in range(0, len(nativeTagNames)):
 			t = nativeTagNames[idx]
 			delete = True
 			if idx == 0:
-				LogHelper.Verbose('getting wrapped value for tag "{0}"', t)
-				nativeValues = self._mapper.prepareValueForSet(value, tagName, t, self._mutagen.tags)
+				valueToSet = value
+				if joiner and isinstance(value, list) and len(value) > 1:
+					LogHelper.Verbose('joining values "{0}" with "{1}"', value, joiner)
+					valueToSet = joiner.join([str(v) for v in value])
+				LogHelper.Verbose('getting wrapped value for tag "{0}"; orig values = "{1}"', t, valueToSet)
+				nativeValues = self._mapper.prepareValueForSet(valueToSet, tagName, t, self._mutagen.tags)
 				if not MusicFileProperties._isEmptyValue(nativeValues):
-					LogHelper.Verbose('setting tag "{0}"', t)
+					LogHelper.Verbose('setting native tag "{0}" to "{1}"', t, nativeValues)
 					self._mutagen[t] = nativeValues
 					self._dirty = True
 					delete = False
 			if delete:
 				if t in self._mutagen.tags:
-					LogHelper.Verbose('deleting tag "{0}"', t)
+					LogHelper.Verbose('deleting native tag "{0}"', t)
 					del self._mutagen.tags[t]
 					self._dirty = True
 
