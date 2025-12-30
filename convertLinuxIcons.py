@@ -283,7 +283,10 @@ class Helpers:
 
 	@staticmethod
 	def FindOnPath(exe : str) -> pathlib.Path:
-		return FileHelpers.FindOnPath(exe)
+		f = FileHelpers.FindOnPath(exe)
+		if f is not None and f.is_symlink():
+			f = f.resolve()
+		return f
 
 	@staticmethod
 	def GetFileTimestamp(file: pathlib.Path) -> datetime:
