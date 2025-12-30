@@ -52,7 +52,7 @@ function Main {
 	if ($all -and !$nonInteractive) {
 		UninstallUnwantedApps
 	}
-	if ($all -and $removeStoreApps) {
+	if ($all -and $removeStoreApps) {		# have to explicitly opt into this one ??
 		UninstallUnwantedStoreApps
 	}
 	if ($all -and [Environment]::OSVersion.Version.Major -lt 6 -and [Environment]::OSVersion.Version.Minor -lt 2) {
@@ -147,7 +147,7 @@ function UninstallUnwantedStoreApps {
 		'46928bounde.EclipseManager'
 		'ActiproSoftwareLLC.562882FEEB491'
 		'Microsoft.MinecraftUWP'
-		'Microsoft.MicrosoftOfficeHub'							# 'Get Office'
+		#'Microsoft.MicrosoftOfficeHub'							# 'Get Office' or now 'Microsoft 365' app
 		'Microsoft.MicrosoftSolitaireCollection'
 		'Microsoft.OneConnect'									# 'Paid WiFi and Cellular'
 		'Microsoft.3DBuilder'
@@ -158,6 +158,10 @@ function UninstallUnwantedStoreApps {
 		'Microsoft.XboxGameOverlay'
 		'Microsoft.XboxGamingOverlay'
 		'Microsoft.XboxIdentityProvider'
+		'NVIDIACorp.NVIDIAControlPanel'							# NVIDIA Control Panel
+		'AppUp.IntelArcSoftware'								# Intel Graphics Software (old app ??)
+		'AppUp.IntelGraphicsExperience'							# Intel Graphics Command Center
+		'WavesAudio.MaxxAudioProforDell2021'					# Waves MaxxAudio Pro for Dell 2021
 		<#
 		'Xxxxx'
 		#>
@@ -394,6 +398,7 @@ function DisableUnwantedServices {
 		@{ Name = 'SyncBackPro Schedules Monitor'; Start = 'Manual'; }
 		@{ Name = 'Google Updater *Service'; Start = 'Manual'; }	# default for both is "Automatic"
 		#@{ Name = 'OptionsPlusUpdaterService'; Start = 'Manual'; }		# Logitech Options+ Updater; nevermind, apparently needed
+		@{ Name = 'SQLTELEMETRY$SQLEXPRESS'; Start = ''; }
 		#@{ Name = 'xxxxxxxxxxxxxxxx'; Start = ''; }
 	) | ForEach-Object { DisableService $_; }
 }
@@ -742,10 +747,16 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Inkscape\Inkscape.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Inkscape\Inkview.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Intel\Intel(R) Rapid Storage Technology.lnk', $systemApps, $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\CLion*.lnk', $development, 'JetBrains CLion.lnk')
+		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\JetBrains CLion*.lnk', $development, 'JetBrains CLion.lnk')
+		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\DataGrip*.lnk', $development, 'JetBrains DataGrip.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\JetBrains DataGrip*.lnk', $development, 'JetBrains DataGrip.lnk')
+		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\PyCharm*.lnk', $development, 'JetBrains PyCharm.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\JetBrains PyCharm*.lnk', $development, 'JetBrains PyCharm.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\JetBrains Rider*.lnk', $development, 'JetBrains Rider.lnk')
+		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\RustRover*.lnk', $development, 'JetBrains RustRover.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\JetBrains RustRover*.lnk', $development, 'JetBrains RustRover.lnk')
+		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\WebStorm*.lnk', $development, 'JetBrains WebStorm.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('JetBrains\JetBrains WebStorm*.lnk', $development, 'JetBrains WebStorm.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Kobo\Kobo.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('KMyMoney\KMyMoney.lnk', $applications, $true)
@@ -819,6 +830,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server 2017', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server 2019', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server 2022', $development)
+		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server 2025', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 17', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 18', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft SQL Server Tools 19', $development)
@@ -896,14 +908,20 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('Inkscape\Inkview.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('IrfanView\IrfanView 4*.lnk', $applications, 'IrfanView.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('IrfanView\IrfanView 64 4*.lnk', $applications, 'IrfanView64.lnk', $true)
+		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\CLion*.lnk', $development, 'JetBrains CLion.lnk')
+		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\JetBrains CLion*.lnk', $development, 'JetBrains CLion.lnk')
+		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\DataGrip*.lnk', $development, 'JetBrains DataGrip.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\JetBrains DataGrip*.lnk', $development, 'JetBrains DataGrip.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\JetBrains dotCover*.lnk', $development, 'JetBrains dotCover.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\JetBrains dotMemory*.lnk', $development, 'JetBrains dotMemory.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\JetBrains dotPeek*.lnk', $development, 'JetBrains dotPeek.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\JetBrains dotTrace*.lnk', $development, 'JetBrains dotTrace.lnk')
+		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\PyCharm*.lnk', $development, 'JetBrains PyCharm.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\JetBrains PyCharm*.lnk', $development, 'JetBrains PyCharm.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\JetBrains Rider*.lnk', $development, 'JetBrains Rider.lnk')
+		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\RustRover*.lnk', $development, 'JetBrains RustRover.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\JetBrains RustRover*.lnk', $development, 'JetBrains RustRover.lnk')
+		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\WebStorm*.lnk', $development, 'JetBrains WebStorm.lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('JetBrains\JetBrains WebStorm*.lnk', $development, 'JetBrains WebStorm.lnk', $true)
 		[StartMenuCleanupItem]::FromUserPrograms('KMyMoney\KMyMoney.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Link Shell Extension\LSEConfig.lnk', $applications, $true)
@@ -918,6 +936,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('Sigil\Sigil.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Steam\*.url', 'Games')		# steam uses a protocol handler ('steam://') to launch its games
 		[StartMenuCleanupItem]::FromUserPrograms('Steam\*.lnk', 'Games', $true)
+		[StartMenuCleanupItem]::FromUserPrograms('Stellarium\Stellarium.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('VeraCrypt\VeraCrypt.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Visual Studio Code\Visual Studio Code.lnk', $development, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('WinRAR\WinRAR.lnk', $applications, $true)
