@@ -64,7 +64,7 @@ def processRenameBackupsCommand(args : argparse.Namespace):
 def processListImagesCommand(args : argparse.Namespace):
 	Helpers.LogVerbose('processing listImages command')
 
-	filetypes: list[str] = [".png", ".svg", ".gif", ".jpg", ".jpeg"]
+	filetypes: list[str] = [".png", ".svg", ".svgz", ".gif", ".jpg", ".jpeg"]
 
 	#region helper functions
 	def _backupFile(file: pathlib.Path) -> None:
@@ -308,8 +308,8 @@ class Constants:
 	PathToImageMagick = Helpers.FindOnPath('magick.exe')
 	PathToOptipng = Helpers.FindOnPath('optipng.exe')
 
-	AllSupportedExtensions = ['.png', '.svg']
-	UpscaleSupportedExtensions = ['.svg']
+	AllSupportedExtensions = ['.png', '.svg', '.svgz']
+	UpscaleSupportedExtensions = ['.svg', '.svgz']
 	PseudoLinkMaxFileSize = 256
 	ValidSvgStartUtf8WithSig = b'\xef\xbb\xbf<svg'
 	ValidXmlStartUtf8NoSig = b'<?xml '
@@ -349,7 +349,12 @@ class Executables:
 		return Helpers.RunProcess(args, f"optimizing PNG file '{Helpers.GetRelativePath(pngFilepath)}'", ignoreWhatIf=ignoreWhatIf)
 
 class PseudoLinkHelper:
-	_supportedFiletypes: list[str] = [".png", ".svg"]
+	"""
+	sometimes when i extract files from an ISO, rather than create symlinks, it creates little
+	text files that have a relative path pointing to another file. This tries to detect those.
+	"""
+
+	_supportedFiletypes: list[str] = [".png", ".svg", ".svgz"]
 
 	@staticmethod
 	def IsSupported(filePath : pathlib.Path) -> bool:
@@ -370,6 +375,10 @@ class PseudoLinkHelper:
 					if bytes[:4] != Constants.ValidSvgStartUtf8NoSig and bytes[:7] != Constants.ValidSvgStartUtf8WithSig and \
 							bytes[:6] != Constants.ValidXmlStartUtf8NoSig and bytes != Constants.ValidXmlStartUtf8WithSig:
 						return True
+				elif fileExt == '.svgz':
+					# no signature we can check; check if it's only filepath looking characters, then it's one?
+					# for now, don't see any that are smaller than ~2k, so ...
+					return True
 				else:
 					raise NotImplementedError(strerror = f"file type '{fileExt}' not supported (yet)")
 		return False
@@ -556,7 +565,7 @@ class TargetPngSize:
 		self._lookupOrder.extend(sorted([TargetPngLookupData(s.baseSizeName, self.baseSize, s.baseSize) for s in allSizes if s.baseSize > self.baseSize], key=lambda s: s.sourceSize))
 		# add this one by default:
 		self._lookupOrder.append(TargetPngLookupData("scalable", self.baseSize, 1000000))
-		# following are smaller sizes, and if we have to use them, would thus be upscaling, and will be limited to .svg's when we look for files later:
+		# following are smaller sizes, and if we have to use them, would thus be upscaling, and will be limited to .SVGs when we look for files later:
 		self._lookupOrder.extend(sorted([TargetPngLookupData(s.baseSizeName, self.baseSize, s.baseSize) for s in allSizes if s.baseSize < self.baseSize], key=lambda s: s.sourceSize, reverse=True))
 		#Helpers.LogVerbose(f"lookupOrder for IconSize baseSize = '{self.baseSize}': {','.join([str(lo) for lo in self._lookupOrder])}")
 
@@ -877,7 +886,7 @@ class PngFilesHelper:
 		convertToPng = False
 		sourceFilePath = sourceFile.actualFilePath
 		targetExt = sourceFilePath.suffix
-		if targetExt == ".svg":
+		if targetExt == ".svg" or targetExt == ".svgz":
 			convertToPng = True
 			targetExt = ".png"
 		targetFilename = pathlib.Path(Helpers.AddExtension(sourceFile.templateParams.formattedPngName(), targetExt))
