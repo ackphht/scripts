@@ -334,6 +334,19 @@ if ($ackIsWindows) {
 				}
 			}
 		}
+		function Search-AppxPackages {
+			[CmdletBinding(SupportsShouldProcess=$false)]
+			[OutputType([PSObject[]])]
+			param(
+				[string] $name
+			)
+			$isElevated = Test-IsElevated
+			if (-not $isElevated) { Write-Warning "not elevated: only user AppX packages will be shown" }
+			Get-AppxPackage -AllUsers:$isElevated |
+				Where-Object { -not $name -or ($_.Name -like "*${name}*" -or $_.PackageFullName -like "*${name}*") } |
+				Sort-Object -Property Name |
+				Select-Object -Property Name,Version,PackageFullName
+		}
 	}
 	if ($winBuild -ge 10240 <# Win10 #> <# should it be higher?? #>) {
 		function Update-StoreAppsAvailableUpgrades {
@@ -364,24 +377,40 @@ if ((Test-Path -Path ~/scripts/ackfetch.ps1 -PathType Leaf) -and (-not [bool](Ge
 if ([bool](Get-Command -Name fastfetch -ErrorAction Ignore) -and (-not [bool](Get-Alias -Name 'ff' -ErrorAction Ignore))) {
 	Set-Alias -Name 'ff' -Value (Get-Command -Name fastfetch).Source
 }
+# pip
+if ($ackIsWindows-and [bool](Get-Command -Name python.exe -ErrorAction Ignore) -and (-not [bool](Get-Alias -Name 'pipi' -ErrorAction Ignore))) {
+	function Invoke-PipList { python.exe -m pip list }
+	Set-Alias -Name 'pipl' -Value 'Invoke-PipList'
+	function Invoke-PipListUpdates { python.exe -m pip list --outdated }
+	Set-Alias -Name 'pipul' -Value 'Invoke-PipListUpdates'
+	function Invoke-PipUpgrade { python.exe -m pip install --upgrade $args }
+	Set-Alias -Name 'pipu' -Value 'Invoke-PipUpgrade'
+	function Invoke-PipInstall { python.exe -m pip install --user $args }
+	Set-Alias -Name 'pipi' -Value 'Invoke-PipInstall'
+	function Invoke-PipUninstall { python.exe -m pip uninstall $args }
+	Set-Alias -Name 'pipx' -Value 'Invoke-PipUninstall'
+	function Invoke-PipShowInfo { python.exe -m pip show $args }
+	Set-Alias -Name 'pipn' -Value 'Invoke-PipShowInfo'
+	#Set-Alias -Name 'pips' -Value 'python.exe -m pip search'	# search throws an error, no longer supported, even though it's still in the --help
+}
 
 #
 # some tab completions:
 #
-# dotnet CLI (https://learn.microsoft.com/en-us/dotnet/core/tools/enable-tab-autocomplete#powershell)
-$currentNow = _getts
-if ((Get-Command -Name 'dotnet' -CommandType Application -ErrorAction Ignore)) {
-	Register-ArgumentCompleter -Native -CommandName 'dotnet' -ScriptBlock {
-		param($wordToComplete, $commandAst, $cursorPosition)
-		dotnet complete --position $cursorPosition "$commandAst" |
-			ForEach-Object {
-				[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
-			}
-	}
-}
-_showTime $currentNow 'checking/adding dotnet autocompletes'
-
 if ($ackIsWindows) {
+	# dotnet CLI (https://learn.microsoft.com/en-us/dotnet/core/tools/enable-tab-autocomplete#powershell)
+	$currentNow = _getts
+	if ((Get-Command -Name 'dotnet' -CommandType Application -ErrorAction Ignore)) {	# this takes forever on linux ??? or at least on WSL...
+		Register-ArgumentCompleter -Native -CommandName 'dotnet' -ScriptBlock {
+			param($wordToComplete, $commandAst, $cursorPosition)
+			dotnet complete --position $cursorPosition "$commandAst" |
+				ForEach-Object {
+					[System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+				}
+		}
+	}
+	_showTime $currentNow 'checking/adding dotnet autocompletes'
+
 	# winget (https://github.com/microsoft/winget-cli/blob/master/doc/Completion.md#powershell)
 	$currentNow = _getts
 	if ((Get-Command -Name 'winget' -CommandType Application -ErrorAction Ignore)) {
@@ -398,13 +427,13 @@ if ($ackIsWindows) {
 		}
 	}
 	_showTime $currentNow 'checking/adding winget autocompletes'
-}
 
-$currentNow = _getts
-if ((Get-Command -Name 'dsc.exe' -CommandType Application -ErrorAction Ignore)) {
-	dsc.exe completer powershell | Out-String | Invoke-Expression
+	$currentNow = _getts
+	if ((Get-Command -Name 'dsc.exe' -CommandType Application -ErrorAction Ignore)) {
+		dsc.exe completer powershell | Out-String | Invoke-Expression
+	}
+	_showTime $currentNow 'checking/adding dsc autocompletes'
 }
-_showTime $currentNow 'checking/adding dsc autocompletes'
 
 # some more aliases:
 if (-not [bool](Get-Alias -Name 'll' -ErrorAction Ignore)) {
