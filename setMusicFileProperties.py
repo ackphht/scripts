@@ -1026,7 +1026,7 @@ def showFilePropertiesCommand(args : argparse.Namespace) -> int:
 		printData.append(["$$TagType", props.TagType.name])
 		for p,v in (sorted(props.getNativeTagValues(), key=lambda p: p[0].upper()) if args.sort else props.getNativeTagValues()):
 			# 'APIC' if MP3 (no idea why mutagen is putting ':' in there); 'Cover Art XXX' for APE; 'METADATA_BLOCK_PICTURE' for Vorbis; 'WM/Picture' is WMA;
-			if p == "covr" or p == 'APIC:' or p.startswith('Cover Art') or p == 'METADATA_BLOCK_PICTURE' or p == 'WM/Picture':
+			if p == "covr" or p.startswith('APIC:') or p.startswith('Cover Art') or p == 'METADATA_BLOCK_PICTURE' or p == 'WM/Picture':
 				printData.append([p,'<binary (cover)>'])
 			elif p == "©lyr" or p.startswith('USLT::') or p.upper() == 'LYRICS' or p.upper() == 'UNSYNCEDLYRICS' or p == 'WM/Lyrics':
 				printData.append([p,'<lyrics>'])
