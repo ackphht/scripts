@@ -100,6 +100,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^+!#e::RunElevated(FindPowerShell(), '-NoExit -Command &{Set-Location -LiteralPath "$env:UserProfile"}')
 ^#g::RunAndActivate(EnvGet("LocalAppData") . "\Programs\SourceGit\SourceGit.exe", , , "Avalonia-91408bfc-b8e9-4ad1-95f1-1a4134f2662c")
 ^#h::ToggleSuperHiddenFiles()
+!#h::Run(EnvGet("AppData") . "\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt")
 ;^#m::LookForAndRunMsdnHelp()
 ^#m::RunAndActivate(EnvGet("UserProfile") . "\dev\MyProjects\AckAptMaint\publish\win-x64\AckAptMaint.exe", , , , "AckApt DB Maintenance")
 ^#n::RunAndActivate(FindNotepad3(), , , , , true)
@@ -180,6 +181,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 #F10::Run("mmc.exe " . A_WinDir . "\system32\services.msc")
 +#F10::RunElevated("RunAsS.exe", A_WinDir "\system32\mmc.exe " A_WinDir "\system32\services.msc")
 #F11:: {
+	; installed apps
 	if (gOSBuild < 10240) {	; if < Win10; actually this probably needs more accurate build# since it was later versions of Win10 that moved this
 		Run("control.exe appwiz.cpl")
 	} else {
@@ -187,6 +189,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 	}
 }
 +#F11:: {
+	; windows update
 	if (gOSBuild < 10240) {	; if < Win10; actually this probably needs more accurate build# since it was later versions of Win10 that moved this
 		Run("control.exe wuaucpl.cpl")
 	} else {
@@ -194,11 +197,13 @@ GroupAdd "Explorer", gExplorerClassPostVista
 	}
 }
 ^+#F11:: {
+	; default apps
 	if (gOSBuild >= 22000) {
 		Run("ms-settings:defaultapps")
 	}
 }
 !+#F11:: {
+	; store app updates
 	if (gOSBuild >= 22000) {
 		Run("ms-windows-store://downloadsandupdates")
 	}
