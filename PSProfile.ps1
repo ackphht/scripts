@@ -26,7 +26,7 @@ if ($install) {
 $localVars = @( 'localVars', 'localFuncs', 'install', 'showTimes', 'startNow', 'currentNow', 'ackIsWindows',
 				'properModulesDir', 'documentsModulesDI', 'scriptsDir',
 				'maybeAckTheme', 'themePaths', 't', 'moduleName', 'theme',
-				'psReadLineProfile', 'SystemProfile', 'winBuild'
+				'psReadLineProfile', 'SystemProfile', 'winBuild', 'ackIsWsl', 'oldPath'
 			)
 $localFuncs = @('function:_getts', 'function:_showTime')
 
@@ -86,6 +86,18 @@ function Add-PathValue {
 $currentNow = _getts
 
 $ackIsWindows = ($PSEdition -ne 'Core' -or $IsWindows)
+$ackIsWsl = [bool]$env:WSL_DISTRO_NAME
+# trying to use a different path without any windows stuff for Get-Commands below;
+# this is working (results do seem to change) but Get-Commands on WSL are still really slow for some reason
+# it actually gets super slow when it CAN'T find what you asked for, which seems backwards; 😖
+# (Get-Module is really bad too...)
+$oldPath = ''
+if ($ackIsWsl) {
+	$oldPath = $env:PATH
+	$env:PATH = ($env:PATH -split [System.IO.Path]::PathSeparator | Where-Object { $_ -notlike '/mnt/*' }) -join [System.IO.Path]::PathSeparator
+	#Write-Host "updated path: |$env:PATH|"
+}
+
 #
 # fix up some paths:
 #
@@ -118,7 +130,7 @@ if (Test-Path -Path $scriptsDir -PathType Container) {
 #
 # add oh-my-posh:
 #
-if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
+if ((Get-Command -Name 'oh-my-posh' -CommandType Application -ErrorAction Ignore)) {
 	$currentNow = _getts
 	$themePaths = @()
 	if (Test-Path -Path env:OneDrive) {
@@ -145,62 +157,64 @@ if ((Get-Command -Name 'oh-my-posh' -ErrorAction Ignore)) {
 #
 # import some modules:
 #
-#$moduleName = 'Pscx'
-#if ((Get-Module -Name $moduleName -ListAvailable)) {
-#	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
-#	Import-Module -Name $moduleName -NoClobber
-#}
+if (-not $ackIsWsl) {	# would probably be nice to have on WSL too, but Get-Module is excruciatingly slow there for some reason
+	#$moduleName = 'Pscx'
+	#if ((Get-Module -Name $moduleName -ListAvailable)) {
+	#	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
+	#	Import-Module -Name $moduleName -NoClobber
+	#}
 
-# Teminal-Icons has gotten *really* slow to load, and project seems to be dead
-# found way to load in the background, prompt comes up quicker, but still sits
-# there not accepting input until Terminal-Icons is loaded, so that's not gonna work
-# the icons and the colors are nice, but not that nice
-<#
-$moduleName = 'Terminal-Icons'
-#$currentNow = _getts
-if ((Get-Module -Name $moduleName -ListAvailable)) {
-	#Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
-	#Import-Module -Name $moduleName
-	#$theme = Get-TerminalIconsTheme
-	#if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-fa-book') }
-	#if (-not $theme.Color.Types.Files.ContainsKey('.epub')) { $theme.Color.Types.Files.Add('.epub', '9e7a41') }
-	#if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-fa-book') }
-	#if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9e7a41') }
-
-	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`" with PowerShell.OnIdle"
-	# load in OnIdle: from https://github.com/devblackops/Terminal-Icons/issues/150
-	Register-EngineEvent -SourceIdentifier 'PowerShell.OnIdle' -MaxTriggerCount 1 -Action {
-		Import-Module -Name 'Terminal-Icons' -Global
-		$theme = Get-TerminalIconsTheme
+	# Teminal-Icons has gotten *really* slow to load, and project seems to be dead
+	# found way to load in the background, prompt comes up quicker, but still sits
+	# there not accepting input until Terminal-Icons is loaded, so that's not gonna work
+	# the icons and the colors are nice, but not that nice
+	<#
+	$moduleName = 'Terminal-Icons'
+	#$currentNow = _getts
+	if ((Get-Module -Name $moduleName -ListAvailable)) {
+		#Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
+		#Import-Module -Name $moduleName
+		#$theme = Get-TerminalIconsTheme
 		#if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-fa-book') }
-		if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-oct-book') }
-		if (-not $theme.Color.Types.Files.ContainsKey('.epub')) { $theme.Color.Types.Files.Add('.epub', '9E7A41') }
+		#if (-not $theme.Color.Types.Files.ContainsKey('.epub')) { $theme.Color.Types.Files.Add('.epub', '9e7a41') }
 		#if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-fa-book') }
-		if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-oct-book') }
-		if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9E7A41') }
-	} | Out-Null
-}
-_showTime $currentNow 'checking/adding Terminal-Icons module'
-#>
+		#if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9e7a41') }
 
-$moduleName = 'AckWare.AckLib'
-$currentNow = _getts
-if ((Get-Module -Name $moduleName -ListAvailable)) {
-	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
-	Import-Module -Name $moduleName
-}
-_showTime $currentNow 'checking/adding AckWare.AckLib module'
+		Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`" with PowerShell.OnIdle"
+		# load in OnIdle: from https://github.com/devblackops/Terminal-Icons/issues/150
+		Register-EngineEvent -SourceIdentifier 'PowerShell.OnIdle' -MaxTriggerCount 1 -Action {
+			Import-Module -Name 'Terminal-Icons' -Global
+			$theme = Get-TerminalIconsTheme
+			#if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-fa-book') }
+			if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-oct-book') }
+			if (-not $theme.Color.Types.Files.ContainsKey('.epub')) { $theme.Color.Types.Files.Add('.epub', '9E7A41') }
+			#if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-fa-book') }
+			if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-oct-book') }
+			if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9E7A41') }
+		} | Out-Null
+	}
+	_showTime $currentNow 'checking/adding Terminal-Icons module'
+	#>
 
-#$moduleName = 'gsudoModule'
-#$currentNow = _getts
-#if ((Get-Module -Name $moduleName -ListAvailable)) {
-#	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
-#	Import-Module -Name $moduleName
-##	Set-Alias -Name 'sudo' -Value 'Invoke-Gsudo'	# their usage is different but really should use explicit calls anyway
-##} else {
-##	Set-Alias -Name 'sudo' -Value 'Invoke-Elevated'
-#}
-#_showTime $currentNow 'checking/adding gsudo module'
+	$moduleName = 'AckWare.AckLib'
+	$currentNow = _getts
+	if ((Get-Module -Name $moduleName -ListAvailable)) {
+		Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
+		Import-Module -Name $moduleName
+	}
+	_showTime $currentNow 'checking/adding AckWare.AckLib module'
+
+	#$moduleName = 'gsudoModule'
+	#$currentNow = _getts
+	#if ((Get-Module -Name $moduleName -ListAvailable)) {
+	#	Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
+	#	Import-Module -Name $moduleName
+	##	Set-Alias -Name 'sudo' -Value 'Invoke-Gsudo'	# their usage is different but really should use explicit calls anyway
+	##} else {
+	##	Set-Alias -Name 'sudo' -Value 'Invoke-Elevated'
+	#}
+	#_showTime $currentNow 'checking/adding gsudo module'
+}
 
 $currentNow = _getts
 if ([bool](Get-Command -Name 'sudo' -CommandType Application -ErrorAction Ignore)) {
@@ -271,7 +285,7 @@ if ($ackIsWindows) {
 # misc:
 #
 $currentNow = _getts
-$psReadLineProfile = Get-Command -Name 'PSReadLineProfile.ps1' -ErrorAction SilentlyContinue
+$psReadLineProfile = Get-Command -Name 'PSReadLineProfile.ps1' -CommandType ExternalScript -ErrorAction SilentlyContinue
 if ($psReadLineProfile) {
 	Write-Verbose "$($MyInvocation.InvocationName): adding PSReadlineProfile `"$($psReadLineProfile.Path)`""
 	. $psReadLineProfile.Path
@@ -370,15 +384,20 @@ function Get-DecodedCommand { param([Parameter(Mandatory=$true)][string]$c) retu
 function Get-EnumValues { param([Parameter(Mandatory=$true)][type]$enumType) [System.Enum]::GetValues($enumType) | ForEach-Object { [PSCustomObject]@{ Value = [int]$_; Name = $_.ToString(); } } }
 
 # ackfetch.ps1
+$currentNow = _getts
 if ((Test-Path -Path ~/scripts/ackfetch.ps1 -PathType Leaf) -and (-not [bool](Get-Alias -Name 'af' -ErrorAction Ignore))) {
 	Set-Alias -Name 'af' -Value ~/scripts/ackfetch.ps1
 }
+_showTime $currentNow 'checking/adding ackfetch alias'
 # fastfetch
-if ([bool](Get-Command -Name fastfetch -ErrorAction Ignore) -and (-not [bool](Get-Alias -Name 'ff' -ErrorAction Ignore))) {
-	Set-Alias -Name 'ff' -Value (Get-Command -Name fastfetch).Source
+$currentNow = _getts
+if ([bool](Get-Command -Name fastfetch -CommandType Application -ErrorAction Ignore) -and (-not [bool](Get-Alias -Name 'ff' -ErrorAction Ignore))) {
+	Set-Alias -Name 'ff' -Value @(Get-Command -Name fastfetch -CommandType Application)[0].Source
 }
+_showTime $currentNow 'checking/adding fastfetch alias'
 # pip
-if ($ackIsWindows-and [bool](Get-Command -Name python.exe -ErrorAction Ignore) -and (-not [bool](Get-Alias -Name 'pipi' -ErrorAction Ignore))) {
+$currentNow = _getts
+if ($ackIsWindows-and [bool](Get-Command -Name python.exe -CommandType Application -ErrorAction Ignore) -and (-not [bool](Get-Alias -Name 'pipi' -ErrorAction Ignore))) {
 	function Invoke-PipList { python.exe -m pip list }
 	Set-Alias -Name 'pipl' -Value 'Invoke-PipList'
 	function Invoke-PipListUpdates { python.exe -m pip list --outdated }
@@ -393,11 +412,13 @@ if ($ackIsWindows-and [bool](Get-Command -Name python.exe -ErrorAction Ignore) -
 	Set-Alias -Name 'pipn' -Value 'Invoke-PipShowInfo'
 	#Set-Alias -Name 'pips' -Value 'python.exe -m pip search'	# search throws an error, no longer supported, even though it's still in the --help
 }
+_showTime $currentNow 'checking/adding pip aliases'
 
 #
 # some tab completions:
 #
-if ($ackIsWindows) {
+
+if (-not $ackIsWsl) {
 	# dotnet CLI (https://learn.microsoft.com/en-us/dotnet/core/tools/enable-tab-autocomplete#powershell)
 	$currentNow = _getts
 	if ((Get-Command -Name 'dotnet' -CommandType Application -ErrorAction Ignore)) {	# this takes forever on linux ??? or at least on WSL...
@@ -410,7 +431,9 @@ if ($ackIsWindows) {
 		}
 	}
 	_showTime $currentNow 'checking/adding dotnet autocompletes'
+}
 
+if ($ackIsWindows) {
 	# winget (https://github.com/microsoft/winget-cli/blob/master/doc/Completion.md#powershell)
 	$currentNow = _getts
 	if ((Get-Command -Name 'winget' -CommandType Application -ErrorAction Ignore)) {
@@ -438,6 +461,11 @@ if ($ackIsWindows) {
 # some more aliases:
 if (-not [bool](Get-Alias -Name 'll' -ErrorAction Ignore)) {
 	New-Alias -Name 'll' -Value 'Get-ChildItem'
+}
+
+if ($oldPath) {
+	$env:PATH = $oldPath
+	#Write-Host "restored path: |$env:PATH|"
 }
 
 _showTime $startNow 'total time loading Profile'
