@@ -33,8 +33,8 @@ zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
 # History configurations
 HISTFILE=~/.zsh_history
-HISTSIZE=1000
-SAVEHIST=2000
+HISTSIZE=10000
+SAVEHIST=$HISTSIZE
 setopt hist_expire_dups_first	# delete duplicates first when HISTFILE size exceeds HISTSIZE
 setopt hist_ignore_dups			# ignore duplicated commands history list
 setopt hist_ignore_space		# ignore commands that start with space
@@ -87,12 +87,15 @@ fi
 # these could go on two lines (one for setopt, one for unsetopt), but i like the comments...
 setopt		autocd			# change directory just by typing its name
 setopt		extendedglob	# treat the '#', '~' and '^' characters as part of patterns for filename generation, etc.
-unsetopt	beep			# DON"T beep on error
-unsetopt	nomatch			# DON"T show error message if there is no match for the pattern
-unsetopt	notify			# DON'T report the status of background jobs immediately
+unsetopt	beep			# DO NOT beep on error
+unsetopt	nomatch			# DO NOT show error message if there is no match for the pattern
+unsetopt	notify			# DO NOT report the status of background jobs immediately
 
 # get rid of highlighting text on paste
 unset zle_bracketed_paste
+
+# https://zsh.sourceforge.io/Guide/zshguide06.html#l152
+autoload -U compinit; compinit
 
 bindkey -e											# emacs key bindings
 # FYI: use "showkey -a" to see the keys; and for list of 'widgets', see "man zshzle" (or https://linux.die.net/man/1/zshzle or https://zsh.sourceforge.io/Doc/Release/Zsh-Line-Editor.html#Standard-Widgets)
