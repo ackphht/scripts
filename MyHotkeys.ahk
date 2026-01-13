@@ -32,7 +32,6 @@ WS_EX_APPWINDOW := 0x40000
 WS_EX_TOOLWINDOW := 0x80
 GW_OWNER := 4
 
-gExplorerMyComputerGuid := "::{20d04fe0-3aea-1069-a2d8-08002b30309d}"
 ; used in OpenFolderXxxxx() below for opening Explorer windows:
 gExplorerClassPostVista := "ahk_class CabinetWClass"
 GroupAdd "Explorer", "ahk_class ExploreWClass" ; Unused on Vista and later
@@ -121,20 +120,21 @@ GroupAdd "Explorer", gExplorerClassPostVista
 	opening folders
 	# = Win  /  ^ = Ctrl  /  + = Shift  /  ! = Alt
 */
+; CLSID list: https://www.autohotkey.com/docs/v1/misc/CLSID-List.htm
 +#a::OpenFolder(A_AppData)
 ^+#a::OpenFolder(EnvGet("UserProfile") . "\Apps")
 ^+#b::OpenFolder(EnvGet("UserProfile") . "\Books")
 +#c::Run("control.exe")				; open Control Panel
-+#d::OpenFolder(A_MyDocuments)
-^+#d::OpenFolder(EnvGet("UserProfile") . "\Downloads")
++#d::OpenFolder(A_MyDocuments)								; or "::{450d8fba-ad25-11d0-98a8-0800361b1103}"
+^+#d::OpenFolder(EnvGet("UserProfile") . "\Downloads")		; or "::{088E3905-0323-4B02-9826-5D99428E115F}"
 ;^+#f::OpenFolder(EnvGet("UserProfile") . "\dev\foss")
 +#g::OpenFolder(EnvGet("GoogleDrive"))
-+#h::OpenFolder(EnvGet("UserProfile"))
++#h::OpenFolder(EnvGet("UserProfile"))						; or "::{59031A47-3F72-44A7-89C5-5595FE6B30EE}"
 ^+#h::OpenFolder(StrReplace(EnvGet("UserProfile"), "C:\", "D:\"))
 +#l::OpenFolder(EnvGet("LocalAppData"))
 +#m::OpenFolder(EnvGet("UserProfile") . "\Music\MyMusic")
-+#o::OpenFolder(EnvGet("OneDrive"))
-+#p::OpenFolder(EnvGet("UserProfile") . "\Pictures")
++#o::OpenFolder(EnvGet("OneDrive"))							; or "::{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
++#p::OpenFolder(EnvGet("UserProfile") . "\Pictures")		; or "::{24AD3AD4-A569-4530-98E1-AB02F9417AA8}"
 ^+#p::OpenFolder(gProgramFiles)								; open program files
 !+#p::OpenFolder(gProgramFiles32)							; open program files (x86)
 ^!#p::OpenFolder(EnvGet("LocalAppData") . "\Programs")				; open user program files
@@ -149,7 +149,8 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^+#v::OpenFolder(EnvGet("UserProfile") . "\Videos")
 +#w::LookForAndOpenWarezFolder()
 ^+#w::LookForAndOpenWorkProjectsFolder()
-+#y::OpenFolder(gExplorerMyComputerGuid)	; open My Computer
++#y::OpenFolder("::{20d04fe0-3aea-1069-a2d8-08002b30309d}")		; open My Computer
+^+#y::OpenFolder("::{679F85CB-0220-4080-B29B-5540CC05AAB6}")	; open Quick Access
 +#1::OpenFolder("C:\")
 +#2::OpenFolder("D:\")
 +#3::OpenFolder("E:\")
@@ -367,6 +368,10 @@ OpenFolder(folderName, asAdmin := false) {
 gMaxExplorerActivationAttempts := 20
 OpenFolderWithExplicitTabs(folderName) {
 	explorerHwnd := WinExist(gExplorerClassPostVista)
+	static shellGuid := "i)^::\{[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}\}$"	; "i)" at the front is case-insensitive
+	if (RegExMatch(folderName, shellGuid)) {
+		folderName := "shell:" . folderName
+	}
 	if (not explorerHwnd) {
 		; no window currently open, open a new explorer window, make sure it's activated
 		Run('"' . folderName . '"')
@@ -399,17 +404,14 @@ OpenFolderWithExplicitTabs(folderName) {
 		;;	Send("{F4}")
 		;;	Send("{Escape}")
 		;;}
-		; .Navigate() doesn't work with the guid thing, but we're only using one for MyComputer and that should be what opens by default anyway, so:
-		if (folderName != gExplorerMyComputerGuid) {
-			; from https://www.reddit.com/r/AutoHotkey/comments/ybumnu/windows_11_launch_a_directory_in_windows_explorer/
-			explorerWin := ComObject("Shell.Application").Windows()
-			if (explorerWin.Count > 0) {
-				last := explorerWin.Item(explorerWin.Count - 1)
-				;MsgBox(last.LocationName " :: " last.LocationURL)
-				last.Navigate(folderName)
-			} else {
-				MsgBox("no Windows")
-			}
+		; from https://www.reddit.com/r/AutoHotkey/comments/ybumnu/windows_11_launch_a_directory_in_windows_explorer/
+		explorerWin := ComObject("Shell.Application").Windows()
+		if (explorerWin.Count > 0) {
+			last := explorerWin.Item(explorerWin.Count - 1)
+			;MsgBox(last.LocationName " :: " last.LocationURL)
+			last.Navigate(folderName)
+		} else {
+			MsgBox("no Windows")
 		}
 	}
 }
