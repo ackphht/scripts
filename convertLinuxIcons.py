@@ -1484,6 +1484,7 @@ class IconsToCopy:
 				Icon("application-x-php", ["text-x-php"], ["php"]),
 				Icon("application-x-python-bytecode", extensions=["pyc", "pyo"]),
 				Icon("application-x-python"),		# not listed in mime type xmls; not sure what this is supposed to be, doesn't look the same as text-x-python
+				Icon("application-x-ipynb+json", extensions=["ipynb"]),
 				Icon("application-x-rpm", ["gnome-mime-application-x-rpm"], ["rpm"]),
 				Icon("application-x-ruby", ["text-x-ruby"], ["rb"]),
 				Icon("application-x-shellscript", ["shellscript"]),
@@ -1740,6 +1741,13 @@ class IconsToCopy:
 				Icon("jack"),
 				Icon("jamin"),
 				Icon("juk"),
+				Icon("jupyter"),
+				Icon("jupyter-console"),
+				Icon("jupyter-lab"),
+				Icon("jupyter-notebook"),
+				Icon("JupyterConsole"),
+				Icon("jupyterlab"),
+				Icon("jupyterlab-desktop"),			# usually a link to "jupyter" ??
 				Icon("leafpad"),
 				Icon("log-viewer-app"),
 				Icon("login"),
@@ -1764,10 +1772,12 @@ class IconsToCopy:
 				Icon("nautilus"),
 				Icon("nemo"),
 				Icon("netbeans"),
+				Icon("notebook"),					# usually a link to "jupyter"
 				Icon("notes-app"),
 				Icon("okteta"),
 				Icon("okular"),
 				Icon("openshot"),
+				Icon("org.jupyter.JupyterLab"),		# usually a link to "jupyter"
 				Icon("password"),
 				Icon("passwords"),
 				Icon("passwords-app"),
