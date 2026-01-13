@@ -1,14 +1,24 @@
-###############################################################################
-# Set default behavior to automatically normalize line endings.
-###############################################################################
-*				text=auto
-
-###############################################################################
-# Set these files to *nix line endings
-###############################################################################
-.editorconfig	text eol=lf
-*.json			text eol=lf
-*.py			text eol=lf
-*.sh			text eol=lf
-*.toml			text eol=lf
-*.xml			text eol=lf
+# Set default behavior to use LF line endings:
+*			text=auto eol=lf
+# except these:
+*.bat		text eol=crlf
+*.cmd		text eol=crlf
+# for powershell, might run some of these on older versions of windows, so be safe:
+*.ps1		text eol=crlf
+*.psd1		text eol=crlf
+*.psm1		text eol=crlf
+*.ps1xml	text eol=crlf
+# i don't know what these diff thingies actually do or if they actually make any difference, but can't hurt ??
+*.css		text diff=css
+*.html		text diff=html
+# "json" doesn't exist by default ?? but there's no complaints, so ??
+*.json		text diff=json
+*.jsonc		text diff=json
+*.xhtml		text diff=html
+*.md		text diff=markdown
+*.sh		text diff=sh
+*.zsh		text diff=sh
+*.zshrc		text diff=sh
+*.py		text diff=python
+*.py3		text diff=python
+*.toml		text diff=toml
