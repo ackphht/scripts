@@ -24,6 +24,9 @@ if ($mod.Version -gt ([System.Version]'2.2.2')) {
 Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 Set-PSReadLineKeyHandler -Chord 'UpArrow' -Function 'HistorySearchBackward'
 Set-PSReadLineKeyHandler -Chord 'DownArrow' -Function 'HistorySearchForward'
+
+#Set-PSReadLineKeyHandler -HistoryNoDuplicates	# doesn't do what you think; only keeps dupes from being shown; they still get added to history; and it's set to True by default anyway
+
 #
 # try to make different OSes behave the same:
 #
