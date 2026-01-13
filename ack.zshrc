@@ -94,9 +94,6 @@ unsetopt	notify			# DO NOT report the status of background jobs immediately
 # get rid of highlighting text on paste
 unset zle_bracketed_paste
 
-# https://zsh.sourceforge.io/Guide/zshguide06.html#l152
-autoload -U compinit; compinit
-
 bindkey -e											# emacs key bindings
 # FYI: use "showkey -a" to see the keys; and for list of 'widgets', see "man zshzle" (or https://linux.die.net/man/1/zshzle or https://zsh.sourceforge.io/Doc/Release/Zsh-Line-Editor.html#Standard-Widgets)
 # think these are on by default anyway but just to be sure, in case I get used to them:
