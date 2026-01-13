@@ -316,6 +316,7 @@ function CleanUpDesktopIcons {
 		'Obsidian'
 		'Brave'
 		'Koodo Reader'
+		'QuickLook'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -880,6 +881,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('Obsidian.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Outlook.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Quick Share from Google.lnk', $applications)
+		[StartMenuCleanupItem]::FromUserPrograms('QuickLook.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserStartMenu('SumatraPDF.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('SumatraPDF.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('SyncBackSE.lnk', $applications)
