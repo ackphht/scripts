@@ -1,6 +1,8 @@
 ﻿#Requires AutoHotkey >=2.0
 #SingleInstance force	; if script is launched while a previous instance is already running, automatically reload
 
+#Include ./VD.ah2
+
 gHomeComputerName := "arrakis"
 ;gWorkComputerName := "corrin"
 ;gNotebookName := "binkley"
@@ -81,6 +83,11 @@ GroupAdd "Explorer", gExplorerClassPostVista
 	MsgBox(msg)
 }
 
+; move window to virtual desktop to the left
++^#left::VD.MoveWindowToRelativeDesktopNum("A", -1) ;.follow()		; .follow() not really working, just flashes the screen
+; move window to virtual desktop to the right
++^#right::VD.MoveWindowToRelativeDesktopNum("A", 1) ;.follow()
+
 /*
 	Starting programs
 	# = Win  /  ^ = Ctrl  /  + = Shift  /  ! = Alt
@@ -100,6 +107,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^#g::RunAndActivate(EnvGet("LocalAppData") . "\Programs\SourceGit\SourceGit.exe", , , "Avalonia-91408bfc-b8e9-4ad1-95f1-1a4134f2662c")
 ^#h::ToggleSuperHiddenFiles()
 !#h::Run(EnvGet("AppData") . "\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt")
+^#l::RunAndActivate(EnvGet("ProgramFiles") . "\LINQPad9\LINQPad9.exe", , , , "LINQPad 9")
 ;^#m::LookForAndRunMsdnHelp()
 ^#m::RunAndActivate(EnvGet("UserProfile") . "\dev\MyProjects\AckAptMaint\publish\win-x64\AckAptMaint.exe", , , , "AckApt DB Maintenance")
 ^#n::RunAndActivate(FindNotepad3(), , , , , true)
@@ -457,7 +465,7 @@ RunAndActivate(target, arguments := "", workingDir := "", className := "", winTi
 		if (className) {
 			trgHwnd := WinExist("ahk_class " . className)
 		} else if (winTitle) {
-			trgHwnd := WinExist(winTitle)	; default search mode if to find text anywhere in the title; see SetTitleMatchMode
+			trgHwnd := WinExist(winTitle)	; default search mode is to find text anywhere in the title; see SetTitleMatchMode
 		} else {
 			SplitPath(target, &name, , &ext)
 			if (ext = "exe") {
