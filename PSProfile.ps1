@@ -34,6 +34,7 @@ function _getts { if ($showTimes) { return [System.DateTime]::Now } else { retur
 function _showTime { param([System.DateTime]$start, [string]$desc) if ($showTimes) { Write-Host "${desc} took $(([DateTime]::Now - $start).TotalMilliseconds) ms" } }
 
 $startNow = _getts
+
 # in case we're running < .net 4.6, make sure TLS 1.2 is enabled:
 if ([System.Net.ServicePointManager]::SecurityProtocol -ne 0 <# SystemDefault (added in 4.7/Core) #> -and
 	([System.Net.ServicePointManager]::SecurityProtocol -band [System.Net.SecurityProtocolType]::Tls12) -eq 0)
@@ -96,6 +97,25 @@ if ($ackIsWsl) {
 	$oldPath = $env:PATH
 	$env:PATH = ($env:PATH -split [System.IO.Path]::PathSeparator | Where-Object { $_ -notlike '/mnt/*' }) -join [System.IO.Path]::PathSeparator
 	#Write-Host "updated path: |$env:PATH|"
+}
+
+# it's the 2020's: change default windows terminal/console encodings to utf8:
+if ($ackIsWindows) {
+	$currentNow = _getts
+	chcp.com 65001 | Out-Null
+	if ($OutputEncoding.CodePage -ne [System.Text.Encoding]::UTF8.CodePage) {
+		Write-Verbose "changing default console encodings to UTF-8"
+		$OutputEncoding = [System.Text.Encoding]::UTF8
+	}
+	if ([Console]::InputEncoding.CodePage -ne [System.Text.Encoding]::UTF8.CodePage) {
+		Write-Verbose "changing System.Console.InputEncoding to UTF-8"
+		[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+	}
+	if ([Console]::OutputEncoding.CodePage -ne [System.Text.Encoding]::UTF8.CodePage) {
+		Write-Verbose "changing System.Console.OutputEncoding to UTF-8"
+		[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+	}
+	_showTime $currentNow 'ensuring console encodings are UTF-8'
 }
 
 #
