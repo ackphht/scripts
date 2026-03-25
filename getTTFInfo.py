@@ -70,7 +70,7 @@ def initLogging(verbose : bool = False, useLocalTime : bool = False):
 	logging.basicConfig(level=loglevel, format=f"{logTimeFormat}|{{levelname:8}}|{{module}}|{{funcName}}|{{message}}", style='{', datefmt='%Y-%m-%d %H:%M:%S')
 
 class FontDetails:
-	class _fontNames:
+	class _fontNamesInt:
 		def __init__(self, font : ttLib.TTFont):
 			nameTbl = font["name"]	# : fontTools.ttLib.tables._n_a_m_e.table__n_a_m_e
 			self.fontName : str = nameTbl.getBestFullName()
@@ -94,10 +94,11 @@ class FontDetails:
 	#def __init__(self, filepath : pathlib.Path, blockNames : list[str]):
 	def __init__(self, filepath : pathlib.Path):
 		self._filepath : pathlib.Path = filepath
-		self._total = 0
+		self._glyphCnt : int = 0
+		self._total : int = 0
 		#self._blockCounts : dict[str, int] = { blk: 0 for blk in blockNames }
 		self._blockCounts : dict[str, int] = dict()
-		self._fontNames : FontDetails.FontNames = None
+		self._fontNames : FontDetails._fontNamesInt = None
 
 	def _incrementBlockCodepoint(self, blockName : str):
 		self._total += 1
@@ -117,10 +118,11 @@ class FontDetails:
 			ttfFile : ttLib.TTFont = ttLib.TTFont(self._filepath)
 		if ttfFile is None:
 			return
-		self._fontNames : FontDetails._fontNames = FontDetails._fontNames(ttfFile)
+		self._fontNames : FontDetails._fontNamesInt = FontDetails._fontNamesInt(ttfFile)
 		cmap = ttfFile.getBestCmap()#['cmap']
 		for cp in cmap:
 			self._incrementBlockCodepoint(unicodedata.block(chr(cp)))
+		self._glyphCnt = len(ttfFile.getGlyphSet())
 
 	def getBlockCodepointCount(self, blockName : str):
 		return self._blockCounts[blockName] if blockName in self._blockCounts else 0
@@ -129,6 +131,10 @@ class FontDetails:
 	@property
 	def TotalCodepoints(self) -> int:
 		return self._total
+
+	@property
+	def GlyphCount(self) -> int:
+		return self._glyphCnt
 
 	@property
 	def BlockCodepointCounts(self) -> Iterable[tuple[str, int]]:
@@ -213,6 +219,10 @@ class FontsList:
 			yield f"{f.FontName}{sep}v{f.Version}"
 
 	def getBlockCodepointCountRows(self) -> Iterable[list]:
+		row : list = ["<Glyph Count>",]
+		for f in self._fonts.values():
+			row.append(f.GlyphCount)
+		yield row
 		row : list = ["<Total Codepoints>",]
 		for f in self._fonts.values():
 			row.append(f.TotalCodepoints)
