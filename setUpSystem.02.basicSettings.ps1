@@ -175,22 +175,25 @@ function ConfigureWindowsAndExplorer {
 	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iTime' -v '1' -t 'String'
 	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iTLZero' -v '1' -t 'String'
 	# Explorer options:
-	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowRecent' -v 0 -t 'DWord'					# don't show recent files in Quick Access
+	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowRecent' -v 0 -t 'DWord'						# don't show recent files in Quick Access
 	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowFrequent' -v 1 -t 'DWord'					# do show frequent folders in Quick Access
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'Hidden' -v 1 -t 'DWord'						# show hidden files
-	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'HideFileExt' -v 0 -t 'DWord'				# don't hide file extensions
-	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'PersistBrowsers' -v 0 -t 'DWord'			# don't restore previous windows at login
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'HideFileExt' -v 0 -t 'DWord'					# don't hide file extensions
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'PersistBrowsers' -v 1 -t 'DWord'				# do restore previous windows at login
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'ShowEncryptCompressedColor' -v 1 -t 'DWord'	# show compressed & encrypted files names in color
-	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'AutoCheckSelect' -v 0 -t 'DWord'			# don't use checkboxes for selecting files/folders
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'AutoCheckSelect' -v 0 -t 'DWord'				# don't use checkboxes for selecting files/folders
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'HideMergeConflicts' -v 0 -t 'DWord'			# don't show folder merge conflicts
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'LaunchTo' -v 1 -t 'DWord'					# Open File Explorer to "This PC" (2 = Quick Access)
-	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'SeparateProcess' -v 0 -t 'DWord'			# disable launch folders in separate process
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'SeparateProcess' -v 0 -t 'DWord'				# disable launch folders in separate process
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'ShowTaskViewButton' -v 0 -t 'DWord'			# hide Task View button on taskbar
 	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\CabinetState" -n 'FullPath' -v 1 -t 'DWord'		# show full path in titlebar
 	#SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'NavPaneShowAllFolders' -v 1 -t 'DWord'
 	# screen saver grace period before locking system:
 	SetRegistryEntry -p "$hkcuCurrentVersion\Winlogon" -n 'ScreenSaverGracePeriod' -v 10 -t 'DWord'
 	# disable saving zone information in downloads (that Sophia app/module/whatever writes to somewhere else [function 'SaveZoneInformation'], but below has always worked for me)
+	# these could also be configure with group policies:
+	#    User Configuration > Administrative Templates > Windows Components > Attachment Manager > Default risk level for file attachments
+	#    User Configuration > Administrative Templates > Windows Components > Attachment Manager > Do not preserve zone information in file attachments
 	SetRegistryEntry -p "$hkcuCurrentVersion\Policies\Associations" -n 'DefaultFileTypeRisk' -v 0x1808 -t 'DWord'	# 0x1808 = "Low Risk"; 0x1807 = "Moderate", 0x1806 = "High Risk"
 	SetRegistryEntry -p "$hkcuCurrentVersion\Policies\Attachments" -n 'SaveZoneInformation' -v 1 -t 'DWord'			# 1 = "Do not preserve zone information", 2 = "Do preserve zone information"
 	# show explorer file operations in Detailed/Expanded mode
