@@ -82,6 +82,9 @@ GroupAdd "Explorer", gExplorerClassPostVista
 	msg .= "Process path = |" . WinGetProcessPath("A") . "|" . newline
 	MsgBox(msg)
 }
+#Numpad2:: {
+	A_Clipboard := WinGetTitle("A")
+}
 
 ; move window to virtual desktop to the left
 +^#left::VD.MoveWindowToRelativeDesktopNum("A", -1) ;.follow()		; .follow() not really working, just flashes the screen
