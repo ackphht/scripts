@@ -62,19 +62,22 @@ test -n $currShell && test -f ~/scripts/showAppVersions.sh && alias sav="$currSh
 
 if hasCmd lsd; then
 	alias ls='lsd --group-directories-first'
-	alias ll='ls -AlFhv'
+	alias ll='ls -lFhv'
+	alias lla='ls -AlFhv'
 	alias l='ls -AFv'
 	alias lt='ls -AFv --tree'
 	alias llt='ll --tree'
 else
 	case $platform in
 		Linux|MINGW*|MSYS*|CYGWIN*)
-			alias ll='ls -AlFhv --group-directories-first'
+			alias ll='ls -lFhv --group-directories-first'
+			alias lla='ls -AlFhv --group-directories-first'
 			alias l='ls -AFv --group-directories-first'
 			;;
 		Darwin|FreeBSD)
 			alias ls='ls -G'	# -G sorta equivalent to --color=auto except it will work in ssh, too
-			alias ll='ls -AlFhv'
+			alias ll='ls -lFhv'
+			alias lla='ls -AlFhv'
 			alias l='ls -AFv'
 			;;
 		OpenBSD|NetBSD|DragonFly)
@@ -82,7 +85,8 @@ else
 			if [[ "$platform" == "DragonFly" ]]; then
 				alias ls='ls -G'
 			fi
-			alias ll='ls -AlFh'
+			alias ll='ls -lFh'
+			alias lla='ls -AlFh'
 			alias l='ls -AF'
 			;;
 	esac
