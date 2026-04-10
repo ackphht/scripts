@@ -59,31 +59,49 @@ if hasCmd git; then
 fi
 hasCmd man && [[ "$COLUMNS" -gt 120 ]] && export MANWIDTH=120 || true
 test -n $currShell && test -f ~/scripts/showAppVersions.sh && alias sav="$currShell ~/scripts/showAppVersions.sh" || true
+
+if hasCmd lsd; then
+	alias ls='lsd --group-directories-first'
+	alias ll='ls -AlFhv'
+	alias l='ls -AFv'
+	alias lt='ls -AFv --tree'
+	alias llt='ll --tree'
+else
+	case $platform in
+		Linux|MINGW*|MSYS*|CYGWIN*)
+			alias ll='ls -AlFhv --group-directories-first'
+			alias l='ls -AFv --group-directories-first'
+			;;
+		Darwin|FreeBSD)
+			alias ls='ls -G'	# -G sorta equivalent to --color=auto except it will work in ssh, too
+			alias ll='ls -AlFhv'
+			alias l='ls -AFv'
+			;;
+		OpenBSD|NetBSD|DragonFly)
+			# OpenBSD/NetBSD don't support colors ??
+			if [[ "$platform" == "DragonFly" ]]; then
+				alias ls='ls -G'
+			fi
+			alias ll='ls -AlFh'
+			alias l='ls -AF'
+			;;
+	esac
+fi
+# etc:
 case $platform in
 	Linux|MINGW*|MSYS*|CYGWIN*)
-		alias ll='ls -AlFhv --group-directories-first'
-		alias l='ls -AFv --group-directories-first'
 		hasCmd journalctl && alias cj="${sudoCmd}journalctl --vacuum-time=1d" || true
 		# ???
 		#alias reboot="${sudoCmd}reboot --reboot"
 		#alias shutdown="${sudoCmd}halt --poweroff --force --no-wall"
 		;;
 	Darwin|FreeBSD)
-		alias ls='ls -G'	# -G sorta equivalent to --color=auto except it will work in ssh, too
-		alias ll='ls -AlFhv'
-		alias l='ls -AFv'
 		alias grep='grep --color=auto'
 		alias fgrep='fgrep --color=auto'
 		alias egrep='egrep --color=auto'
 		alias diff='diff --color=auto'
 		;;
 	OpenBSD|NetBSD|DragonFly)
-		# OpenBSD/NetBSD don't support colors ??
-		if [[ "$platform" == "DragonFly" ]]; then
-			alias ls='ls -G'
-		fi
-		alias ll='ls -AlFh'
-		alias l='ls -AF'
 		;;
 esac
 
