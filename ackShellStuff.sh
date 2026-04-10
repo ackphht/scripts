@@ -61,12 +61,13 @@ hasCmd man && [[ "$COLUMNS" -gt 120 ]] && export MANWIDTH=120 || true
 test -n $currShell && test -f ~/scripts/showAppVersions.sh && alias sav="$currShell ~/scripts/showAppVersions.sh" || true
 
 if hasCmd lsd; then
+	# https://crates.io/crates/lsd
 	alias ls='lsd --group-directories-first'
-	alias ll='ls -lFhv'
-	alias lla='ls -AlFhv'
 	alias l='ls -AFv'
-	alias lt='ls -AFv --tree'
-	alias llt='ll --tree'
+	alias ll="ls -lFhv --date '+%d %b %Y %H:%M:%S'"		#'+%Y-%m-%d %H:%M:%S'"	#'+%b %d %Y %H:%M:%S'"	# uses strftime formatting, so look that up
+	alias lla='ll -A'
+	alias lt='l --tree'
+	alias llt='lla --tree'
 else
 	case $platform in
 		Linux|MINGW*|MSYS*|CYGWIN*)
