@@ -18,6 +18,12 @@ Set-StrictMode -Version Latest
 . $PSScriptRoot/setUpSystem.00.common.ps1
 Import-Module -Name $PSScriptRoot/populateSystemData -ErrorAction Stop
 
+<#
+	TODO:
+		add group policy settings to configure MS Store to not auto update (think only if >= Win11 24H2) (and should maybe ask first ??)
+		any more env vars we want to add: python, rust, etc ??
+#>
+
 function Main {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	[OutputType([void])]
@@ -194,8 +200,8 @@ function ConfigureWindowsAndExplorer {
 	# these could also be configure with group policies:
 	#    User Configuration > Administrative Templates > Windows Components > Attachment Manager > Default risk level for file attachments
 	#    User Configuration > Administrative Templates > Windows Components > Attachment Manager > Do not preserve zone information in file attachments
-	SetRegistryEntry -p "$hkcuCurrentVersion\Policies\Associations" -n 'DefaultFileTypeRisk' -v 0x1808 -t 'DWord'	# 0x1808 = "Low Risk"; 0x1807 = "Moderate", 0x1806 = "High Risk"
-	SetRegistryEntry -p "$hkcuCurrentVersion\Policies\Attachments" -n 'SaveZoneInformation' -v 1 -t 'DWord'			# 1 = "Do not preserve zone information", 2 = "Do preserve zone information"
+	SetRegistryEntry -p "$hkcuCurrentVersion\Policies\Associations" -n 'DefaultFileTypeRisk' -v 0x1808 -t 'DWord'	# 0x1808 = "Low Risk"; 0x1807 = "Moderate" (default), 0x1806 = "High Risk"
+	SetRegistryEntry -p "$hkcuCurrentVersion\Policies\Attachments" -n 'SaveZoneInformation' -v 1 -t 'DWord'			# 1 = "Do not preserve zone information", 2 = "Do preserve zone information" (default)
 	# show explorer file operations in Detailed/Expanded mode
 	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\OperationStatusManager" -n 'EnthusiastMode' -v 1 -t 'DWord'
 	# enable Large Icons in Control Panel:
@@ -259,11 +265,22 @@ function ConfigureWindowsAndExplorer {
 		SetRegistryEntry -p "$hkcuSoftwareMicrosoft\Windows\DWM" -n 'ColorPrevalence' -v 1 -t 'DWord'	# show accent colors on title bars and window borders
 		# set dark wallpaper if it's currently Windows 11 light wallpaper:
 		if ($osDetails.ReleaseVersion.Major -eq 11) {
+			<#
+			# this doesn't always work anymore, sometimes they turn on Spotlight:
 			$wp = GetRegPropertyValue -registryPath $hkcuCtrlDesktop -propertyName 'WallPaper'
 			if ($wp -like '*\img0.jpg')	{
 				$newWpPath = $wp -replace '\\img0\.jpg','\img19.jpg'
 				SetRegistryEntry -p $hkcuCtrlDesktop -n 'WallPaper' -v $newWpPath -t 'String'
 				[AckWare.WallpaperHelper]::SetWallpaper($newWpPath)
+			}
+			#>
+			# so just force it in:
+			$newWpPath = "$env:SystemRoot\Web\Wallpaper\Windows\img19.jpg"
+			if ((Test-Path -Path $newWpPath -PathType Leaf)) {
+				SetRegistryEntry -p $hkcuCtrlDesktop -n 'WallPaper' -v $newWpPath -t 'String'
+				[AckWare.WallpaperHelper]::SetWallpaper($newWpPath)
+			} else {
+				Write-Warning "could not set dark wallpaper: path does not exist: `"$newWpPath`""
 			}
 		}
 		# show some icons on desktop
