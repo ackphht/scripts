@@ -492,6 +492,7 @@ function DisableUnwantedScheduledTasks {
 		@{ Name = 'IntelSURQC*'; Path='\'; }					# Intel driver update thing (there was another one with some random looking name that i deleted before remembering to put it in here)
 		@{ Name = 'Dell SupportAssistAgent AutoUpdate'; Path='\'; }
 		@{ Name = 'Office Apps Prewarm*'; Path='\Microsoft\Office\'; }
+		@{ Name = 'Killer Startup Task'; Path=''; }
 	) | ForEach-Object { DisableScheduledTask -allSchedTasks $allTasks -taskName $_.Name -taskPath $_.Path }
 }
 
@@ -1180,6 +1181,7 @@ function CleanUpEnvVars {
 		'POSH_THEMES_PATH'
 		'POSH_INSTALLER'
 		'IGCCSVC_DB'	# very long Intel connection string or whatever; don't need it
+		'VBOX_MSI_INSTALL_PATH'
 	) | ForEach-Object { RemoveUnwantedEnvVar -envVarName $_ }
 
 	WriteHeaderMessage 'cleaning up unwanted Path variable entries'
