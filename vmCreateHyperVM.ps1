@@ -60,7 +60,7 @@ param(
 
 	[string]$isopath = '',
 
-	[ValidateNotNullOrEmpty()]
+	[ValidateScript( { if (-not $_ -or -not (Test-Path -LiteralPath $_ -PathType Container)) { throw "The hard drives path `"$_`" does not exist or is not a valid directory." } return $true } )]
 	[string]$hardDrivesPath = "$env:UserProfile\Virtual Machines\Hyper-V\Virtual Hard Disks",
 
 	[ValidateScript( { if (-not $_ -or -not (Get-VMSwitch -Name $_ -ErrorAction SilentlyContinue)) { throw "The network switch name '$_' does not exist: valid values are: $((Get-VMSwitch).Name -join ', ')" } return $true } )]
