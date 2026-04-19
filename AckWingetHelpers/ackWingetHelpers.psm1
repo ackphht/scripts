@@ -243,6 +243,12 @@ function Install-AckWingetPackage {
 		.PARAMETER version
 		optional version to be installed; if not specified, winget will install the latest version available
 
+		.PARAMETER installerType
+		Specify the installer type of the package to be installed (msix, exe, msi, etc)
+
+		.PARAMETER architecture
+		Specify the architecture of the package to be installed
+
 		.PARAMETER scope
 		If a package has both a machine and a user install available, this can be used to specify which one to install.
 
@@ -272,6 +278,12 @@ function Install-AckWingetPackage {
 
 		[string] $version = $null,
 
+		[ValidateSet('', 'default', 'exe', 'msi', 'wix', 'inno', 'nullsoft', 'zip', 'msix', 'burn', 'portable')]
+		[Alias('type')] [string] $installerType = '',
+
+		[ValidateSet('', 'default', 'x64', 'arm64', 'x86', 'arm')]
+		[Alias('arch')] [string] $architecture = '',
+
 		[ValidateSet('', 'machine', 'user')]
 		[string] $scope = '',
 
@@ -291,6 +303,8 @@ function Install-AckWingetPackage {
 		$parms.Add('Id', $packageId)
 		if ($exactIdMatch) { $parms.Add('MatchOption', 'Equals') }
 		if ($version) { $parms.Add('Version', $version) }
+		if ($installerType) { $parms.Add('InstallerType', $installerType) }
+		if ($architecture) { $parms.Add('Architecture', $architecture) }
 		if ($scope) { $parms.Add('Scope', $scope) }
 		if ($source) { $parms.Add('Source', $source) }
 		if ($forceSilent -and -not $installerArguments) {	# using --override with installer arguments apparently also implicitly implies --interactive
@@ -495,6 +509,15 @@ function Update-AckWingetPackage {
 		.PARAMETER version
 		optional version to be installed; if not specified, winget will install the latest version available
 
+		.PARAMETER installerType
+		Specify the installer type of the package to be installed (msix, exe, msi, etc)
+
+		.PARAMETER architecture
+		Specify the architecture of the package to be installed
+
+		.PARAMETER scope
+		If a package has both a machine and a user install available, this can be used to specify which one to install.
+
 		.PARAMETER source
 		limits finding the package to the specified source, either 'winget' or 'msstore' (this is passed to the winget '--source' param).
 		If nothing is specified, then any winget source can be used.
@@ -521,6 +544,15 @@ function Update-AckWingetPackage {
 
 		[string] $version = $null,
 
+		[ValidateSet('', 'default', 'exe', 'msi', 'wix', 'inno', 'nullsoft', 'zip', 'msix', 'burn', 'portable')]
+		[Alias('type')] [string] $installerType = '',
+
+		[ValidateSet('', 'default', 'x64', 'arm64', 'x86', 'arm')]
+		[Alias('arch')] [string] $architecture = '',
+
+		[ValidateSet('', 'machine', 'user')]
+		[string] $scope = '',
+
 		[ValidateSet('', 'winget', 'msstore')]
 		[string] $source = '',
 
@@ -537,6 +569,9 @@ function Update-AckWingetPackage {
 		$parms.Add('Id', $packageId)
 		if ($exactIdMatch) { $parms.Add('MatchOption', 'Equals') }
 		if ($version) { $parms.Add('Version', $version) }
+		if ($installerType) { $parms.Add('InstallerType', $installerType) }
+		if ($architecture) { $parms.Add('Architecture', $architecture) }
+		if ($scope) { $parms.Add('Scope', $scope) }
 		if ($source) { $parms.Add('Source', $source) }
 		if ($forceSilent -and -not $installerArguments) {	# using --override with installer arguments apparently also implicitly implies --interactive
 			$parms.Add('Mode', 'Silent')
@@ -582,20 +617,15 @@ function _installWingetPackage {
 	[OutputType([void])]
 	param(
 		[switch] $upgrade,
-
 		[Parameter(Position=0, Mandatory=$true)]
 		[string] $packageId,
-
 		[switch] $exactIdMatch,
-
 		[string] $version = $null,
-
+		[string] $installerType = $null,
+		[string] $architecture = $null,
 		[string] $scope = $null,
-
 		[string] $source = $null,
-
 		[string] $installerArguments = '',
-
 		[switch] $forceSilent
 	)
 
@@ -607,6 +637,8 @@ function _installWingetPackage {
 	[void] $sb.Append(' --id ').Append($packageId)
 	if ($exactIdMatch) { [void] $sb.Append(' --exact') }
 	if ($version) { [void] $sb.Append(' --version "').Append($version).Append('"') }
+	if ($installerType) { [void] $sb.Append(' --installer-type ').Append($installerType) }
+	if ($architecture) { [void] $sb.Append(' --architecture ').Append($architecture) }
 	if ($scope) { [void] $sb.Append(' --scope ').Append($scope) }
 	if ($source) { [void] $sb.Append(' --source ').Append($source) }
 	[void] $sb.Append(' --accept-package-agreements')
