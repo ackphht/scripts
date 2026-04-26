@@ -400,6 +400,7 @@ function DisableUnwantedServices {
 		@{ Name = 'Google Updater *Service'; Start = 'Manual'; }	# default for both is "Automatic"
 		#@{ Name = 'OptionsPlusUpdaterService'; Start = 'Manual'; }		# Logitech Options+ Updater; nevermind, apparently needed
 		@{ Name = 'SQLTELEMETRY$SQLEXPRESS'; Start = ''; }
+		@{ Name = 'FabCdRomService'; Start = ''; }					# some DvdFab service
 		#@{ Name = 'xxxxxxxxxxxxxxxx'; Start = ''; }
 	) | ForEach-Object { DisableService $_; }
 }
