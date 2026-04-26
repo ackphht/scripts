@@ -297,11 +297,15 @@ class Constants:
 	FldrScheme_SizeType = 0
 	FldrScheme_TypeSize = 1
 
+	tempFldr = pathlib.Path(os.path.expandvars("%UserProfile%/temp"))
 	# D: is my external large drive, so using that for the beaucoups of source files, and for temp files, instead of the small SSD:
-	bigDriveTemp = pathlib.Path('D:/').joinpath(*(pathlib.Path(os.path.expandvars("%UserProfile%/temp")).parts[1:]))
-	IconsSourceBasePath = bigDriveTemp / "linux/icons"									# where to find icon source files
-	WorkingFolder = IconsSourceBasePath / "_staging"									# folder for temp files
+	bigDriveTemp = pathlib.Path('D:/').joinpath(*(tempFldr.parts[1:]))
+	#IconsSourceBasePath = bigDriveTemp / "linux/icons"									# where to find icon source files
+	#WorkingFolder = IconsSourceBasePath / "_staging"									# folder for temp files
+	#PngsOutputPath = IconsSourceBasePath / "_staging"									# base folder for our PNG file cache
+	IconsSourceBasePath = tempFldr / "linux/icons"										# where to find icon source files
 	PngsOutputPath = IconsSourceBasePath / "_staging"									# base folder for our PNG file cache
+	WorkingFolder = bigDriveTemp														# folder for temp files
 	IconsOutputPath = pathlib.Path(os.path.expandvars("%UserProfile%/icons/linux"))		# final destination base folder
 
 	PathToInkscape = Helpers.FindOnPath('inkscape.exe')
@@ -2129,8 +2133,15 @@ class IconsToCopy:
 
 	def process(self, createIcosOnly : bool, copyPngsOnly: bool, onlyTheme : str, onlyType : str, onlyNames : List[str]):
 		#region some checks:
-		Helpers.LogVerbose(f"starting processing of iconsToCopy (contains {len(self.themeDefinitions)} themes)")
-		Helpers.LogVerbose(f"    createIcosOnly = {createIcosOnly}, copyPngsOnly = {copyPngsOnly}, onlyTheme = |{onlyTheme}|, onlyType = |{onlyType}|, onlyNames = |{', '.join(onlyNames)}|")
+		LogHelper.Verbose("starting processing of iconsToCopy (contains {0} themes)", len(self.themeDefinitions))
+		LogHelper.Verbose("    createIcosOnly = {0}, copyPngsOnly = {1}, onlyTheme = |{2}|, onlyType = |{3}|, onlyNames = |{4}|", createIcosOnly, copyPngsOnly, onlyTheme, onlyType, ', '.join(onlyNames))
+		LogHelper.Verbose('        inputBasePath = "{0}"', self.inputBasePath)
+		LogHelper.Verbose('         pngsBasePath = "{0}"', self.pngsBasePath)
+		LogHelper.Verbose('        iconsBasePath = "{0}"', self.iconsBasePath)
+		LogHelper.Verbose('             tempPath = "{0}"', self.tempPath)
+		LogHelper.Verbose('       PathToInkscape = "{0}"', Constants.PathToInkscape)
+		LogHelper.Verbose('    PathToImageMagick = "{0}"', Constants.PathToImageMagick)
+		LogHelper.Verbose('        PathToOptipng = "{0}"', Constants.PathToOptipng)
 
 		if createIcosOnly and copyPngsOnly:
 			# TODO: is there some way to do this above in the arg parsing definition/parsing??
@@ -2172,12 +2183,12 @@ class IconsToCopy:
 			SourceImagesCache.Open()
 			for th in self.themeDefinitions:
 				if onlyTheme and th.themeName != onlyTheme:
-					Helpers.LogVerbose(f"skipping iconTheme for '{th.themeName}', doesn't match --theme option '{onlyTheme}'")
+					LogHelper.Verbose("skipping iconTheme for '{0}', doesn't match --theme option '{1}'", th.themeName, onlyTheme)
 					continue
 				elif onlyTheme:
-					Helpers.LogVerbose(f"{Constants.LargeDivider}{os.linesep}processing theme '{th.themeName}'")
+					LogHelper.Verbose("{0}{1}processing theme '{2}'", Constants.LargeDivider, os.linesep, th.themeName)
 				else:
-					LogHelper.MessageMagenta(f"{Constants.LargeDivider}{os.linesep}processing theme '{th.themeName}'")
+					LogHelper.MessageMagenta("{0}{1}processing theme '{2}'", Constants.LargeDivider, os.linesep, th.themeName)
 				workUnit = IconThemeDefinition.WorkUnit(self.inputBasePath, self.pngsBasePath, self.iconsBasePath, createIcosOnly,
 														copyPngsOnly, onlyType, onlyNames, self.iconTypeLists, self.targetPngSizes)
 				th.process(workUnit)
