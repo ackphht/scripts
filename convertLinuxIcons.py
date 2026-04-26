@@ -226,16 +226,16 @@ class Helpers:
 		return Helpers._TempFile(prefix, fileExtension)
 
 	@staticmethod
-	def GetRelativePath(path : pathlib.Path):
+	def GetRelativePath(path : pathlib.Path) -> str:
 		if path.is_relative_to(Constants.IconsSourceBasePath):
-			return path.relative_to(Constants.IconsSourceBasePath)
+			return path.relative_to(Constants.IconsSourceBasePath).as_posix()
 		elif path.is_relative_to(Constants.PngsOutputPath):
-			return path.relative_to(Constants.PngsOutputPath)
+			return path.relative_to(Constants.PngsOutputPath).as_posix()
 		elif path.is_relative_to(Constants.IconsOutputPath):
-			return path.relative_to(Constants.IconsOutputPath)
+			return path.relative_to(Constants.IconsOutputPath).as_posix()
 		elif Helpers.TempPath is not None and path.is_relative_to(Helpers.TempPath):
-			return path.relative_to(Helpers.TempPath)
-		return path
+			return path.relative_to(Helpers.TempPath).as_posix()
+		return path.as_posix()
 
 	@staticmethod
 	def AddExtension(file : pathlib.Path, newExtension : str) -> pathlib.Path:
@@ -249,12 +249,12 @@ class Helpers:
 							originalSourceFile : pathlib.Path = None, isIco : bool = False, messageSuffix : str = ""):
 		def logOperation(operation : str, updatePath : pathlib.Path, origSourcePath : pathlib.Path, isIco : bool, msgSuffix : str):
 			if isIco:
-				LogHelper.Message2(f"{operation} file '{Helpers.GetRelativePath(updatePath)}'{messageSuffix}")
+				LogHelper.MessageGreen(f"{operation} file '{Helpers.GetRelativePath(updatePath)}'{messageSuffix}")
 			else:
 				if origSourcePath:
-					LogHelper.Message(f"{operation} '{Helpers.GetRelativePath(origSourcePath)}' to '{Helpers.GetRelativePath(updatePath)}'{msgSuffix}")
+					LogHelper.MessageGray(f"{operation} '{Helpers.GetRelativePath(origSourcePath)}' to '{Helpers.GetRelativePath(updatePath)}'{msgSuffix}")
 				else:
-					LogHelper.Message(f"{operation} file '{Helpers.GetRelativePath(updatePath)}'{messageSuffix}")
+					LogHelper.MessageGray(f"{operation} file '{Helpers.GetRelativePath(updatePath)}'{messageSuffix}")
 
 		# TODO: existing code here assumes we've already checked that primUpdateTargetFile does exist (checked by caller), but altUpdateTargetFile
 		# 		has NOT been checked yet; maybe that could be made more consistent ???
@@ -299,10 +299,10 @@ class Constants:
 
 	# D: is my external large drive, so using that for the beaucoups of source files, and for temp files, instead of the small SSD:
 	bigDriveTemp = pathlib.Path('D:/').joinpath(*(pathlib.Path(os.path.expandvars("%UserProfile%/temp")).parts[1:]))
-	WorkingFolder = bigDriveTemp / "linux/icons/_staging"
-	IconsSourceBasePath = bigDriveTemp / "linux/icons"
-	PngsOutputPath = bigDriveTemp / "linux/icons/_staging"
-	IconsOutputPath = pathlib.Path(os.path.expandvars("%UserProfile%/icons/linux"))
+	IconsSourceBasePath = bigDriveTemp / "linux/icons"									# where to find icon source files
+	WorkingFolder = IconsSourceBasePath / "_staging"									# folder for temp files
+	PngsOutputPath = IconsSourceBasePath / "_staging"									# base folder for our PNG file cache
+	IconsOutputPath = pathlib.Path(os.path.expandvars("%UserProfile%/icons/linux"))		# final destination base folder
 
 	PathToInkscape = Helpers.FindOnPath('inkscape.exe')
 	PathToImageMagick = Helpers.FindOnPath('magick.exe')
@@ -449,7 +449,7 @@ class SourceImagesCache:
 	@staticmethod
 	def _hasFileChanged(file: pathlib.Path, md5: bytes, query: str, paramName: str) -> bool:
 		fileRelPath = Helpers.GetRelativePath(file)
-		params = { paramName: str(fileRelPath.as_posix()), }
+		params = { paramName: fileRelPath, }
 		cursor = SourceImagesCache._dbConnection.execute(query, params)
 		row = cursor.fetchone()
 		if row:
@@ -459,7 +459,7 @@ class SourceImagesCache:
 	@staticmethod
 	def _upsertFileData(file: pathlib.Path, md5: bytes, table: str, query: str, fileParamName: str) -> None:
 		fileRelPath = Helpers.GetRelativePath(file)
-		params = { fileParamName: str(fileRelPath.as_posix()), "md5": md5, }
+		params = { fileParamName: fileRelPath, "md5": md5, }
 		if SourceImagesCache.WhatIfEnabled:
 			Helpers.LogVerbose(f'WhatIf: updating sourceImagesCache db table "{table}" for file "{fileRelPath.as_posix()}", md5 = "{md5.hex()}"')
 		else:
@@ -991,14 +991,14 @@ class IcoFilesHelper:
 
 		Helpers.LogVerbose(f'creating ICO file "{{{nameForLogging}}}" from {len(sourceImgs)} png files:{sourceImgs}')
 		if not primOutputFile.exists():
-			# create an icon in place using the primary name, and we're done
+			# create ICO in place using the primary name, and we're done
 			Helpers.LogVerbose("icon with primary name does not exist: converting source to target")
-			LogHelper.MessageCyan(f'creating ICO file "{Helpers.GetRelativePath(primOutputFile)}"{altSourceNameMsg}')
+			LogHelper.MessageGreen(f'creating ICO file "{Helpers.GetRelativePath(primOutputFile)}"{altSourceNameMsg}')
 			if not IcoFilesHelper._createIcoFile(sourceImgs, primOutputFile):
 				return False
 		else:
+			# create ICO in temp location and then move to final location if file actually updated:
 			with Helpers.GetTempFile(prefix="ack", fileExtension=".ico") as tempFile:
-				# create icon in temp location and then move to final location if file actually updated:
 				Helpers.LogVerbose(f'icon with primary name exists, creating temp ICO file "{Helpers.GetRelativePath(tempFile)}"')
 				if not IcoFilesHelper._createIcoFile(sourceImgs, tempFile, ignoreWhatIf=True):
 					return False
@@ -1181,6 +1181,7 @@ class Icon:
 	#endregion
 
 	def copyPngsAndCreateIco(self, workUnit : CopyPngsAndCreateIcoWorkUnit):
+		"""this is the normal flow. This will iterate all the icon source files, create PNGs as necessary, and then create ICO files from those PNGs."""
 		templateParms = TemplateHandler(workUnit.pngPrimaryNameTemplate, workUnit.pngAltNameTemplate, workUnit.icoPrimaryNameTemplate, workUnit.icoAltNameTemplate,
 										primaryName='', alternateName='', theme=workUnit.themeName, size='', type=workUnit.typeName, distro=workUnit.distroName)
 
@@ -1226,6 +1227,7 @@ class Icon:
 			IcoFilesHelper.CreateIcoFileFromSources(iconFiles, workUnit.iconsBasePath, templateParms)
 
 	def createIcoFromPngs(self, workUnit : CreateIcoWorkUnit):
+		"""this is what's called when --createIcosOnly is used, so this will assume all the PNGs already exist, and just try to create ICOs"""
 		templateParms = TemplateHandler(workUnit.pngPrimaryNameTemplate, workUnit.pngAltNameTemplate, workUnit.icoPrimaryNameTemplate, workUnit.icoAltNameTemplate,
 										primaryName='', alternateName='', size='', theme=workUnit.themeName, type=workUnit.typeName, distro=workUnit.distroName)
 		Helpers.LogVerbose(Constants.SmallDivider)
@@ -1368,7 +1370,7 @@ class IconThemeDefinition:
 			elif workUnit.onlyType:
 				Helpers.LogVerbose(f"processing iconType '{iconList.baseTypeName}'")
 			else:
-				LogHelper.MessageGreen(f"processing iconType '{iconList.baseTypeName}'")
+				LogHelper.MessageCyan(f"processing iconType '{iconList.baseTypeName}'")
 			pngsOutputPath = workUnit.pngsBasePath / self.outputFolderTemplate.format(theme = self.themeName, distro = self.distroName, type = iconList.getOutputTypename(self.themeName))
 			iconOutputPath = workUnit.iconsBasePath / iconList.getOutputTypename(self.themeName)
 
@@ -1415,6 +1417,8 @@ class IconsToCopy:
 			TargetPngSize(512, includeInIco=False, includeInPngs=False), TargetPngSize(1024, includeInIco=False, includeInPngs=False)
 		]
 		self._themeDefinitions : List[IconThemeDefinition] = [
+			IconThemeDefinition("Adwaita", "NA", "_oss/adwaita-icon-theme/Adwaita", Constants.FldrScheme_SizeType,
+				SourceImageSizeFolderMap(["16x16"], None, None, None, None, None, None, None, None, None, None)),
 			IconThemeDefinition("breeze", "NA", "_oss/breeze-icons/icons", Constants.FldrScheme_TypeSize,
 				SourceImageSizeFolderMap(["16"], ["22"], ["32"], ["48"], ["64"], None, None, None, None, None, None)),
 			IconThemeDefinition("Deepin", "NA", "_oss/Deepin-icon-theme", Constants.FldrScheme_SizeType,
@@ -1425,6 +1429,8 @@ class IconsToCopy:
 				SourceImageSizeFolderMap(["16"], ["24"], ["32", "16@2x"], ["48", "24@2x"], ["64", "32@2x"], ["96", "48@2x"], ["128", "64@2x"], ["96@2x"], ["256", "128@2x"], ["256@2x"], None)),
 			IconThemeDefinition("Mint-L", "NA", "_oss/mint-l-icons/usr/share/icons/Mint-L", Constants.FldrScheme_TypeSize,
 				SourceImageSizeFolderMap(["16"], ["24", "22"], ["32", "16@2x"], ["48", "24@2x"], ["64", "32@2x"], ["96", "48@2x"], ["128", "64@2x"], ["96@2x"], ["256", "128@2x"], ["256@2x"], None)),
+			IconThemeDefinition("Numix", "NA", "_oss/numix-icon-theme/Numix", Constants.FldrScheme_SizeType,
+				SourceImageSizeFolderMap(["16"], ["24", "22"], ["32", "16@2x"], ["48", "24@2x"], ["64", "32@2x"], ["48@2x"], ["64@2x"], None, None, None, None)),
 			IconThemeDefinition("oxygen", "NA", "_oss/oxygen-icons5", Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["22x22"], ["32x32"], ["48x48"], ["64x64"], None, ["128x128"], None, ["256x256"], None, None)),
 			IconThemeDefinition("Paper", "NA", "_oss/paper-icon-theme/Paper", Constants.FldrScheme_SizeType,
@@ -1437,17 +1443,15 @@ class IconsToCopy:
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32", "16x16@2x"], ["48x48", "24x24@2x"], ["32x32@2x"], ["48x48@2x"], None, None, ["256x256"], ["256x256@2x"], None)),
 			# ??? think Zorin is just a fork of Paper (or maybe other way around ??)...
 			#IconThemeDefinition("Zorin", "NA", "_oss/zorin-icon-themes/Zorin", Constants.FldrScheme_SizeType,
-			#	SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32", "16x16@2x"], ["48x48", "24x24@2x"], ["32x32@2x"], ["48x48@2x"], None, None, None, ["512x512"], ["512x512@2x"])),
-			# found repo for 'Adwaita', but it's weird: bigger filesize, but much fewer files, so ??
-			IconThemeDefinition("Adwaita", "fedora/40", None, Constants.FldrScheme_SizeType,
-				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], ["96x96"], None, None, ["256x256"], ["512x512"], None)),
+			##	SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32", "16x16@2x"], ["48x48", "24x24@2x"], ["32x32@2x"], ["48x48@2x"], None, None, None, ["512x512"], ["512x512@2x"])),
+			## found repo for 'Adwaita', but it's weird: bigger filesize, but much fewer files, so ??
+			#IconThemeDefinition("Adwaita", "fedora/40", None, Constants.FldrScheme_SizeType,
+			#	SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], ["96x96"], None, None, ["256x256"], ["512x512"], None)),
 			IconThemeDefinition("gnome", "mint/22.0", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], ["64x64"], None, ["128x128"], None, ["256x256"], ["512x512"], None)),
-			# found repo for 'mate', but it seems to have less in it ??
-			IconThemeDefinition("mate", "mint/22.0", None, Constants.FldrScheme_SizeType,
+			# found repo for 'mate', but it seems to have less in it ?? -> think repo is missing most of the symlinks, which, ??
+			IconThemeDefinition("mate", "mint/22.3", None, Constants.FldrScheme_SizeType,
 				SourceImageSizeFolderMap(["16x16"], ["24x24", "22x22"], ["32x32"], ["48x48"], None, None, None, None, ["256x256"], None, None)),
-			IconThemeDefinition("Numix", "mint/22.0", None, Constants.FldrScheme_SizeType,
-				SourceImageSizeFolderMap(["16"], ["24", "22"], ["32"], ["48"], ["64"], None, None, None, None, None, None)),
 			IconThemeDefinition("Humanity", "ubuntu/24.10", None, Constants.FldrScheme_TypeSize,
 				SourceImageSizeFolderMap(["16"], ["24"], ["32"], ["48"], ["64"], None, ["128"], ["192"], ["256"], None, None)),
 		]
@@ -1544,6 +1548,7 @@ class IconsToCopy:
 				Icon("text-html", ["application-html", "application-x-mswinurl"], ["htm", "html"]),
 				Icon("text-less"),		# this doesn't show up in the mime list xml files; and not sure if there are any aliases or if this should be 'application-less' ??
 				Icon("text-markdown", ["text-x-markdown"], ["md", "markdown", "mkd"]),
+				Icon("text-asciidoc", ["adoc", "asciidoc"]),
 				Icon("text-plain", ["text-x-generic", "ascii"], ["txt"]),
 				Icon("text-richtext", extensions=["rtx"]),		# apparently not the same as 'application-rtf' ??
 				Icon("text-rust", extensions=["rs"]),
