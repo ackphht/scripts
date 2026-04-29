@@ -124,7 +124,7 @@ if [[ "$platform" != "Darwin" ]] && hasCmd apt; then	# macOs (at least version i
 	alias aptl='apt list --installed'
 elif hasCmd dnf; then
 	if hasCmd dnf5; then
-		alias aptr="dnf5 advisory summary --refresh"
+		alias aptr="${sudoCmd}dnf5 advisory summary --refresh"
 		alias aptul="dnf5 check-upgrade"
 		alias aptuu="${sudoCmd}dnf5 distro-sync --assumeyes"
 	else
