@@ -594,6 +594,36 @@ function Update-AckWingetPackage {
 	}
 }
 
+function Update-AckWingetSources {
+	<#
+		.SYNOPSIS
+		Calls winget to refresh package sources
+
+		.DESCRIPTION
+		Calls winget to refresh package sources
+
+		.PARAMETER source
+		update only the specified source; if not specified, updates all sources
+
+		.OUTPUTS
+		None
+	#>
+	[CmdletBinding(SupportsShouldProcess=$true)]
+	[OutputType([void])]
+	param(
+		[Alias('src')] [string] $source = ''
+	)
+	if (-not $PSBoundParameters.ContainsKey('ErrorAction')) { $ErrorActionPreference = $PSCmdlet.GetVariableValue('ErrorActionPreference') }
+	if (-not $PSBoundParameters.ContainsKey('Verbose')) { $VerbosePreference = $PSCmdlet.GetVariableValue('VerbosePreference') }
+	if (-not $PSBoundParameters.ContainsKey('WhatIf')) { $WhatIfPreference = $PSCmdlet.GetVariableValue('WhatIfPreference') }
+	# no Microsoft.WinGet.Client cmdlet for this one (yet?):
+	$cmd = 'winget.exe source update'
+	if ($source) { $cmd += " --name $source" }
+
+	Write-Verbose "$($MyInvocation.InvocationName): calling winget.exe (no cmdlet for this): command = |$cmd|"
+	_invokeWingetCommand -command $cmd
+}
+
 #region helper functions
 function _invokeWingetCommand {
 	[CmdletBinding(SupportsShouldProcess=$true)]
@@ -704,4 +734,5 @@ Set-Alias -Name 'wgx' -Value 'Uninstall-AckWinGetPackage'
 Set-Alias -Name 'wgul' -Value 'Get-AckWingetOutdatedPackages'
 Set-Alias -Name 'wgu' -Value 'Update-AckWingetPackage'
 Set-Alias -Name 'wgrepo' -Value 'Show-AckWingetPackageRepository'
+Set-Alias -Name 'wgr' -Value 'Update-AckWingetSources'
 #endregion

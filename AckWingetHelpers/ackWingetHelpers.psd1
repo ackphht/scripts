@@ -20,6 +20,7 @@
 		'Get-AckWingetOutdatedPackages'
 		'Update-AckWingetPackage'
 		'Show-AckWingetPackageRepository'
+		'Update-AckWingetSources'
 	)
 	# Cmdlets to export from this module
 	CmdletsToExport = ''	# setting this to empty string to keep Microsoft.WinGet.Client cmdlets from getting exported from here
