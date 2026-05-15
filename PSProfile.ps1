@@ -415,9 +415,24 @@ if ([bool](Get-Command -Name fastfetch -CommandType Application -ErrorAction Ign
 	Set-Alias -Name 'ff' -Value @(Get-Command -Name fastfetch -CommandType Application)[0].Source
 }
 _showTime $currentNow 'checking/adding fastfetch alias'
+# python manager:
+$currentNow = _getts
+if ($ackIsWindows -and [bool](Get-Command -Name pymanager.exe -CommandType Application -ErrorAction Ignore) -and (-not [bool](Get-Alias -Name 'pyi' -ErrorAction Ignore))) {
+	function _pyInstall { & pymanager.exe install @args }
+	Set-Alias -Name 'pyi' -Value '_pyInstall'
+	function _pyUninstall { & pymanager.exe uninstall @args }
+	Set-Alias -Name 'pyx' -Value '_pyUninstall'
+	function _pyUpdate { & pymanager.exe install --update @args }
+	Set-Alias -Name 'pyu' -Value '_pyUpdate'
+	function _pyList { & pymanager.exe list @args }
+	Set-Alias -Name 'pyl' -Value '_pyList'
+	function _pyListAvailable { & pymanager.exe list --online @args }
+	Set-Alias -Name 'pya' -Value '_pyListAvailable'
+}
+_showTime $currentNow 'checking/adding pymanager aliases'
 # pip
 $currentNow = _getts
-if ($ackIsWindows-and [bool](Get-Command -Name python.exe -CommandType Application -ErrorAction Ignore) -and (-not [bool](Get-Alias -Name 'pipi' -ErrorAction Ignore))) {
+if ($ackIsWindows -and [bool](Get-Command -Name python.exe -CommandType Application -ErrorAction Ignore) -and (-not [bool](Get-Alias -Name 'pipi' -ErrorAction Ignore))) {
 	function Invoke-PipList { python.exe -m pip list }
 	Set-Alias -Name 'pipl' -Value 'Invoke-PipList'
 	function Invoke-PipListUpdates { python.exe -m pip list --outdated }
