@@ -26,8 +26,8 @@ sudo which sysctl >/dev/null 2>&1 && sudo sysctl -a | sort -f > sysctl.log || ec
 if [[ $(uname -s) == "Linux" ]]; then
 	hasCmd lsb_release && lsb_release -a > lsb_release.log 2>/dev/null || echo "WARNING: lsb_release not found"
 fi
-hasCmd screenfetch && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
-hasCmd neofetch && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
+#hasCmd screenfetch && screenfetch -N > screenfetch.log 2>/dev/null || echo "WARNING: screenfetch not found"
+#hasCmd neofetch && neofetch --stdout > neofetch.log 2>/dev/null || echo "WARNING: neofetch not found"
 hasCmd fastfetch && fastfetch > fastfetch.log 2>/dev/null || true
 hasCmd python3 && test -f $scriptRoot/ackfetch.py && python3 $scriptRoot/ackfetch.py -an > ackfetch.log 2>/dev/null || true
 if hasCmd hostnamectl ; then
