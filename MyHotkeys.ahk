@@ -113,8 +113,8 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^#l::RunAndActivate(EnvGet("ProgramFiles") . "\LINQPad9\LINQPad9.exe", , , , "LINQPad 9")
 ;^#m::LookForAndRunMsdnHelp()
 ^#m::RunAndActivate(EnvGet("UserProfile") . "\dev\MyProjects\AckAptMaint\publish\win-x64\AckAptMaint.exe", , , , "AckApt DB Maintenance")
-^#n::RunAndActivate(FindNotepad3(), , , , , true)
-^!#n::RunNotepadPlusPlus()
+^#n::RunAndActivate(FindApp("notepad3", "\Notepad3\notepad3.exe", "notepad.exe"), , , , , true)
+^!#n::RunAndActivate(FindApp("notepad++", "\Notepad++\notepad++.exe"))
 ^#o::RunOneNote()
 ^+#o::RunAndActivate("olk.exe", , , "Outlook Host")
 !+#o::RunAndActivate(FindApp("outlook"), , , "rctrl_renwnd32")
@@ -325,14 +325,6 @@ FindPowerShellCore() {
 	return FindApp("pwsh", "", "pwsh.exe")
 }
 
-FindNotepad3() {
-	return FindApp("notepad3", "\Notepad3\notepad3.exe", "notepad.exe")
-}
-
-FindNotepadPlusPus() {
-	return FindApp("notepad++", "\Notepad++\notepad++.exe")
-}
-
 FindSyncBackPro(asAdmin := false) {
 	appPath := FindApp("SyncBackPro", "\2BrightSparks\SyncBackPro\SyncBackPro.exe")
 	if (appPath and !asAdmin) {
@@ -340,15 +332,6 @@ FindSyncBackPro(asAdmin := false) {
 	}
 	OutputDebug('FindSyncBackPro: returning path "' . appPath . '"')
 	return appPath
-}
-
-RunNotepadPlusPlus() {
-	notepadPlusPlusPath := FindNotepadPlusPus()
-	if (notepadPlusPlusPath != "") {
-		RunAndActivate(notepadPlusPlusPath, , , "Notepad++")
-	} else {
-		MsgBox("Could not find Notepad++.")
-	}
 }
 
 CheckRegistryForAppPath(appName) {
