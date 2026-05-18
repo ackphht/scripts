@@ -116,6 +116,8 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^#n::RunAndActivate(FindNotepad3(), , , , , true)
 ^!#n::RunNotepadPlusPlus()
 ^#o::RunOneNote()
+^+#o::RunAndActivate("olk.exe", , , "Outlook Host")
+!+#o::RunAndActivate(FindApp("outlook"), , , "rctrl_renwnd32")
 !#o::RunAndActivate(EnvGet("LocalAppData") . "\Programs\Obsidian\Obsidian.exe", , , , "Obsidian")
 ;!#p::RunAndActivate("shell:AppsFolder\8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy!bitwardendesktop")
 !#p::RunAndActivate(EnvGet("LocalAppData") . "\Programs\Bitwarden\Bitwarden.exe", , , , "Bitwarden")
@@ -451,6 +453,9 @@ OpenFolderDefault(folderName, asAdmin := false) {
 }
 
 RunAndActivate(target, arguments := "", workingDir := "", className := "", winTitle := "", allowMult := false) {
+	if (!target) {
+		throw ValueError("RunAndActivate: target is empty")
+	}
 	; if there are args, can't just check for an existing app; just "start" a new one
 	; and let the app figure it out if there's only supposed to be one instance:
 	if (arguments) {
