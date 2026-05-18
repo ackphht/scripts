@@ -91,8 +91,8 @@ function _optimizeVhd {
 			break
 		}
 		'VirtualBox' {
-			if ($PSCmdlet.ShouldProcess($vhdPath, 'VBoxManage.exe')) {
-				VBoxManage.exe modifyhd $vhdPath --compact
+			if ($PSCmdlet.ShouldProcess($vhdPath, 'VBoxManage')) {
+				VBoxManage modifyhd $vhdPath --compact
 			}
 			break
 		}

@@ -31,7 +31,7 @@ function GetVirtualBoxVms {
 	[OutputType([VirtualBoxVm[]])]
 	param()
 	$vms = [VirtualBoxVm[]]@()
-	VBoxManage.exe list vms |
+	VBoxManage list vms |
 		Select-String -Pattern '"(?<name>[^"]+)" {(?<id>[0-9a-f\-]+)}' -NoEmphasis |
 		ForEach-Object {
 			$vms += ([VirtualBoxVm]::new($_.Matches[0].Groups['name'].Value, $_.Matches[0].Groups['id'].Value))
@@ -44,7 +44,7 @@ function GetVirtualBoxVms {
 	#
 	# get some more VM props:
 	foreach ($vm in $vms) {
-		$lines = VBoxManage.exe showvminfo $vm.Uuid --machinereadable
+		$lines = VBoxManage showvminfo $vm.Uuid --machinereadable
 		foreach ($line in $lines) {
 			$line = $line.Trim()
 			switch -regex ($line) {
@@ -69,7 +69,7 @@ function GetVirtualBoxHdds {
 	param()
 	$hdds = [VirtualBoxHdd[]]@()
 	$currHdd = $null
-	$lines = VBoxManage.exe list hdds --long	# errors if we try to pipe straight into a ForEach ???
+	$lines = VBoxManage list hdds --long	# errors if we try to pipe straight into a ForEach ???
 	foreach ($line in $lines) {
 		$line = $line.Trim()
 		# if blank line, start new object:

@@ -25,7 +25,7 @@ function Main {
 		ForEach-Object { BackUpHyperVVM -vm $_ -backupFolder $hyperVBackupFolder }
 	#
 	# back up VirtualBox VMs:
-	if ((Get-Command -Name 'VBoxManage.exe' -ErrorAction SilentlyContinue)) {
+	if ((Get-Command -Name 'VBoxManage' -ErrorAction SilentlyContinue)) {
 		. $PSScriptRoot/vmVirtualBoxCommon.ps1
 		$virtualBoxBackupFolder = Join-Path $baseBackupFolder 'VirtualBox'
 		GetVirtualBoxVms |
@@ -33,7 +33,7 @@ function Main {
 			Where-Object { $_.Name -notmatch $skipsRe -and $_.Name -notlike 'Live*' } |
 			ForEach-Object { BackUpVirtualBoxVM -vm $_ -backupFolder $virtualBoxBackupFolder }
 	} else {
-		Write-Host "VBoxManage.exe not found, cannot back up any VirtualBox VMs" -ForegroundColor Yellow
+		Write-Host "VBoxManage not found, cannot back up any VirtualBox VMs" -ForegroundColor Yellow
 	}
 }
 
@@ -95,9 +95,9 @@ function BackUpVirtualBoxVM {
 	}
 	# now create the backup:
 	Write-Host "backing up VirtualBox VM '$($vm.Name)'" -ForegroundColor Cyan
-	if ($PSCmdlet.ShouldProcess("$($vm.Name) [backup file: $vmBackupFilePath]", 'VBoxManage.exe export')) {
+	if ($PSCmdlet.ShouldProcess("$($vm.Name) [backup file: $vmBackupFilePath]", 'VBoxManage export')) {
 		# TODO?: not sure about the 'nomacsbutnat'; since this is just for backup purposes, might want to leave that off and get all mac addresses ???
-		VBoxManage.exe export $vm.Uuid --output $vmBackupFilePath --options=manifest,nomacsbutnat
+		VBoxManage export $vm.Uuid --output $vmBackupFilePath --options=manifest,nomacsbutnat
 	}
 }
 
