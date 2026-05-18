@@ -56,7 +56,7 @@ class FileHelpers:
 		return FileHelpers._getFileHash(file, "sha256")
 
 	@staticmethod
-	def FindOnPath(exe: str) -> pathlib.Path:
+	def FindOnPath(exe: str) -> pathlib.Path|None:
 		exepath = shutil.which(exe)
 		if exepath:
 			return pathlib.Path(exepath)

@@ -308,8 +308,8 @@ class Constants:
 	WorkingFolder = bigDriveTemp														# folder for temp files
 	IconsOutputPath = pathlib.Path(os.path.expandvars("%UserProfile%/icons/linux"))		# final destination base folder
 
-	PathToInkscape = Helpers.FindOnPath('inkscape.exe')
-	PathToImageMagick = Helpers.FindOnPath('magick.exe')
+	PathToInkscape = Helpers.FindOnPath('inkscape')
+	PathToImageMagick = Helpers.FindOnPath('magick')
 	PathToOptipng = Helpers.FindOnPath('optipng.exe')
 
 	AllSupportedExtensions = ['.png', '.svg', '.svgz']
