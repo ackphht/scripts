@@ -42,7 +42,7 @@ function Main {
 	if ([System.Net.ServicePointManager]::SecurityProtocol -ne 0 <# SystemDefault (added in 4.7/Core) #> -and
 		([System.Net.ServicePointManager]::SecurityProtocol -band [System.Net.SecurityProtocolType]::Tls12) -eq 0)
 	{
-		Write-Verbose "$($MyInvocation.InvocationName): changing default SecurityProtocol to enable TLS 1.2"
+		WriteVerboseMessage -message 'changing default SecurityProtocol to enable TLS 1.2'
 		[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor [System.Net.SecurityProtocolType]::Tls12
 	}
 
@@ -54,7 +54,7 @@ function Main {
 	}
 
 	$osDetails = Get-OSDetails
-	Write-Verbose "$($MyInvocation.InvocationName): osDetails = |$(ConvertTo-Json -InputObject $osdetails -Depth 100)|"
+	WriteVerboseMessage -msgScript { "osDetails = |$(ConvertTo-Json -InputObject $osdetails -Depth 100)|" }
 
 	if ($all -or $onlyWinExplrFlags) {
 		WriteStatusHeader
@@ -151,9 +151,10 @@ function ConfigureWindowsAndExplorer {
 	param (
 		[PSObject] $osDetails
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): configuring windows and explorer settings"
+	WriteVerboseMessage -message 'configuring windows and explorer settings'
 
 	$hklmSoftware = 'HKLM:\SOFTWARE'
+	$hkcuSoftware = 'HKCU:\SOFTWARE'
 	$hkcuClasses = 'HKCU:\Software\Classes'
 	$hklmCurrCtrlSet = 'HKLM:\SYSTEM\CurrentControlSet'
 	$hkcuSoftwareMicrosoft = 'HKCU:\Software\Microsoft'
@@ -165,7 +166,9 @@ function ConfigureWindowsAndExplorer {
 	$hkcuCtrlPnl = 'HKCU:\Control Panel'
 	$hkcuCtrlDesktop = "$hkcuCtrlPnl\Desktop"
 	$hkcuCtrlPnlIntl = "$hkcuCtrlPnl\International"
+	$hkcuPoliciesMicrosoft = "$hkcuSoftware\Policies\Microsoft"
 	$hklmPoliciesMicrosoft = "$hklmSoftware\Policies\Microsoft"
+	$hklmCurrentVersion = "$hklmSoftware\Microsoft\Windows\CurrentVersion"
 
 	# disable Windows Script Host
 	SetRegistryEntry -p "$hkcuSoftwareMicrosoft\Windows Script Host\Settings" -n 'Enabled' -v 0 -t 'DWord'
@@ -180,6 +183,10 @@ function ConfigureWindowsAndExplorer {
 	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iDate' -v '2' -t 'String'
 	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iTime' -v '1' -t 'String'
 	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iTLZero' -v '1' -t 'String'
+	# enable new sudo command:
+	SetRegistryEntry -p "$hklmCurrentVersion\Sudo" -n 'Enabled' -v 3 -t 'DWord'							# 0 = ??, 1 = in a new window, 2 = "with input disabled"(??), 3 = inline mode
+	# enable DeveloperMode:
+	SetRegistryEntry -p "$hklmCurrentVersion\AppModelUnlock" -n 'AllowDevelopmentWithoutDevLicense' -v 1 -t 'DWord'
 	# Explorer options:
 	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowRecent' -v 0 -t 'DWord'						# don't show recent files in Quick Access
 	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowFrequent' -v 1 -t 'DWord'					# do show frequent folders in Quick Access
@@ -192,6 +199,7 @@ function ConfigureWindowsAndExplorer {
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'LaunchTo' -v 1 -t 'DWord'					# Open File Explorer to "This PC" (2 = Quick Access)
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'SeparateProcess' -v 0 -t 'DWord'				# disable launch folders in separate process
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'ShowTaskViewButton' -v 0 -t 'DWord'			# hide Task View button on taskbar
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'NavPaneShowVersionControl' -v 1 -t 'DWord'	# ??? not sure yet what this does, but it sounds good to have
 	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\CabinetState" -n 'FullPath' -v 1 -t 'DWord'		# show full path in titlebar
 	#SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'NavPaneShowAllFolders' -v 1 -t 'DWord'
 	# screen saver grace period before locking system:
@@ -229,8 +237,8 @@ function ConfigureWindowsAndExplorer {
 		SetRegistryEntry -p $consoleKey -n 'FaceName' -v 'Consolas' -t 'String'
 		SetRegistryEntry -p $consoleKey -n 'FontSize' -v 0x00100000 -t 'DWord'		# 16
 	}
-	# enable showing Restart Notifications for Windows Update
-	SetRegistryEntry -p "$hklmSoftware\Microsoft\WindowsUpdate\UX\Settings" -n 'RestartNotificationsAllowed2' -v 1 -t 'DWord'
+	# disable showing Restart Notifications for Windows Update
+	SetRegistryEntry -p "$hklmSoftware\Microsoft\WindowsUpdate\UX\Settings" -n 'RestartNotificationsAllowed2' -v 0 -t 'DWord'
 	# disable auto restarting after updates
 	SetRegistryEntry -p "$hklmSoftware\Microsoft\WindowsUpdate\UX\Settings" -n 'IsExpedited' -v 0 -t 'DWord'
 	# disable expand to open folder on navigation pane
@@ -295,6 +303,8 @@ function ConfigureWindowsAndExplorer {
 		SetRegistryEntry -p "$hkcuCurrentVersionNT\Winlogon" -n 'RestartApps' -v 1 -t 'DWord'
 		# disable Cortana autostarting: 0 = default (?); 1 = disabled, 2 = enabled
 		SetRegistryEntry -p "$hkcuClasses\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -n 'State' -v 1 -t 'DWord'
+		# enable remote desktop
+		SetRegistryEntry -p "$hklmCurrCtrlSet\Control\Terminal Server" -n 'fDenyTSConnections' -v 0 -t 'DWord'
 		# enable long paths
 		SetRegistryEntry -p "$hklmCurrCtrlSet\Control\FileSystem" -n 'LongPathsEnabled' -v 1 -t 'DWord'
 		# disable Connected Standby:
@@ -315,6 +325,10 @@ function ConfigureWindowsAndExplorer {
 		#
 		# annoyances:
 		#
+		# Disable web search in Start/Search:
+		SetRegistryEntry -p "$hkcuPoliciesMicrosoft\Windows\Explorer" -n 'DisableSearchBoxSuggestions' -v 1 -t 'DWord'
+		# Disable Start menu recommendations:
+		SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'Start_IrisRecommendations' -v 0 -t 'DWord'
 		# disable Search Highlights:
 		SetRegistryEntry -p "$hkcuCurrentVersion\Feeds\DSB" -n 'ShowDynamicContent' -v 0 -t 'DWord'
 		SetRegistryEntry -p "$hkcuCurrentVersion\SearchSettings" -n 'IsDynamicSearchBoxEnabled' -v 0 -t 'DWord'
@@ -373,7 +387,7 @@ function ConfigureEdge {
 	param (
 		[PSObject] $osDetails
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): configuring MS Edge browser"
+	WriteVerboseMessage -message 'configuring MS Edge browser'
 	if ($osDetails.Id -in @('win.10', 'win.11')) {		# what's the minimum for edge?
 		#
 		# TODO: can we set Edge's settings somehow? most of the defaults are awful
@@ -388,6 +402,7 @@ function ConfigureEdge {
 		# (try to) disable Edge First Run Page (not sure if this really works but we'll try it):
 		SetRegistryEntry -p "$hklmPoliciesMicrosoft\MicrosoftEdge\Main" -n 'PreventFirstRunPage' -v 1 -t 'DWord'
 		SetRegistryEntry -p "$hkcuPoliciesMicrosoft\MicrosoftEdge\Main" -n 'PreventFirstRunPage' -v 1 -t 'DWord'
+		SetRegistryEntry -p "$hklmPoliciesMicrosoft\Microsoft\Edge" -n 'HideFirstRunExperience' -v 1 -t 'DWord'		# name changed ??
 
 		# there's also a group policy to disable that stupid first-run page, so try setting that too:
 		$lgpoExe = LocateLgpoExe
@@ -406,7 +421,7 @@ function ConfigureEdge {
 				Write-Error "LGPO.exe exited with non-zero exit code configuring Windows Update: $exitcode"
 			}
 		} else {
-			Write-Verbose "no LGPO.exe found; cannot configure MS Edge policies; skipping"
+			WriteVerboseMessage -message 'no LGPO.exe found; cannot configure MS Edge policies; skipping'
 		}
 	}
 }
@@ -417,7 +432,7 @@ function ConfigureWindowsUpdate {
 	param (
 		[PSObject] $osDetails
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): configuring windows update"
+	WriteVerboseMessage -message 'configuring Windows Update'
 	$lgpoExe = LocateLgpoExe
 	if (-not $lgpoExe) { Write-Warning "no LGPO.exe found; cannot configure Windows Update settings; exiting"; return }
 
@@ -490,7 +505,7 @@ function ConfigureDefenderExclusions {
 	param (
 		[PSObject] $osDetails
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): adding windows defender exclusions"
+	WriteVerboseMessage -message 'adding windows defender exclusions'
 	$lgpoExe = LocateLgpoExe
 	if (-not $lgpoExe) { Write-Warning "no LGPO.exe found; cannot configure Windows defender exclusion; exiting"; return }
 
@@ -498,6 +513,8 @@ function ConfigureDefenderExclusions {
 	$policiesFile = Join-Path $tmpFolder 'dfndrPolicies.txt'
 	if (Test-Path -Path $policiesFile -PathType Leaf) { Remove-Item -Path $policiesFile -Force }
 
+	# in policy editor, these are under Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Exclusions
+	# and in registry, they end up under HKLM\Software\Policies\Microsoft\Windows Defender\Exclusions\Paths
 	AddPolicySetting -f $policiesFile -s 'Computer' -p 'Software\Policies\Microsoft\Windows Defender\Exclusions' -t 'DWORD' -n 'Exclusions_Paths' -v '1'
 	$path = 'Software\Policies\Microsoft\Windows Defender\Exclusions\Paths'
 	@(
@@ -535,18 +552,18 @@ function ConfigurePowerManagement {
 		$cs = Get-WmiObject -Class 'Win32_ComputerSystem'
 	}
 	if ($cs) {
-		Write-Verbose "$($MyInvocation.InvocationName): computer system Manufacturer = |$($cs.Manufacturer)|, Model = |$($cs.Model)|"
+		WriteVerboseMessage -message 'computer system Manufacturer = |{0}|, Model = |{1}|' -formatArgs $cs.Manufacturer, $cs.Model
 		if ($cs.Model -eq 'Virtual Machine' <# Hyper-V #> <# TODO add others #>) {
 			$isVM = $true
 		}
 	}
 	if (-not $isVM) {
-		Write-Verbose "$($MyInvocation.InvocationName): enabling hibernation"
+		WriteVerboseMessage -message 'enabling hibernation'
 		if ($PSCmdlet.ShouldProcess('/hibernate on', 'powercfg.exe')) {
 			& powercfg.exe /hibernate on
 		}
 	} else {
-		Write-Verbose "$($MyInvocation.InvocationName): system looks like a VM; no changes"
+		WriteVerboseMessage -message 'system looks like a VM; no changes'
 	}
 }
 
@@ -556,7 +573,7 @@ function ConfigureNetworking {
 	param (
 		[PSObject] $osDetails
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): turning on Network Discovery, File & Print Sharing"
+	WriteVerboseMessage -message 'turning on Network Discovery, File & Print Sharing'
 	# the stuff from Sophia's NetworkDiscovery function
 	# TODO: need to understand better what this is doing...
 	#if (-not (Get-CimInstance -ClassName 'CIM_ComputerSystem').PartOfDomain) {
@@ -572,19 +589,19 @@ function Flush {
 	param (
 		[PSObject] $osDetails
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): flushing updates"
+	WriteVerboseMessage -message 'flushing updates'
 	# try doing 'gpupdate /force' - brute force way to get windows to notice any reg and/or policy changes we've done (??)
 	if ([bool](Get-Command -Name 'gpupdate.exe' -ErrorAction SilentlyContinue)) {
 		if ($PSCmdlet.ShouldProcess('/force', 'gpupdate.exe')) {
 			& gpupdate.exe /force
 		}
 	} else {
-		Write-Verbose "$($MyInvocation.InvocationName): gpupdate.exe not available"
+		WriteVerboseMessage -message 'gpupdate.exe not available'
 	}
 
 	# now force-restart Explorer so it picks up changes; try to save any open Explorer Windows and reopen them (from Sophia)
 	$currOpenFolders = @((New-Object -ComObject Shell.Application).Windows() | ForEach-Object { $_.Document.Folder.Self.Path })
-	Write-Verbose "$($MyInvocation.InvocationName): killing explorer and restarting it"
+	WriteVerboseMessage -message 'killing explorer and restarting it'
 	Stop-Process -Name 'explorer' -Force
 	Start-Sleep -Seconds 2
 	Start-Process -FilePath 'explorer.exe'
@@ -599,16 +616,16 @@ function SetEnvironmentVariable {
 		[Parameter(Mandatory=$true)] [string] $variableValue,
 		[System.EnvironmentVariableTarget] $variableScope = [System.EnvironmentVariableTarget]::User
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): processing environment variable |$variableName|, value |$variableValue|, target |$variableScope|"
+	WriteVerboseMessage -message 'processing environment variable |{0}|, value |{1}|, target |{2}|' -formatArgs $variableName, $variableValue, $variableScope
 	# see if it's already set to the value:
 	$currentVal = [System.Environment]::GetEnvironmentVariable($variableName, $variableScope)
 	if ($currentVal -and $currentVal -eq $variableValue) {
-		Write-Verbose "$($MyInvocation.InvocationName): variable |$variableName| is already set to |$variableValue|; nothing to do"
+		WriteVerboseMessage -message 'variable |{0}| is already set to |{1}|; nothing to do' -formatArgs $variableName, $variableValue
 		return
 	}
 	# k, need to upsert it:
 	if ($PSCmdlet.ShouldProcess("'$variableName' = '$variableValue'", "SetEnvironmentVariable")) {
-		Write-Verbose "$($MyInvocation.InvocationName): setting environment variable for |$variableName| = |$variableValue|"
+		WriteVerboseMessage -message 'setting environment variable for |{0}| = |{1}|' -formatArgs $variableName, $variableValue
 		# according to documentation, Environment.SetEnvironmentVariable will copy new env var into the current process,
 		# but apparently that's a lie. Can use "Set-Content env:\$variableName $variableValue" to do that
 		[Environment]::SetEnvironmentVariable($variableName, $variableValue, $variableScope)
@@ -625,7 +642,7 @@ function SetRegistryEntry {
 		[Parameter(Mandatory=$true)] [Alias('v','value')] [object]$propertyValue,
 		[Parameter(Mandatory=$false)] [Alias('t','type')] [string]$propertyType = 'String'
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): registry entry |$registryPath\@$propertyName| = |$propertyValue|"
+	WriteVerboseMessage -message 'registry entry |{0}\@{1}| = |{2}|' -formatArgs $registryPath, $propertyName, $propertyValue
 	VerifyRegKeyExists -registryPath $registryPath
 	if (TestRegKeyForProperty -registryPath $registryPath -propertyName $propertyName) {
 		$currValue = GetRegPropertyValue -registryPath $registryPath -propertyName $propertyName
@@ -644,7 +661,7 @@ function VerifyRegKeyExists {
 		[Parameter(Mandatory=$true)] [string] $registryPath
 	)
 	if (!(Test-Path -LiteralPath $registryPath)) {
-		Write-Verbose "$($MyInvocation.InvocationName): adding registry key |$registryPath|"
+		WriteVerboseMessage -message 'adding registry key |{0}|' -formatArgs $registryPath
 		[void](New-Item -Path $registryPath -Force)
 	}
 }
@@ -698,7 +715,7 @@ function SetRegPropertyValue {
 		[Parameter(Mandatory=$true)] [string] $propertyName,
 		[Parameter(Mandatory=$true)] [object] $propertyValue
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): setting registry entry |$registryPath\@$propertyName| = |$propertyValue|"
+	WriteVerboseMessage -message 'setting registry entry |{0}\@{1}| = |{2}|' -formatArgs $registryPath, $propertyName, $propertyValue
 	Set-ItemProperty -LiteralPath $registryPath -Name $propertyName -Value $propertyValue
 }
 
@@ -709,7 +726,7 @@ function RenameRegKey {
 		[Parameter(Mandatory=$true)] [string] $oldKeyName,
 		[Parameter(Mandatory=$true)] [string] $newKeyName
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): renaming registry entry |$oldKeyName| to |$newKeyName|"
+	WriteVerboseMessage -message 'renaming registry entry |{0}| to |{1}|' -formatArgs $oldKeyName, $newKeyName
 	Move-Item -Path $oldKeyName -Destination $newKeyName
 }
 
