@@ -22,8 +22,9 @@ function Main {
 	$packagesConfigPath = Join-Path $scriptPath 'packages.config'
 	Write-Verbose "$($MyInvocation.InvocationName): using package.config file |$packagesConfigPath|"
 
-	if (-not (MakeSureWinGetIsInstalled)) {
-		return	# it will write an error message
+	if (-not (Test-UsableVersionOfWinget)) {
+		WriteErrorishMessage -message "Windows Package Manager (winget) is not installed or is too old. Please run the 00.installWinget.ps1 script first to install/update it, then re-run this script."
+		return
 	}
 
 	# create list of apps to install with chocolatey, and list of apps that we can't install that way (so we can show it at the end as a reminder)
@@ -31,24 +32,6 @@ function Main {
 
 	# install all the things:
 	InstallAllThePackages -packageList $packagesToInstall -windowsName $windowsName
-}
-
-function MakeSureWinGetIsInstalled {
-	[CmdletBinding(SupportsShouldProcess=$true)]
-	param ()
-
-	$required = [Version]'1.1.12663'
-	$gcm = @(Get-Command -Name 'winget.exe')
-	if ($gcm -and $gcm.Count -gt 0) {
-		$ver = & $gcm[0].Source --version
-		$thisVer = [Version]($ver.Trim('v'))
-		if ($thisVer -ge $required) {
-			Write-Verbose "$($MyInvocation.InvocationName): valid version of winget.exe found: v$thisVer"
-			return $true
-		}
-	}
-	Write-Error "winget.exe version $required or later is required for this script. Make sure you have the latest 'App Installer' application installed in the MS Store."
-	return $false
 }
 
 #==============================
