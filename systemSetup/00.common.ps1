@@ -1,5 +1,7 @@
 ﻿Set-StrictMode -Version Latest
 
+Import-Module -Name $PSScriptRoot/../ackPoshHelpers -ErrorAction Stop
+
 function Is64BitOs {
 	[System.Environment]::Is64BitOperatingSystem
 }
@@ -15,7 +17,7 @@ function InstallAllThePackages {
 	foreach ($pkg in $packageList) {
 		Write-Verbose ''
 		Write-Verbose ''
-		Write-Verbose "$($MyInvocation.InvocationName): package=|$($pkg.packageName)|, packageType=|$($pkg.packageType)|, windowsVersions=|$($pkg.windowsVersions -join ',')|, skipSystems=|$($pkg.skipSystems -join ',')|"
+		WriteVerboseMessage -message 'package=|{0}}|, packageType=|{1}|, windowsVersions=|{2}|, skipSystems=|{3}|' -formatParams $pkg.packageName, $pkg.packageType, ($pkg.windowsVersions -join ','), ($pkg.skipSystems -join ',')
 		if ((-not $pkg.windowsVersions -or $pkg.windowsVersions -contains $windowsName) -and ($pkg.skipSystems -notcontains $env:ComputerName)) {
 			switch ($pkg.packageType) {
 				'AckApt' {
@@ -39,7 +41,7 @@ function InstallAllThePackages {
 				}
 			}
 		} else {
-			Write-Verbose "    the windowsVersion specifed |$($pkg.windowsVersions -join ',')| excludes installing on this os |$windowsName|, or the skipSystems specified, |$($pkg.skipSystems -join ',')|, includes this system |$env:ComputerName|"
+			WriteVerboseMessage -continuation -message 'the windowsVersion specifed |{0}| excludes installing on this os |{1}|, or the skipSystems specified, |{2}|, includes this system |{3}|' -formatParams ($pkg.windowsVersions -join ','), $windowsName, ($pkg.skipSystems -join ','), $env:ComputerName
 		}
 	}
 
@@ -103,26 +105,27 @@ function _installMsStorePackage {
 	}
 }
 
-function VerifyUsableVersionOfWinget {
+function Test-UsableVersionOfWinget {
 	[CmdletBinding(SupportsShouldProcess=$false)]
 	[OutputType([bool])]
 	param ()
 	$wingetCmd = Get-Command -Name 'winget.exe' -ErrorAction SilentlyContinue
 	if ($wingetCmd) {
-		# check that version is > 1.2; the exe apparently doesn't have version info, so have to run '--verison' to get it, ffs
+		# check that version is > 1.2:
 		$ver = winget.exe --version
 		if ($ver) {
 			$ver = $ver.Trim('v')
 			if (([Version]$ver) -ge ([Version]'1.3')) {
-				Write-Verbose "$($MyInvocation.InvocationName): winget.exe version ($ver) looks usable"
+				WriteVerboseMessage -message 'winget.exe version (|{0}|) looks usable' -formatParams $ver
 				return $true
 			}
-			Write-Verbose "$($MyInvocation.InvocationName): winget.exe version not usable ($ver)"
+			WriteVerboseMessage -message 'winget.exe version not usable (|{0}|)' -formatParams $ver
 		} else{
-			Write-Verbose "$($MyInvocation.InvocationName): winget.exe version not found"
+			WriteVerboseMessage -message 'winget.exe version not found'
+
 		}
 	} else {
-		Write-Verbose "$($MyInvocation.InvocationName): winget.exe not found"
+		WriteVerboseMessage -message 'winget.exe not found'
 	}
 	return $false
 }
@@ -157,7 +160,7 @@ function ReadListOfPackagesToInstall {
 			if ($_.HasAttribute('displayName') -and -not [String]::IsNullOrWhiteSpace($_.displayName)) {
 				$props.displayName = $_.displayName
 			}
-			Write-Verbose "$($MyInvocation.InvocationName): creating package: packageName=|$($props.packageName)|, packageType=|$($props.packageType)|, windowsVersions=|$($props.windowsVersions)|, skipSystems=|$($props.skipSystems)|"
+			WriteVerboseMessage -message 'creating package: packageName=|{0}|, packageType=|{1}|, windowsVersions=|{2}|, skipSystems=|{3}|' -formatParams $props.packageName, $props.packageType, $props.windowsVersions, $props.skipSystems
 			[PSCustomObject]$props
 		}
 }
@@ -171,56 +174,56 @@ function GetWindowsVersionName {
 	param()
 
 	$major = [Environment]::OsVersion.Version.Major; $minor = [Environment]::OsVersion.Version.Minor;
-	Write-Verbose "G$($MyInvocation.InvocationName): `$major=$major, `$minor=$minor"
+	WriteVerboseMessage -message '`$major={0}, `$minor={1}' -formatParams $major, $minor
 	# one other possibility here: just get the ProductName value from the above reg location: it will be "Windows 7 Professional" or "Windows 8.1 Pro" or "Windows Server 2012 R2 Standard"
 	$windowsName = $null
 	if ($major -lt 6) {
-		Write-Verbose "    setting `$windowsName = Unsupported"
+		WriteVerboseMessage -continuation -message 'setting `$windowsName = Unsupported'
 		$windowsName = 'Unsupported'
 	} else {
 		$edition = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionID
-		Write-Verbose "    setting `$edition = |$edition|"
+		WriteVerboseMessage -continuation -message 'setting `$edition = |{0}|' -formatParams $edition
 		if ($major -eq 6 -and $minor -eq 0) {
 			$productType = (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\ProductOptions' -Name 'ProductType').ProductType
-			Write-Verbose "    setting `$productType = |$productType|"
+			WriteVerboseMessage -continuation -message 'setting `$productType = |{0}|' -formatParams $productType
 			if ($productType -eq 'ServerNT') {
 				# $edition can be: 'ServerStandard', '', '', ''
-				Write-Verbose "    setting `$windowsName = Windows2008"
+				WriteVerboseMessage -continuation -message 'setting `$windowsName = Windows2008'
 				$windowsName = 'Windows2008'
 			} elseif ($productType -eq 'WinNT') {
 				# $edition can be: 'HomeBasic', 'HomePremium', 'Business??', 'Ultimate'
-				Write-Verbose "    setting `$windowsName = WindowsVista"
+				WriteVerboseMessage -continuation -message 'setting `$windowsName = WindowsVista'
 				$windowsName = 'WindowsVista'
 			}
 		} else {
 			$installType = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'InstallationType').InstallationType
-			Write-Verbose "    setting `$installType = |$installType|"
+			WriteVerboseMessage -continuation -message 'setting `$installType = |{0}|' -formatParams $installType
 			if ($major -eq 6 -and $minor -eq 1) {
 				if ('Server','Server Core' -contains $installType) {
 					# $edition can be: 'ServerWeb', 'ServerStandard', 'ServerEnterprise', 'ServerDataCenter'
-					Write-Verbose "    setting `$windowsName = Windows2008R2"
+					WriteVerboseMessage -continuation -message 'setting `$windowsName = Windows2008R2'
 					$windowsName = 'Windows2008R2'
 				} elseif ($installType -eq 'Client') {
 					# $edition can be: 'Professional', 'HomeBasic', 'HomePremium', 'Starter', 'Ultimate', 'Enterprise??'
-					Write-Verbose "    setting `$windowsName = Windows7"
+					WriteVerboseMessage -continuation -message 'setting `$windowsName = Windows7'
 					$windowsName = 'Windows7'
 				}
 			} elseif ($major -eq 6 -and $minor -gt 1 -and $minor -le 3) {
 				if ('Server','Server Core' -contains $installType) {
 					# $edition can be: 'ServerStandard', 'ServerDataCenter', ...
-					Write-Verbose "    setting `$windowsName = Windows2012"
+					WriteVerboseMessage -continuation -message 'setting `$windowsName = Windows2012'
 					$windowsName = 'Windows2012'   # includes R2; shouldn't need to distinguish them, right? if so, 6.2 is 2012, 6.3 is 2012R2
 				} elseif ($installType -eq 'Client') {
 					# $edition can be: 'Professional', 'ProfessionalWMC', 'Core' (for non-Pro), 'Enterprise??'
-					Write-Verbose "    setting `$windowsName = Windows8"
+					WriteVerboseMessage -continuation -message 'setting `$windowsName = Windows8'
 					$windowsName = 'Windows8'      # includes 8.1; shouldn't need to distinguish them, right? if so, 6.2 is Win8, 6.3 is Win8.1
 				}
 			#} elseif ($major -eq 6 -and $minor -eq 4) {
 			} elseif ($major -gt 6 -or ($major -eq 6 -and $minor -gt 3)) {
-				Write-Verbose "    setting `$windowsName = Windows10"
+				WriteVerboseMessage -continuation -message 'setting `$windowsName = Windows10'
 				$windowsName = 'Windows10'
 			} else {
-				Write-Verbose "    setting `$windowsName = Unsupported (#2)"
+				WriteVerboseMessage -continuation -message 'setting `$windowsName = Unsupported (#2)'
 				$windowsName = 'Unsupported'
 			}
 		}
@@ -236,7 +239,7 @@ function GetAckTempFolder {
 	if ($script:cachedAckSetupTempFolder) { return $script:cachedAckSetupTempFolder }
 	$tmpFolder = Join-Path ([System.IO.Path]::GetTempPath()) 'ackSetup'
 	if (-not (Test-Path -Path $tmpFolder -PathType Container)) {
-		Write-Verbose "$($MyInvocation.InvocationName): creating setup temp folder = |$tmpFolder|"
+		WriteVerboseMessage -message 'creating setup temp folder = |{0}|' -formatParams $tmpFolder
 		[void](New-Item -Path $tmpFolder -ItemType Directory -Force)
 	}
 	$script:cachedAckSetupTempFolder = $tmpFolder
@@ -268,36 +271,36 @@ function LocateLgpoExe {
 	}
 
 	$lgpoCmd = Get-Command -Name 'lgpo.exe' -ErrorAction SilentlyContinue
-	Write-Verbose "$($MyInvocation.InvocationName): looking for already-installed lgpo.exe: found |$(if ($lgpoCmd) { $lgpoCmd.Path } else { '' })|"
+	WriteVerboseMessage -message 'looking for already-installed lgpo.exe: found |{0}|' -formatParams (if ($lgpoCmd) { $lgpoCmd.Path } else { '' })
 	if ($lgpoCmd -and (_looksLikeValidLgpoExe -path $lgpoCmd.Path)) {
-		Write-Verbose "$($MyInvocation.InvocationName): returning already-installed lgpo.exe: |$($lgpoCmd.Path)|"
+		WriteVerboseMessage -message 'returning already-installed lgpo.exe: |{0}|' -formatParams $lgpoCmd.Path
 		return $lgpoCmd.Path
 	}
 	# see if there's one in same folder as script, in case i go that route:
 	$scriptFldrLgpo = Join-Path $PSScriptRoot 'lgpo.exe'
 	if ((_looksLikeValidLgpoExe -path $scriptFldrLgpo)) {
-		Write-Verbose "$($MyInvocation.InvocationName): returning lgpo.exe from same folder as scripts: |$scriptFldrLgpo|"
+		WriteVerboseMessage -message 'returning lgpo.exe from same folder as scripts: |{0}|' -formatParams $scriptFldrLgpo
 		return $scriptFldrLgpo
 	}
 	# see if we already have a downloaded one:
 	$tmpFolder = Join-Path (GetAckTempFolder) 'lgpo'
 	$tmpExePath = Join-Path $tmpFolder 'lgpo.exe'
-	Write-Verbose "$($MyInvocation.InvocationName): looking for already-downloaded lgpo.exe |$tmpExePath|"
+	WriteVerboseMessage -message 'looking for already-downloaded lgpo.exe: |{0}|' -formatParams $tmpExePath
 	if (_looksLikeValidLgpoExe -path $tmpExePath) {
-		Write-Verbose "$($MyInvocation.InvocationName): returning already-downloaded lgpo.exe |$tmpExePath|"
+		WriteVerboseMessage -message 'returning already-downloaded lgpo.exe: |{0}|' -formatParams $tmpExePath
 		return $tmpExePath
 	}
 	# reset our temp folder:
 	if (Test-Path -Path $tmpFolder -PathType Container) {
-		Write-Verbose "$($MyInvocation.InvocationName): removing existing lgpo temp folder |$tmpFolder|"
+		WriteVerboseMessage -message 'removing existing lgpo temp folder: |{0}|' -formatParams $tmpFolder
 		Remove-Item -Path $tmpFolder -Recurse -Force
 	}
-	Write-Verbose "$($MyInvocation.InvocationName): creating lgpo temp folder |$tmpFolder|"
+	WriteVerboseMessage -message 'creating lgpo temp folder: |{0}|' -formatParams $tmpFolder
 	[void](New-Item -Path $tmpFolder -ItemType Directory -Force)
 	# download lgpo.zip:
 	$lgpoDownloadUrl = 'https://download.microsoft.com/download/8/5/C/85C25433-A1B0-4FFA-9429-7E023E7DA8D8/LGPO.zip'
 	$tmpZipPath = Join-Path $tmpFolder 'lgpo.zip'
-	Write-Verbose "downloading |$lgpoDownloadUrl| to file |$tmpZipPath|"
+	WriteVerboseMessage -message 'downloading |{0}| to file |{1}|' -formatParams $lgpoDownloadUrl, $tmpZipPath
 	if ($PSCmdlet.ShouldProcess('download and extract LGPO.exe', $lgpoDownloadUrl, 'Invoke-WebRequest')) {
 		Invoke-WebRequest -Method Get -Uri $lgpoDownloadUrl -OutFile $tmpZipPath
 		Unblock-File -Path $tmpZipPath		# just in case
