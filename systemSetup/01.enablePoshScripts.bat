@@ -9,6 +9,7 @@ if ERRORLEVEL 1 goto :NoPwsh
 
 :: following create a file in profile directory called "powershell.config.json, with contents |{"Microsoft.PowerShell:ExecutionPolicy":"RemoteSigned"}|
 :: not sure where things go if scope is LocalMachine...:
+:: and if pwsh.exe is not available yet, our powershell setup/install script will check this again after installing it
 pwsh.exe -Command "& { Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Confirm:$false }"
 
 :NoPwsh
