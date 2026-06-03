@@ -15,7 +15,7 @@ param(
 
 Set-StrictMode -Version Latest
 
-. $PSScriptRoot/setUpSystem.00.common.ps1
+. $PSScriptRoot/00.common.ps1
 Import-Module -Name $PSScriptRoot/populateSystemData -ErrorAction Stop
 
 <#

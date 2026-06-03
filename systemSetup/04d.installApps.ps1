@@ -6,7 +6,7 @@ param()
 
 Set-StrictMode -Version Latest
 
-. $PSScriptRoot/setUpSystem.00.common.ps1
+. $PSScriptRoot/00.common.ps1
 
 function Main {
 	[CmdletBinding(SupportsShouldProcess=$true)]
@@ -19,8 +19,8 @@ function Main {
 	}
 
 	$scriptPath = $PSScriptRoot
-	#$packagesConfigPath = Join-Path $scriptPath "setUpSystem.packages.test.config"
-	$packagesConfigPath = Join-Path $scriptPath "setUpSystem.packages.config"
+	#$packagesConfigPath = Join-Path $scriptPath "packages.test.config"
+	$packagesConfigPath = Join-Path $scriptPath "packages.config"
 	Write-Verbose "$($MyInvocation.InvocationName): using package.config file |$packagesConfigPath|"
 
 	MakeSureAckAptModuleIsLoaded
