@@ -552,7 +552,7 @@ function ConfigurePowerManagement {
 		$cs = Get-WmiObject -Class 'Win32_ComputerSystem'
 	}
 	if ($cs) {
-		WriteVerboseMessage -message 'computer system Manufacturer = |{0}|, Model = |{1}|' -formatArgs $cs.Manufacturer, $cs.Model
+		WriteVerboseMessage -message 'computer system Manufacturer = |{0}|, Model = |{1}|' -formatParams $cs.Manufacturer, $cs.Model
 		if ($cs.Model -eq 'Virtual Machine' <# Hyper-V #> <# TODO add others #>) {
 			$isVM = $true
 		}
@@ -616,20 +616,25 @@ function SetEnvironmentVariable {
 		[Parameter(Mandatory=$true)] [string] $variableValue,
 		[System.EnvironmentVariableTarget] $variableScope = [System.EnvironmentVariableTarget]::User
 	)
-	WriteVerboseMessage -message 'processing environment variable |{0}|, value |{1}|, target |{2}|' -formatArgs $variableName, $variableValue, $variableScope
+	WriteVerboseMessage -message 'processing environment variable |{0}|, value |{1}|, target |{2}|' -formatParams $variableName, $variableValue, $variableScope
+	# [System.Environment]::GetEnvironmentVariable() always gets the expanded value,
+	# so that's what we need to compare (and also to set in the process below)
+	# we could also read it straight out of the registry to get the raw value ??
+	$expandedVal = [System.Environment]::ExpandEnvironmentVariables($variableValue)
 	# see if it's already set to the value:
 	$currentVal = [System.Environment]::GetEnvironmentVariable($variableName, $variableScope)
-	if ($currentVal -and $currentVal -eq $variableValue) {
-		WriteVerboseMessage -message 'variable |{0}| is already set to |{1}|; nothing to do' -formatArgs $variableName, $variableValue
+	if ($currentVal -and $currentVal -eq $expandedVal) {
+		WriteVerboseMessage -message 'variable |{0}| is already set to |{1}|; nothing to do' -formatParams $variableName, $variableValue
 		return
 	}
 	# k, need to upsert it:
 	if ($PSCmdlet.ShouldProcess("'$variableName' = '$variableValue'", "SetEnvironmentVariable")) {
-		WriteVerboseMessage -message 'setting environment variable for |{0}| = |{1}|' -formatArgs $variableName, $variableValue
+		WriteVerboseMessage -message 'setting environment variable for |{0}| = |{1}|' -formatParams $variableName, $variableValue
 		# according to documentation, Environment.SetEnvironmentVariable will copy new env var into the current process,
-		# but apparently that's a lie. Can use "Set-Content env:\$variableName $variableValue" to do that
+		# but apparently that's a lie. So use SetEnvironmentVariable with the Process scope;
+		# Could also use "Set-Content env:\$variableName $variableValue" to do that...
 		[Environment]::SetEnvironmentVariable($variableName, $variableValue, $variableScope)
-		Set-Content -Path "env:\$variableName" -Value $variableValue
+		[Environment]::SetEnvironmentVariable($variableName, $expandedVal, [System.EnvironmentVariableTarget]::Process)
 	}
 }
 
@@ -642,7 +647,7 @@ function SetRegistryEntry {
 		[Parameter(Mandatory=$true)] [Alias('v','value')] [object]$propertyValue,
 		[Parameter(Mandatory=$false)] [Alias('t','type')] [string]$propertyType = 'String'
 	)
-	WriteVerboseMessage -message 'registry entry |{0}\@{1}| = |{2}|' -formatArgs $registryPath, $propertyName, $propertyValue
+	WriteVerboseMessage -message 'registry entry |{0}\@{1}| = |{2}|' -formatParams $registryPath, $propertyName, $propertyValue
 	VerifyRegKeyExists -registryPath $registryPath
 	if (TestRegKeyForProperty -registryPath $registryPath -propertyName $propertyName) {
 		$currValue = GetRegPropertyValue -registryPath $registryPath -propertyName $propertyName
@@ -661,7 +666,7 @@ function VerifyRegKeyExists {
 		[Parameter(Mandatory=$true)] [string] $registryPath
 	)
 	if (!(Test-Path -LiteralPath $registryPath)) {
-		WriteVerboseMessage -message 'adding registry key |{0}|' -formatArgs $registryPath
+		WriteVerboseMessage -message 'adding registry key |{0}|' -formatParams $registryPath
 		[void](New-Item -Path $registryPath -Force)
 	}
 }
@@ -715,7 +720,7 @@ function SetRegPropertyValue {
 		[Parameter(Mandatory=$true)] [string] $propertyName,
 		[Parameter(Mandatory=$true)] [object] $propertyValue
 	)
-	WriteVerboseMessage -message 'setting registry entry |{0}\@{1}| = |{2}|' -formatArgs $registryPath, $propertyName, $propertyValue
+	WriteVerboseMessage -message 'setting registry entry |{0}\@{1}| = |{2}|' -formatParams $registryPath, $propertyName, $propertyValue
 	Set-ItemProperty -LiteralPath $registryPath -Name $propertyName -Value $propertyValue
 }
 
@@ -726,7 +731,7 @@ function RenameRegKey {
 		[Parameter(Mandatory=$true)] [string] $oldKeyName,
 		[Parameter(Mandatory=$true)] [string] $newKeyName
 	)
-	WriteVerboseMessage -message 'renaming registry entry |{0}| to |{1}|' -formatArgs $oldKeyName, $newKeyName
+	WriteVerboseMessage -message 'renaming registry entry |{0}| to |{1}|' -formatParams $oldKeyName, $newKeyName
 	Move-Item -Path $oldKeyName -Destination $newKeyName
 }
 
