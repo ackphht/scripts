@@ -160,7 +160,7 @@ function VerifyPowerShellCoreInstalled {
 		return
 	}
 	$wingetCapableOs = ($osDetails.BuildNumber -ge 16299)	# Win10 1709
-	$wingetAvailable = $wingetCapableOs -and (VerifyUsableVersionOfWinget)
+	$wingetAvailable = $wingetCapableOs -and (Test-UsableVersionOfWinget)
 	# figure out what we want to try to install:
 	$installStoreVersion = $false; $installStandaloneWinget = $false; $installStandaloneDownload = $false;
 	Write-Verbose "$($MyInvocation.InvocationName): installing PowerShellCore (wingetAvailable = $wingetAvailable)"
