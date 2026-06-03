@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 . $PSScriptRoot/00.common.ps1
-Import-Module -Name $PSScriptRoot/populateSystemData -ErrorAction Stop
+Import-Module -Name $PSScriptRoot/../populateSystemData -ErrorAction Stop
 
 function Main {
 	[CmdletBinding(SupportsShouldProcess=$true)]
