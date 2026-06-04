@@ -19,7 +19,7 @@ function Main {
 		[switch] $keepGhMsi
 	)
 	$osDetails = Get-OSDetails
-	Write-Verbose "$($MyInvocation.InvocationName): osDetails = |$(ConvertTo-Json -InputObject $osdetails -Depth 100)|"
+	WriteVerboseMessage -msgScript { "osDetails = |$(ConvertTo-Json -InputObject $osdetails -Depth 100)|" }
 
 	# TODO?: should maybe figure out these next two paths from $PROFILE, but how?
 	$desktopProfileFolder = "$env:UserProfile\Documents\WindowsPowerShell"
@@ -55,10 +55,10 @@ function SetUpDocumentsProfileFolders {
 	if (-not (Test-Path -Path $coreFolder -PathType Container) -or -not (Test-Path -Path $desktopFolder -PathType Container)) {
 		if (-not (Test-Path -Path $coreFolder -PathType Container)) {
 			if (Test-Path -Path $desktopFolder -PathType Container) {
-				Write-Verbose "$($MyInvocation.InvocationName): renaming existing |$desktopFolder| to |$coreFolder|"
+				WriteVerboseMessage -message 'renaming existing |{0}| to |{1}|' -formatParams $desktopFolder, $coreFolder
 				Rename-Item -Path $desktopFolder -NewName (Split-Path -Path $coreFolder -Leaf)
 			} else {
-				Write-Verbose "$($MyInvocation.InvocationName): creating new folder |$coreFolder|"
+				WriteVerboseMessage -message 'creating new folder |{0}|' -formatParams $coreFolder
 				[void](New-Item -Path $coreFolder -ItemType Directory -Force)
 			}
 		}
@@ -69,7 +69,7 @@ function SetUpDocumentsProfileFolders {
 		$desktopFi = Get-Item -Path $desktopFolder
 		$coreFi = Get-Item -Path $coreFolder
 		if ($desktopFi.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint) -and -not $coreFi.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint)) {
-			Write-Verbose "$($MyInvocation.InvocationName): both Documents’ profile folders already exist and appear to be set up appropriately"
+			WriteVerboseMessage -message 'both Documents’’ profile folders already exist and appear to be set up appropriately'
 		} else {
 			Write-Warning "both profile folders for powershell already exist; you may need to do some manual cleanup"
 		}
@@ -87,14 +87,14 @@ function SetCorePoshExecutionPolicy {
 	$writeFile = $false
 	$executionPolicyFilePath = Join-Path $coreFolder 'powershell.config.json'
 	if (Test-Path -Path $executionPolicyFilePath -PathType Leaf) {
-		Write-Verbose "$($MyInvocation.InvocationName): checking existing 'powershell.config.json' file"
+		WriteVerboseMessage -message 'checking existing "powershell.config.json" file'
 		$pol = Get-Content -Path $executionPolicyFilePath | ConvertFrom-Json
 		if ($pol.'Microsoft.PowerShell:ExecutionPolicy' -ne $policy) {
-			Write-Verbose "$($MyInvocation.InvocationName): updating 'powershell.config.json' file to policy '$policy'"
+			WriteVerboseMessage -message 'updating "powershell.config.json" file to policy "{0}"' -formatParams $policy
 			$writeFile = $true
 		}
 	} else {
-		Write-Verbose "$($MyInvocation.InvocationName): creating 'powershell.config.json' file with policy '$policy'"
+		WriteVerboseMessage -message 'creating "powershell.config.json" file with policy "{0}"' -formatParams $policy
 		$writeFile = $true
 	}
 	if ($writeFile) {
@@ -109,7 +109,7 @@ function RepointDocumentsFolderToAppData {
 		[Parameter(Mandatory=$true)] [string] $documentsPath,
 		[Parameter(Mandatory=$true)] [string] $appdataPath
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): processing $(Split-Path -Path $documentsPath -Leaf) folder: |$documentsPath|"
+	WriteVerboseMessage -message 'processing {0} folder: |{1}|' -formatParams (Split-Path -Path $documentsPath -Leaf), $documentsPath
 	$fi = Get-Item -Path $documentsPath -ErrorAction SilentlyContinue
 	if ($fi) {
 		if (-not $fi.Attributes.HasFlag([System.IO.FileAttributes]::Directory)) {
@@ -118,7 +118,7 @@ function RepointDocumentsFolderToAppData {
 		} elseif (-not $fi.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint)) {
 			# need to move $documentsPath to $appdataPath
 			if (-not (Test-Path -Path $appdataPath -PathType Container)) {
-				Write-Verbose "$($MyInvocation.InvocationName): moving folder |$documentsPath| to |$appdataPath|"
+				WriteVerboseMessage -message 'moving folder |{0}| to |{1}|' -formatParams $documentsPath, $appdataPath
 				Move-Item -Path $documentsPath -Destination $appdataPath -Force
 				# create junctions in profile folder to appdata folder
 				CreateJunction -originalFolderPath $appdataPath -junctionPath $documentsPath
@@ -127,18 +127,18 @@ function RepointDocumentsFolderToAppData {
 			}
 		} else {
 			# $documentsPath is already an existing junction or symlink or something
-			Write-Verbose "$($MyInvocation.InvocationName): `"$documentsPath`" is already a reparsepoint, so leaving it alone (points to `"$($fi.Target)`")"
+			WriteVerboseMessage -message '`"{0}`" is already a reparsepoint, so leaving it alone (points to `"{1}`")' -formatParams $documentsPath, $fi.Target
 			# still need to make sure appdata folder exists:
 			if (-not (Test-Path -Path $appdataPath -PathType Container)) {
-				Write-Verbose "$($MyInvocation.InvocationName): creating folder |$appdataPath|"
+				WriteVerboseMessage -message 'creating folder |{0}|' -formatParams $appdataPath
 				[void](New-Item -Path $appdataPath -ItemType Directory -Force)
 			}
 		}
 	} else {
 		# nothing existing to move from $documentsPath, so just make sure $appdataPath exists
-		Write-Verbose "$($MyInvocation.InvocationName): no existing Documents’ $(Split-Path -Path $documentsPath -Leaf) folder"
+		WriteVerboseMessage -message 'no existing Documents’’ |{0}| folder' -formatParams (Split-Path -Path $documentsPath -Leaf)
 		if (-not (Test-Path -Path $appdataPath -PathType Container)) {
-			Write-Verbose "$($MyInvocation.InvocationName): creating folder |$appdataPath|"
+			WriteVerboseMessage -message 'creating folder |{0}|' -formatParams $appdataPath
 			[void](mkdir -Path $appdataPath -Force)
 		}
 		# create junctions in profile folder to appdata folder
@@ -156,14 +156,14 @@ function VerifyPowerShellCoreInstalled {
 	)
 
 	if ([bool](Get-Command -Name 'pwsh.exe' -ErrorAction SilentlyContinue)) {
-		Write-Verbose "$($MyInvocation.InvocationName): PowerShellCore already installed; skipping"
+		WriteVerboseMessage -message 'PowerShellCore already installed; skipping'
 		return
 	}
 	$wingetCapableOs = ($osDetails.BuildNumber -ge 16299)	# Win10 1709
 	$wingetAvailable = $wingetCapableOs -and (Test-UsableVersionOfWinget)
 	# figure out what we want to try to install:
 	$installStoreVersion = $false; $installStandaloneWinget = $false; $installStandaloneDownload = $false;
-	Write-Verbose "$($MyInvocation.InvocationName): installing PowerShellCore (wingetAvailable = $wingetAvailable)"
+	WriteVerboseMessage -message 'installing PowerShellCore (wingetAvailable = {0})' -formatParams $wingetAvailable
 	if ($env:PROCESSOR_ARCHITECTURE -notlike 'ARM*') {
 		if ($wingetCapableOs) {
 			$caption = 'Installing PowerShellCore'
@@ -177,20 +177,20 @@ function VerifyPowerShellCoreInstalled {
 			$selection = 1
 		}
 		if ($selection -eq 2) {
-			Write-Verbose "$($MyInvocation.InvocationName): x64: setting flag to install Store version of PowerShellCore"
+			WriteVerboseMessage -message 'x64: setting flag to install Store version of PowerShellCore'
 			$installStoreVersion = $true
 		} else {
 			if ($wingetAvailable -and -not $noWingetForGithubDwnld) {
-				Write-Verbose "$($MyInvocation.InvocationName): x64: setting flag to install standalone version of PowerShellCore using winget"
+				WriteVerboseMessage -message 'x64: setting flag to install standalone version of PowerShellCore using winget'
 				$installStandaloneWinget = $true
 			} else {
-				Write-Verbose "$($MyInvocation.InvocationName): x64: setting flag to install standalone PowerShellCore by direct download (winget not available)"
+				WriteVerboseMessage -message 'x64: setting flag to install standalone PowerShellCore by direct download (winget not available)'
 				$installStandaloneDownload = $true
 			}
 		}
 	} else {
 		# currently have to install store version of posh core for ARM, so must have winget
-		Write-Verbose "$($MyInvocation.InvocationName): Arm64: setting flag to install Store version of PowerShellCore"
+		WriteVerboseMessage -message 'Arm64: setting flag to install Store version of PowerShellCore'
 		$installStoreVersion = $true
 	}
 	# make sure we have what we need to install it:
@@ -204,13 +204,13 @@ function VerifyPowerShellCoreInstalled {
 	}
 	# install it:
 	if ($installStoreVersion) {
-		Write-Verbose "$($MyInvocation.InvocationName): installing Store version of PowerShellCore"
+		WriteVerboseMessage -message 'installing Store version of PowerShellCore'
 		InstallAppWithWinget -appId '9MZ1SNWT0N5D' -source 'msstore'
 	} elseif ($installStandaloneWinget) {
-		Write-Verbose "$($MyInvocation.InvocationName): installing standalone PowerShellCore using winget"
-		InstallAppWithWinget -appId 'Microsoft.PowerShell' -source 'winget'
+		WriteVerboseMessage -message 'installing standalone PowerShellCore using winget'
+		InstallAppWithWinget -appId 'Microsoft.PowerShell' -source 'winget' # TODO: -installerType 'msix'
 	} elseif ($installStandaloneDownload) {
-		Write-Verbose "$($MyInvocation.InvocationName): downloading and installing standalone PowerShellCore from Github"
+		WriteVerboseMessage -message 'downloading and installing standalone PowerShellCore from Github'
 		DownloadAndInstallFromGithub -dontDeleteMsi:$dontDeleteMsi
 	}
 }
@@ -246,22 +246,22 @@ function DownloadAndInstallFromGithub {
 	Write-Host "see release page at $($resp.html_url)" -ForegroundColor DarkCyan
 	# downloadUrl it and install
 	if (-not (Test-Path -LiteralPath $env:Temp -PathType Container)) {
-		Write-Verbose "$($MyInvocation.InvocationName): creating temp folder |$env:Temp|"
+		WriteVerboseMessage -message 'creating temp folder |{0}|' -formatParams $env:Temp
 		[void](New-Item -LiteralPath $env:Temp -ItemType Directory -Force)
 	}
 	$tempFilename = Join-Path $env:Temp (Split-Path -Path $downloadUrl -Leaf)
 	if (-not $dontDeleteMsi -and (Test-Path -LiteralPath $tempFilename -PathType Leaf)) { Remove-Item -Path $tempFilename -Force }
 	try {
 		if (-not (Test-Path -LiteralPath $tempFilename -PathType Leaf)) {
-			Write-Verbose "$($MyInvocation.InvocationName): downloading |$downloadUrl| to file |$tempFilename|"
+			WriteVerboseMessage -message 'downloading |{0}| to file |{1}|' -formatParams $downloadUrl, $tempFilename
 			if ($PSCmdlet.ShouldProcess($downloadUrl, 'Invoke-WebRequest')) {
 				Invoke-WebRequest -Method Get -Uri $downloadUrl -OutFile $tempFilename
 			}
 		} else {
-			Write-Verbose "$($MyInvocation.InvocationName): using already downloaded msi installer |$tempFilename|"
+			WriteVerboseMessage -message 'using already downloaded msi installer |{0}|' -formatParams $tempFilename
 		}
 
-		Write-Verbose "$($MyInvocation.InvocationName): starting msi installer |$tempFilename|"
+		WriteVerboseMessage -message 'starting msi installer |{0}|' -formatParams $tempFilename
 		$exitCode = RunApplication -fileToRun 'msiexec.exe' -arguments "-i `"$tempFilename`""
 
 		if ($exitCode -in @(1602, 2322) <# canceled #>) {
@@ -289,7 +289,7 @@ function RunApplication {
 	)
 	if ( $arguments -eq $null) { $arguments = '' }
 	if ( $workingDirectory -eq $null) { $workingDirectory = '' }
-	Write-Verbose "$($MyInvocation.InvocationName): fileToRun=|$fileToRun|, arguments=|$arguments|, workingDirectory=|$workingDirectory|, asAdmin=|$asAdmin|"
+	WriteVerboseMessage -message 'fileToRun=|{0}|, arguments=|{1}|, workingDirectory=|{2}|, asAdmin=|{3}|' -formatParams $fileToRun, $arguments, $workingDirectory, $asAdmin
 	$startInfo = [System.Diagnostics.ProcessStartInfo]::new()
 	$startInfo.FileName = $fileToRun
 	$startInfo.UseShellExecute = [bool]$useShellExecute
@@ -302,10 +302,10 @@ function RunApplication {
 			$process = [System.Diagnostics.Process]::Start($startInfo)
 			if ($process) {
 				$process.WaitForExit()
-				Write-Verbose "$($MyInvocation.InvocationName): process exited; exit code = $($process.ExitCode)"
+				WriteVerboseMessage -message 'process exited; exit code = |{0}|' -formatParams $process.ExitCode
 				return $process.ExitCode
 			} else {
-				Write-Verbose "[Process]::Start() returned null for application '$fileToRun'"
+				WriteVerboseMessage -message '[Process]::Start() returned null for application |{0}|' -formatParams $fileToRun
 				return -2
 			}
 		} catch {
@@ -324,7 +324,7 @@ function CreateJunction {
 		[Parameter(Mandatory=$true)] [string] $originalFolderPath,
 		[Parameter(Mandatory=$true)] [string] $junctionPath
 	)
-	Write-Verbose "$($MyInvocation.InvocationName): creating junction |$junctionPath| -> |$originalFolderPath|"
+	WriteVerboseMessage -message 'creating junction |{0}| -> |{1}|' -formatParams $junctionPath, $originalFolderPath
 	[void](New-Item -ItemType Junction -Path $junctionPath -Value $originalFolderPath)
 }
 
