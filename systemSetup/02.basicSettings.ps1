@@ -373,7 +373,7 @@ function ConfigureWindowsAndExplorer {
 	SetRegistryEntry -p $googleAds -n 'Piriform Ltd' -v 0x01404cff -t 'DWord'
 	SetRegistryEntry -p $googleAds -n 'Irfan Skiljan' -v 0x01404cff -t 'DWord'
 	SetRegistryEntry -p $googleAds -n 'Piriform Ltd' -v 0x01404cff -t 'DWord'
-	if ((Is64BitOs)) {
+	if ((Test-Is64BitOs)) {
 		SetRegistryEntry -p $googleAdsWow -n 'Irfan Skiljan' -v 0x01404cff -t 'DWord'
 		SetRegistryEntry -p $googleAdsWow -n 'Piriform Ltd' -v 0x01404cff -t 'DWord'
 		SetRegistryEntry -p $googleAdsWow -n 'Irfan Skiljan' -v 0x01404cff -t 'DWord'

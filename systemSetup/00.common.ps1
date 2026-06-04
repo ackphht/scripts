@@ -2,8 +2,14 @@
 
 Import-Module -Name $PSScriptRoot/../ackPoshHelpers -ErrorAction Stop
 
-function Is64BitOs {
+function Test-Is64BitOs {
 	[System.Environment]::Is64BitOperatingSystem
+}
+
+function Test-IsVM {
+	# https://stackoverflow.com/questions/59489885/identify-if-windows-hosted-on-physical-or-virtual-machine-powershell#62038150
+	# https://unix.stackexchange.com/a/89718
+	return (Get-CimInstance -ClassName Win32_ComputerSystem).Model -match 'Virtual|VMware|Hyper-V|KVM|Bochs|Xen'
 }
 
 function InstallAllThePackages {
