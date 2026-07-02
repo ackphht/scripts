@@ -110,6 +110,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ^#g::RunAndActivate(EnvGet("LocalAppData") . "\Programs\SourceGit\SourceGit.exe", , , "Avalonia-91408bfc-b8e9-4ad1-95f1-1a4134f2662c")
 ^#h::ToggleSuperHiddenFiles()
 !#h::Run(EnvGet("AppData") . "\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt")
+^#k::RunAndActivate("kate.exe")
 ^#l::RunAndActivate(EnvGet("ProgramFiles") . "\LINQPad9\LINQPad9.exe", , , , "LINQPad 9")
 ;^#m::LookForAndRunMsdnHelp()
 ^#m::RunAndActivate(EnvGet("UserProfile") . "\dev\MyProjects\AckAptMaint\publish\win-x64\AckAptMaint.exe", , , , "AckApt DB Maintenance")
@@ -122,7 +123,7 @@ GroupAdd "Explorer", gExplorerClassPostVista
 ;!#p::RunAndActivate("shell:AppsFolder\8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy!bitwardendesktop")
 !#p::RunAndActivate(EnvGet("LocalAppData") . "\Programs\Bitwarden\Bitwarden.exe", , , , "Bitwarden")
 ^#s::RunAndActivate(gOneDrive . "\Utils\RandomMusicPicker.exe randomSongs", , , , "Random Songs")
-+#t::Run("control.exe AdminTools")		; think there used to be a CLSID for this but doesn't exist anymore ??
++#!t::Run("control.exe AdminTools")		; think there used to be a CLSID for this but doesn't exist anymore ??
 ^#x::Run('wt.exe --window last --profile "Command Prompt"')
 ^#!x::RunElevated("wt.exe", '--window last --profile "Command Prompt"')
 ^+#x::Run(A_ComSpec . ' /k "cd "%UserProfile%""')
