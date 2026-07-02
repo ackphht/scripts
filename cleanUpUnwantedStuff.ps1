@@ -403,6 +403,7 @@ function DisableUnwantedServices {
 		#@{ Name = 'OptionsPlusUpdaterService'; Start = 'Manual'; }		# Logitech Options+ Updater; nevermind, apparently needed
 		@{ Name = 'SQLTELEMETRY$SQLEXPRESS'; Start = ''; }
 		@{ Name = 'FabCdRomService'; Start = ''; }					# some DvdFab service
+		@{ Name = 'NVDisplay.ContainerLocalSystem'; Start = ''; }	# "simplifies the process of building and deploying containerized GPU-accelerated applications"; meh
 		#@{ Name = 'xxxxxxxxxxxxxxxx'; Start = ''; }
 	) | ForEach-Object { DisableService $_; }
 }
