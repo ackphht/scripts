@@ -15,6 +15,19 @@ if (-not ([bool](Get-Command -Name 'winget.exe' -ErrorAction SilentlyContinue)))
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
 Set-StrictMode -Version 'Latest'
 
+#region get winget.exe version
+$wgExeVersionTmp = (winget.exe --version | Select-String -Pattern '(\d+\.){2,}\d+').Matches[0].Value
+if ($wgExeVersionTmp) {
+	$wgExeVersion = [version] $wgExeVersionTmp
+	Write-Verbose "winget.exe version = `"$wgExeVersion`""
+} else {
+	$wgExeVersion = [version] '0.0.0'
+	Write-Warning "could not determine winget.exe version"
+}
+Remove-Variable -Name 'wgExeVersionTmp'
+$wgExeVerWithSort = [version]'1.29.0'	# v1.29 finally sorts itself:
+#endregion
+
 #region check if Microsoft.WinGet.Client is available and usable
 function _checkWinGetClientModule {
 	[CmdletBinding(SupportsShouldProcess=$false)]
@@ -132,8 +145,12 @@ function Get-AckWingetInstalledPackages {
 		if ($maxCount -gt 0) { $cmd += " --count $maxCount" }
 
 		Write-Verbose "$($MyInvocation.InvocationName): command = |$cmd|"
-		$list = _invokeWingetCommand -command $cmd
-		_sortAndWriteOutput -list $list
+		if ($wgExeVersion -ge $wgExeVerWithSort) {
+			_invokeWingetCommand -command $cmd
+		} else {
+			$list = _invokeWingetCommand -command $cmd
+			_sortAndWriteOutput -list $list
+		}
 	}
 }
 
@@ -220,8 +237,12 @@ function Get-AckWingetOutdatedPackages {
 		if ($source) { $cmd += " --source $source" }
 
 		Write-Verbose "$($MyInvocation.InvocationName): command = |$cmd|"
-		$list = _invokeWingetCommand -command $cmd
-		_sortAndWriteOutput -list $list
+		if ($wgExeVersion -ge $wgExeVerWithSort) {
+			_invokeWingetCommand -command $cmd
+		} else {
+			$list = _invokeWingetCommand -command $cmd
+			_sortAndWriteOutput -list $list
+		}
 	}
 }
 
