@@ -277,6 +277,7 @@ $^q:: {	; '$' needed so that we can do the Send below without getting in a loop?
 :*:/dealwithit/::(▀̿Ĺ̯▀̿ ̿)
 :*:/what/::ಠ_ಠ
 :*:/happy/::ᕕ( ᐛ )ᕗ
+:*:/finger/::🖕
 
 /*
 	functions
