@@ -70,6 +70,119 @@ NOTE: WhatIfPreference and other preference vars don't propagate into module cmd
 	see https://devblogs.microsoft.com/scripting/weekend-scripter-access-powershell-preference-variables/
 #>
 
+function Export-AckWingetPackage {
+	<#
+		.SYNOPSIS
+		Calls winget to download a package using its specified ID
+
+		.DESCRIPTION
+		Calls winget to download a package using its specified ID
+
+		.PARAMETER packageId
+		the Winget ID of the package to download
+
+		.PARAMETER exactIdMatch
+		by default, the packageId param is searched for case-insensitively and partially, and if only one result is found that will be downloaded.
+		Specifying this param will turn on exact matching for the ID.
+
+		.PARAMETER version
+		optional version to be downloaded; if not specified, winget will download the latest version available
+
+		.PARAMETER downloadDirectory
+		the directory to download the package to; if not specified, winget will use its default download location (user Downloads folder)
+
+		.PARAMETER installerType
+		Specify the installer type of the package to be downloaded (msix, exe, msi, etc)
+
+		.PARAMETER architecture
+		Specify the architecture of the package to be downloaded
+
+		.PARAMETER scope
+		If a package has both a machine and a user install available, this can be used to specify which one to download.
+
+		.PARAMETER source
+		limits finding the package to the specified source, either 'winget' or 'msstore' (this is passed to the winget '--source' param).
+		If nothing is specified, then any winget source can be used.
+
+		.OUTPUTS
+		whatever winget.exe outputs
+	#>
+	[CmdletBinding(SupportsShouldProcess=$true)]
+	[OutputType([void])]
+	param(
+		[Parameter(Position=0, Mandatory=$true)]
+		[Alias('id')] [string] $packageId,
+
+		[Alias('exact')] [switch] $exactIdMatch,
+
+		[string] $version = $null,
+
+		[string] [Alias('out','dir')] $downloadDirectory = $null,
+
+		[ValidateSet('', 'default', 'exe', 'msi', 'wix', 'inno', 'nullsoft', 'zip', 'msix', 'burn', 'portable')]
+		[Alias('type')] [string] $installerType = '',
+
+		[ValidateSet('', 'default', 'x64', 'arm64', 'x86', 'arm')]
+		[Alias('arch')] [string] $architecture = '',
+
+		[ValidateSet('', 'machine', 'user')]
+		[string] $scope = '',
+
+		[ValidateSet('', 'winget', 'msstore')]
+		[string] $source = ''
+	)
+	if (-not $PSBoundParameters.ContainsKey('ErrorAction')) { $ErrorActionPreference = $PSCmdlet.GetVariableValue('ErrorActionPreference') }
+	if (-not $PSBoundParameters.ContainsKey('Verbose')) { $VerbosePreference = $PSCmdlet.GetVariableValue('VerbosePreference') }
+	if (-not $PSBoundParameters.ContainsKey('WhatIf')) { $WhatIfPreference = $PSCmdlet.GetVariableValue('WhatIfPreference') }
+	# just in case i spaz out:
+	if ($downloadDirectory) {
+		# Export-WinGetPackage doesn't seem to be expanding PSPaths (like ~/Downloads), and command line won't like them either, so
+		# make sure path is converted (and path might not exist yet, so can't use Resolve- or Convert-Path):
+		$downloadDirectory = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath([System.Environment]::ExpandEnvironmentVariables($downloadDirectory))
+	}
+
+	if ($wgModuleAvailable) {
+		Write-Verbose '$wgModuleAvailable is true, using WinGet.Client cmdlets'
+		$parms = @{}
+		$parms.Add('Id', $packageId)
+		if ($exactIdMatch) { $parms.Add('MatchOption', 'Equals') }
+		if ($version) { $parms.Add('Version', $version) }
+		if ($downloadDirectory) { $parms.Add('DownloadDirectory', $downloadDirectory) }
+		if ($installerType) { $parms.Add('InstallerType', $installerType) }
+		if ($architecture) { $parms.Add('Architecture', $architecture) }
+		if ($scope) { $parms.Add('Scope', $scope) }
+		if ($source) { $parms.Add('Source', $source) }
+		$parms.Add('SkipDependencies', $true)
+		$parms.Add('ErrorAction', $ErrorActionPreference)
+		$parms.Add('Verbose', $VerbosePreference)
+
+		Write-Verbose "$($MyInvocation.InvocationName): Export-WinGetPackage parameters: |$($parms.GetEnumerator())|"
+		# Export-WinGetPackage apparently doesn't support -WhatIf:
+		if ($PSCmdlet.ShouldProcess($packageId, 'Export-WinGetPackage')) {
+			Export-WinGetPackage @parms
+		}
+	} else {
+		Write-Verbose '$wgModuleAvailable is false, using winget.exe'
+		$argList = @('download', '--id', $packageId)
+		if ($exactIdMatch) { $argList += '--exact' }
+		if ($version) { $argList += @('--version', $version) }
+		if ($downloadDirectory) { $argList += @('--download-directory', $downloadDirectory) }
+		if ($installerType) { $argList += @('--installer-type', $installerType) }
+		if ($architecture) { $argList += @('--architecture', $architecture) }
+		if ($scope) { $argList += @('--scope', $scope) }
+		if ($source) { $argList += @('--source', $source) }
+		$argList += '--skip-dependencies'
+		$argList += '--accept-package-agreements'
+		$argList += '--accept-source-agreements'
+
+		$argsJoined = ($argList -join ' ')
+		Write-Verbose "$($MyInvocation.InvocationName): winget command:`n  $argsJoined"
+		if ($PSCmdlet.ShouldProcess($argsJoined, 'winget.exe')) {
+			_invokeWingetCommand -argList $argList
+		}
+	}
+}
+
 function Get-AckWingetInstalledPackages {
 	<#
 		.SYNOPSIS
@@ -650,14 +763,19 @@ function _invokeWingetCommand {
 	[CmdletBinding(SupportsShouldProcess=$true)]
 	[OutputType([string[]])]
 	param(
-		[Parameter(Position=0, Mandatory=$true)] [string] $command
+		[Parameter(ParameterSetName='Command', Position=0, Mandatory=$true)] [string] $command,
+		[Parameter(ParameterSetName='Args', Position=0, Mandatory=$true)] [string[]] $argList
 	)
 	# winget outputs in utf8, but if you capture the output, posh/console apparently treats
 	# it as ansi, and mojibake ensues; so switch console to utf8 temporarily:
 	$currEncoding = [System.Console]::OutputEncoding
 	[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 	try {
-		return Invoke-Expression -Command $command
+		if ($command) {
+			return Invoke-Expression -Command $command
+		} else {
+			return (& winget.exe @argList)
+		}
 	} finally {
 		[System.Console]::OutputEncoding = $currEncoding
 	}
@@ -747,13 +865,14 @@ function _sortAndWriteOutput {
 #endregion
 
 #region add aliases:
-Set-Alias -Name 'wgs' -Value 'Search-AckWingetPackages'
+Set-Alias -Name 'wgd' -Value 'Export-AckWingetPackage'
 Set-Alias -Name 'wgl' -Value 'Get-AckWingetInstalledPackages'
 Set-Alias -Name 'wgn' -Value 'Get-AckWingetPackageDetails'
-Set-Alias -Name 'wgi' -Value 'Install-AckWingetPackage'
-Set-Alias -Name 'wgx' -Value 'Uninstall-AckWinGetPackage'
 Set-Alias -Name 'wgul' -Value 'Get-AckWingetOutdatedPackages'
-Set-Alias -Name 'wgu' -Value 'Update-AckWingetPackage'
+Set-Alias -Name 'wgi' -Value 'Install-AckWingetPackage'
+Set-Alias -Name 'wgs' -Value 'Search-AckWingetPackages'
 Set-Alias -Name 'wgrepo' -Value 'Show-AckWingetPackageRepository'
+Set-Alias -Name 'wgx' -Value 'Uninstall-AckWinGetPackage'
+Set-Alias -Name 'wgu' -Value 'Update-AckWingetPackage'
 Set-Alias -Name 'wgr' -Value 'Update-AckWingetSources'
 #endregion

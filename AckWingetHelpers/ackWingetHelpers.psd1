@@ -12,14 +12,15 @@
 	# Functions to export from this module
 	#FunctionsToExport = '*'
 	FunctionsToExport = @(
-		'Search-AckWingetPackages'
+		'Export-AckWingetPackage'
 		'Get-AckWingetInstalledPackages'
+		'Get-AckWingetOutdatedPackages'
 		'Get-AckWingetPackageDetails'
 		'Install-AckWingetPackage'
-		'Uninstall-AckWinGetPackage'
-		'Get-AckWingetOutdatedPackages'
-		'Update-AckWingetPackage'
+		'Search-AckWingetPackages'
 		'Show-AckWingetPackageRepository'
+		'Uninstall-AckWinGetPackage'
+		'Update-AckWingetPackage'
 		'Update-AckWingetSources'
 	)
 	# Cmdlets to export from this module
