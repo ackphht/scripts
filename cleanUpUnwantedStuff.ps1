@@ -319,6 +319,7 @@ function CleanUpDesktopIcons {
 		'Brave'
 		'Koodo Reader'
 		'QuickLook'
+		'YTDownloader'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -404,6 +405,7 @@ function DisableUnwantedServices {
 		@{ Name = 'SQLTELEMETRY$SQLEXPRESS'; Start = ''; }
 		@{ Name = 'FabCdRomService'; Start = ''; }					# some DvdFab service
 		@{ Name = 'NVDisplay.ContainerLocalSystem'; Start = ''; }	# "simplifies the process of building and deploying containerized GPU-accelerated applications"; meh
+		@{ Name = 'NoMachine Device Server'; Start = 'Manual'; }
 		#@{ Name = 'xxxxxxxxxxxxxxxx'; Start = ''; }
 	) | ForEach-Object { DisableService $_; }
 }
@@ -681,6 +683,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Google Chrome.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Google Drive.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('GPA.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('GpgOL-Web.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Intel Driver & Support Assistant.lnk', $systemApps)
 		[StartMenuCleanupItem]::FromCommonPrograms('KeePass 2.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Koodo Reader.lnk', $applications)
@@ -689,9 +692,12 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Edge.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Edge Beta.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Microsoft Mouse and Keyboard Center.lnk', $systemApps)
+		[StartMenuCleanupItem]::FromCommonPrograms('NoMachine.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Notepad++.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Notepad3.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('OneDrive for Business.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('OneDrive Photos.lnk', $applications)
+		[StartMenuCleanupItem]::FromCommonPrograms('OneDrive.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('OneNote.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('OneNote 2016.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('Orca.lnk', $development)
@@ -894,6 +900,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('SyncBackPro (Not Elevated).lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('SyncBackPro.NE.lnk', $applications, 'SyncBackPro (Not Elevated).lnk')
 		[StartMenuCleanupItem]::FromUserPrograms('Vivaldi.lnk', $applications)
+		[StartMenuCleanupItem]::FromUserPrograms('YTDownloader.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Amazon\Amazon Kindle\Kindle.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Atlassian\Sourcetree.lnk', $development, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey\AutoHotkey Window Spy.lnk', $applications)
@@ -1182,9 +1189,9 @@ function CleanUpEnvVars {
 
 	WriteHeaderMessage 'cleaning up unwanted environment variables'
 	@(
-		'POSH_THEMES_PATH'
+		'POSH_THEMES_PATH'				# old oh-my-posh vars, don't think used anymore, but nuke if they show up again
 		'POSH_INSTALLER'
-		'IGCCSVC_DB'	# very long Intel connection string or whatever; don't need it
+		'IGCCSVC_DB'					# very long Intel connection string or whatever; don't need it
 		'VBOX_MSI_INSTALL_PATH'
 	) | ForEach-Object { RemoveUnwantedEnvVar -envVarName $_ }
 
@@ -1199,32 +1206,34 @@ function CleanUpPathVars {
 	$crap = @(
 		'*\javapath'
 		'*\Microsoft\jdk-*-hotspot\bin'
-		#'*\Microsoft SQL Server\*'
-		'*(x86)\Microsoft SQL Server\170\*'
-		'*\Microsoft SQL Server\Client SDK\ODBC\170\*'
-		'*\Microsoft SQL Server\170\DTS\*'
-		'*\Microsoft SQL Server\150\*'
+		'*\Microsoft SQL Server\*'
+		#'*(x86)\Microsoft SQL Server\170\*'
+		#'*\Microsoft SQL Server\Client SDK\ODBC\170\*'
+		#'*\Microsoft SQL Server\170\DTS\*'
+		#'*\Microsoft SQL Server\150\*'
 		#'*\Windows Performance Toolkit\'
 		'*\Windows Kits\*'
-		'*\UltraEdit'
-		'*\UltraCompare'
+		'*\Docker\*'
+		'*\Microsoft VS Code\bin'
 		'*\7-zip'
 		'*\Intel\*'
 		'*\Intel(R) Management Engine Components\*'
 		'*\Web Platform Installer*'
 		'*\Fiddler'
 		'*\Azure Data Studio\*'
-		'*\oh-my-posh\themes'
+		'*\oh-my-posh\themes'				# old oh-my-posh folder, don't think used anymore, but nuke if it shows up again
 		#'C:\ProgramData\DockerDesktop\version-bin'
 		'*\GitHubDesktop\*'
-		'C:\Program Files\GnuPG\bin'
-		'C:\Program Files\Gpg4win\..\GnuPG\bin'
+		'*\GnuPG\bin'
+		'*\Gpg4win\..\GnuPG\bin'
 		'*\go\bin'
 		'*\Python\Launcher\'
 		'*\TortoiseGit\bin'
 		#'*\gsudo\*'
 		'*\PowerToys\DSCModules'
 		'*\PowerToys'
+		'*\UltraEdit'
+		'*\UltraCompare'
 	)
 	if ($VerbosePreference -eq 'Continue') {
 		WriteVerboseMessage 'removals:'
