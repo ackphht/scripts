@@ -350,31 +350,37 @@ if OSDetails._getPlatform() == OSDetails.PlatformWindows:
 		# region helper methods
 		def _getWinRegData(self) -> tuple[int, str, str, str, str, str, int]:
 			logging.debug(r"reading data from registry HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion")
-			buildNumber: int = 0; displayVersion: str = None; editionId: str = None; installType: str = None; productName: str = None; releaseId: str = None; ubr: int = 0;
+			buildNumber: int = 0; displayVersion: str = ''; editionId: str = ''; installType: str = ''; productName: str = ''; releaseId: str = ''; ubr: int = 0;
 			with winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion") as key:
-				bld = self._readRegValue(key, "CurrentBuild")
-				if bld: bld = int(bld)
-				buildNumber = bld
-				displayVersion = self._readRegValue(key, "DisplayVersion")
-				editionId = self._readRegValue(key, "EditionID")
-				installType = self._readRegValue(key, "InstallationType")
-				productName = self._readRegValue(key, "ProductName")
-				releaseId = self._readRegValue(key, "ReleaseId")
-				ubr = self._readRegValue(key, "UBR")
+				tmp = self._readRegValue(key, "CurrentBuild")
+				buildNumber = int(tmp) if tmp else 0
+				tmp = self._readRegValue(key, "DisplayVersion")
+				displayVersion = str(tmp) if tmp else ''
+				tmp = self._readRegValue(key, "EditionID")
+				editionId = str(tmp) if tmp else ''
+				tmp = self._readRegValue(key, "InstallationType")
+				installType = str(tmp) if tmp else ''
+				tmp = self._readRegValue(key, "ProductName")
+				productName = str(tmp) if tmp else ''
+				tmp = self._readRegValue(key, "ReleaseId")
+				releaseId = str(tmp) if tmp else ''
+				tmp = self._readRegValue(key, "UBR")
+				ubr = int(tmp) if tmp else 0
 			logging.debug(f'returning registry data: buildNumber="{buildNumber}", editionId="{editionId}", displayVersion="{displayVersion}", releaseId="{releaseId}", ubr="{ubr}"')
 			return buildNumber, displayVersion, editionId, installType, productName, releaseId, ubr
 
 		def _getWinBuildLab(self) -> str:
-			buildLab: str = None
+			buildLab: str = ''
 			with winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion") as key:
-				buildLab = self._readRegValue(key, "BuildLab")
+				tmp = self._readRegValue(key, "BuildLab")
+				buildLab = str(tmp) if tmp else ''
 			return buildLab
 
 		def _readRegValue(self, key: winreg.HKEYType, valueName: str) -> Union[str, int]:
 			try:
 				return winreg.QueryValueEx(key, valueName)[0]
 			except OSError:
-				return None
+				return ''
 
 		def _cleanUpWinProductName(self, rawName: str, buildNumber: int) -> str:
 			logging.debug(f'cleaning up product name "{rawName}"')
