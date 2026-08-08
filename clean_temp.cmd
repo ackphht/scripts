@@ -134,6 +134,7 @@ call :CleanTempFolder WPF
 call :CleanTempFolder WSLDVCPlugin
 call :CleanTempFolder "Temporary ASP.NET Files"
 call :CleanTempMultiFolder *.tmp
+call :CleanTempMultiFolder 7z*
 call :CleanTempMultiFolder appInsights-*
 call :CleanTempMultiFolder calibre_*
 call :CleanTempMultiFolder chrome_BITS*
