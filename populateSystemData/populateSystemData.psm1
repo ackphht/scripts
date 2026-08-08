@@ -447,10 +447,10 @@ function _getWindowsUBR {
 
 function _getWinReleaseFromReg {
 	# DisplayVersion added when they switched names from '2009' to '20H2'
-	$result = (Get-ItemProperty -path 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion').DisplayVersion	# new with 20H2 (2009)
+	$result = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'DisplayVersion' -ErrorAction SilentlyContinue	# new with 20H2 (2009)
 	if (-not $result) {
 		# fall back to older one (e.g. '2004', '1903')
-		$result = (Get-ItemProperty -path 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion').ReleaseId
+		$result = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'ReleaseId' -ErrorAction SilentlyContinue	# new with 20H2 (2009)
 	}
 	return $result
 }
