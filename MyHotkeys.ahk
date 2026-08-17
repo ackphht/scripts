@@ -366,7 +366,7 @@ OpenFolder(folderName, asAdmin := false) {
 gMaxExplorerActivationAttempts := 20
 OpenFolderWithExplicitTabs(folderName) {
 	explorerHwnd := WinExist(gExplorerClassPostVista)
-	static shellGuid := "i)^::\{[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}\}$"	; "i)" at the front is case-insensitive
+	static shellGuid := "i)^::\{[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\}$"	; "i)" at the front is case-insensitive
 	if (RegExMatch(folderName, shellGuid)) {
 		folderName := "shell:" . folderName
 	}
