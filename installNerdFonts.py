@@ -54,6 +54,8 @@ def main() -> int:
 	(osHelper.fontsFldr / currVerStr).touch()
 	rebuildFontCache(osHelper)
 
+	return 0
+
 def initArgParser() -> argparse.ArgumentParser:
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-v", "--verbose", action="store_true", help="enable verbose logging")
@@ -222,7 +224,7 @@ class NerdFontCollection:
 		self._fonts : dict[str, NerdFontDefn] = dict()
 
 	@property
-	def fonts(self) -> Iterator[NerdFontDefn]:
+	def fonts(self) -> list[NerdFontDefn]:
 		return [self._fonts[k] for k in self._fonts]
 
 	def addFontDefn(self, fontName : str, fontFilenameBases : list[str]):
