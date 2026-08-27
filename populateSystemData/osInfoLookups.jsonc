@@ -12,15 +12,17 @@
 					and append to name after a period
 			*/
 			"client": [
-				{ "build": 27000, "name": "11.canary" /*'11.canary.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
-				{ "build": 26220, "name": "11.dev" /*'11.dev.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				//{ "build": 27000, "name": "11.canary" /*'11.canary.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				//{ "build": 26220, "name": "11.dev" /*'11.dev.xxxxxxxx'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
 				// ??? remove next one once beta advances to higher build number ???:
-				{ "build": 26200, "name": "11" /*'11.25H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
-				{ "build": 26120, "name": "11.beta" /*'11.beta.1234'*/, "addRegRelease": false, "addBuildNumber": true, "addBuildLab": false, "addUbr": true },
-				{ "build": 26100, "name": "11" /*'11.24H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
-				{ "build": 22635, "name": "11.beta" /*'11.beta.1234'*/, "addRegRelease": false, "addBuildNumber": true, "addBuildLab": false, "addUbr": true },
-				{ "build": 22621, "name": "11" /*'11.22H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
-				{ "build": 22429, "name": "11.dev", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
+				// no idea how to distinguish/keep up with beta, dev, canary, experimental, etc builds any more...
+				//{ "build": 26300, "name": "11" /*'11.26H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				//{ "build": 26200, "name": "11" /*'11.25H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				//{ "build": 26120, "name": "11.beta" /*'11.beta.1234'*/, "addRegRelease": false, "addBuildNumber": true, "addBuildLab": false, "addUbr": true },
+				//{ "build": 26100, "name": "11" /*'11.24H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				//{ "build": 22635, "name": "11.beta" /*'11.beta.1234'*/, "addRegRelease": false, "addBuildNumber": true, "addBuildLab": false, "addUbr": true },
+				//{ "build": 22621, "name": "11" /*'11.22H2'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
+				//{ "build": 22429, "name": "11.dev", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
 				{ "build": 22000, "name": "11" /*'11 RTM'*/, "addRegRelease": false, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
 				{ "build": 19500, "name": "11.dev", "addRegRelease": false, "addBuildNumber": false, "addBuildLab": true, "addUbr": false },
 				{ "build": 10586, "name": "10" /*'10.20H1'*/, "addRegRelease": true, "addBuildNumber": false, "addBuildLab": false, "addUbr": false },
@@ -66,6 +68,7 @@
 		},
 		"codenames": [
 			// same codenames apply to server ?? or do we need to have separate list ??
+			{ "build": 26300, "codename": "Hudson Valley 3", "major": 0, "minor": 0 },// Win 11 26H2
 			{ "build": 26200, "codename": "Hudson Valley 2", "major": 0, "minor": 0 },// Win 11 25H2
 			{ "build": 26100, "codename": "Hudson Valley", "major": 0, "minor": 0 },// Win 11 24H2
 			{ "build": 22631, "codename": "Sun Valley 3", "major": 0, "minor": 0 },	// Win 11 23H2
