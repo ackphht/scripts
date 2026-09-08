@@ -233,7 +233,7 @@ class MusicFolderHandler:
 					TagNames.RecordedDate, TagNames.ReleasedDate, TagNames.MediaType, TagNames.ISRC,
 					TagNames.MusicBrainzAlbumArtistId, TagNames.MusicBrainzAlbumId, TagNames.MusicBrainzAlbumReleaseCountry,
 					TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzDiscId, TagNames.MusicBrainzReleaseGroupId,
-					TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzTrackArtistId, TagNames.MusicBrainzTrackId,
+					TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzReleaseType, TagNames.MusicBrainzTrackArtistId, TagNames.MusicBrainzTrackId,
 					TagNames.MusicBrainzWorkId, TagNames.WorkTitle, TagNames.DiscogsReleaseId, TagNames.AmazonId,
 					TagNames.DigitalPurchaseFrom, TagNames.DigitalPurchaseDate, TagNames.DigitalPurchaseId,
 					TagNames.AllMusicArtistId, TagNames.AllMusicAlbumId, TagNames.WikidataArtistId, TagNames.WikidataAlbumId,
