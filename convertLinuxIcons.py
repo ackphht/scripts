@@ -1547,6 +1547,7 @@ class IconsToCopy:
 				Icon("message-rfc822", extensions=["eml"]),
 				Icon("package-x-generic", ["application-x-package-generic"]),		# target name is not real (but neither is the source name), but want this to show up near the other package types
 				Icon("text-tab-separated-values", extensions=["tsv"]),
+				Icon("text-calendar", extensions=["ics", "vcs"]),
 				Icon("text-css", extensions=["css"]),
 				Icon("text-csv", ["text-x-csv", "text-x-comma-separated-values"], ["csv"]),
 				Icon("text-html", ["application-html", "application-x-mswinurl"], ["htm", "html"]),
