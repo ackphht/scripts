@@ -135,46 +135,48 @@ GroupAdd "Explorer", gExplorerClassPostVista
 	# = Win  /  ^ = Ctrl  /  + = Shift  /  ! = Alt
 */
 ; CLSID list: https://www.autohotkey.com/docs/v1/misc/CLSID-List.htm
-+#a::OpenFolder(A_AppData)
-^+#a::OpenFolder(EnvGet("UserProfile") . "\Apps")
-^+#b::OpenFolder(EnvGet("UserProfile") . "\Books")
+; sometimes using these hotkeys, the Shift key gets stuck, which then causes dumb things to happen when clicking things afterward,
+; and supposedly if you force the keybpard hook with the '$' char, it will prevent it, so trying that out:
+$+#a::OpenFolder(A_AppData)
+$^+#a::OpenFolder(EnvGet("UserProfile") . "\Apps")
+$^+#b::OpenFolder(EnvGet("UserProfile") . "\Books")
 +#c::Run("control.exe")				; open Control Panel
-+#d::OpenFolder(A_MyDocuments)								; or "::{450d8fba-ad25-11d0-98a8-0800361b1103}"
-^+#d::OpenFolder(EnvGet("UserProfile") . "\Downloads")		; or "::{088E3905-0323-4B02-9826-5D99428E115F}"
-;^+#f::OpenFolder(EnvGet("UserProfile") . "\dev\foss")
-+#g::OpenFolder(EnvGet("GoogleDrive"))
-+#h::OpenFolder(EnvGet("UserProfile"))						; or "::{59031A47-3F72-44A7-89C5-5595FE6B30EE}"
-^+#h::OpenFolder(StrReplace(EnvGet("UserProfile"), "C:\", "D:\"))
-+#l::OpenFolder(EnvGet("LocalAppData"))
-+#m::OpenFolder(EnvGet("UserProfile") . "\Music\MyMusic")
-+#o::OpenFolder(EnvGet("OneDrive"))							; or "::{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
-+#p::OpenFolder(EnvGet("UserProfile") . "\Pictures")		; or "::{24AD3AD4-A569-4530-98E1-AB02F9417AA8}"
-^+#p::OpenFolder(gProgramFiles)								; open program files
-!+#p::OpenFolder(gProgramFiles32)							; open program files (x86)
-^!#p::OpenFolder(EnvGet("LocalAppData") . "\Programs")				; open user program files
-+#q::OpenFolder(EnvGet("UserProfile") . "\dev\MyProjects")
-^+#s:: {
+$+#d::OpenFolder(A_MyDocuments)								; or "::{450d8fba-ad25-11d0-98a8-0800361b1103}"
+$^+#d::OpenFolder(EnvGet("UserProfile") . "\Downloads")		; or "::{088E3905-0323-4B02-9826-5D99428E115F}"
+;$^+#f::OpenFolder(EnvGet("UserProfile") . "\dev\foss")
+$+#g::OpenFolder(EnvGet("GoogleDrive"))
+$+#h::OpenFolder(EnvGet("UserProfile"))						; or "::{59031A47-3F72-44A7-89C5-5595FE6B30EE}"
+$^+#h::OpenFolder(StrReplace(EnvGet("UserProfile"), "C:\", "D:\"))
+$+#l::OpenFolder(EnvGet("LocalAppData"))
+$+#m::OpenFolder(EnvGet("UserProfile") . "\Music\MyMusic")
+$+#o::OpenFolder(EnvGet("OneDrive"))							; or "::{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
+$+#p::OpenFolder(EnvGet("UserProfile") . "\Pictures")		; or "::{24AD3AD4-A569-4530-98E1-AB02F9417AA8}"
+$^+#p::OpenFolder(gProgramFiles)								; open program files
+$!+#p::OpenFolder(gProgramFiles32)							; open program files (x86)
+$^!#p::OpenFolder(EnvGet("LocalAppData") . "\Programs")				; open user program files
+$+#q::OpenFolder(EnvGet("UserProfile") . "\dev\MyProjects")
+$^+#s:: {
 	OpenFolder(A_ProgramsCommon)
 	OpenFolder(A_Programs)
 }
-^+#t::OpenFolder(A_Temp)
-+#u::OpenFolder(EnvGet("UserProfile") . "\Apps\Utils")
-^+#u::OpenFolder(EnvGet("UserProfile") . "\OneDrive\Utils")
-^+#v::OpenFolder(EnvGet("UserProfile") . "\Videos")
-+#w::LookForAndOpenWarezFolder()
-^+#w::LookForAndOpenWorkProjectsFolder()
-+#y::OpenFolder("::{20d04fe0-3aea-1069-a2d8-08002b30309d}")		; open My Computer
-^+#y::OpenFolder("::{679F85CB-0220-4080-B29B-5540CC05AAB6}")	; open Quick Access
-+#1::OpenFolder("C:\")
-+#2::OpenFolder("D:\")
-+#3::OpenFolder("E:\")
-+#4::OpenFolder("F:\")
-+#5::OpenFolder("G:\")
-+#6::OpenFolder("H:\")
-+#7::OpenFolder("I:\")
+$^+#t::OpenFolder(A_Temp)
+$+#u::OpenFolder(EnvGet("UserProfile") . "\Apps\Utils")
+$^+#u::OpenFolder(EnvGet("UserProfile") . "\OneDrive\Utils")
+$^+#v::OpenFolder(EnvGet("UserProfile") . "\Videos")
+$+#w::LookForAndOpenWarezFolder()
+$^+#w::LookForAndOpenWorkProjectsFolder()
+$+#y::OpenFolder("::{20d04fe0-3aea-1069-a2d8-08002b30309d}")		; open My Computer
+$^+#y::OpenFolder("::{679F85CB-0220-4080-B29B-5540CC05AAB6}")	; open Quick Access
+$+#1::OpenFolder("C:\")
+$+#2::OpenFolder("D:\")
+$+#3::OpenFolder("E:\")
+$+#4::OpenFolder("F:\")
+$+#5::OpenFolder("G:\")
+$+#6::OpenFolder("H:\")
+$+#7::OpenFolder("I:\")
 ;+#8::OpenFolder("M:\")
-+#0::OpenFolder("\\wallach9")
-^+#0::OpenFolder("\\wallach9\home")
+$+#0::OpenFolder("\\wallach9")
+$^+#0::OpenFolder("\\wallach9\home")
 
 /*
 	management-type stuff
