@@ -172,6 +172,7 @@ function VerifyPowerShellCoreInstalled {
 				[System.Management.Automation.Host.ChoiceDescription]::new('&Github', 'download from Github')
 				[System.Management.Automation.Host.ChoiceDescription]::new('&Store', 'install from MS Store')
 			)
+			# TODO: should use Get-UserChoice
 			$selection = $Host.UI.PromptForChoice($caption, $message, $choices, 0)
 		} else {
 			$selection = 1
@@ -220,11 +221,13 @@ function InstallAppWithWinget {
 	[OutputType([void])]
 	param(
 		[Parameter(Mandatory=$true)] [string] $appId,
-		[Parameter(Mandatory=$true)] [string] $source
+		[Parameter(Mandatory=$true)] [string] $source,
+		[Parameter(Mandatory=$false)] [string] $installerType
 	)
 	$interactive = if ($source -ne 'msstore') { '--interactive' } else { '' }
-	$exitCode = RunApplication -fileToRun 'winget.exe' -arguments "install --id $appId --exact --source $source $interactive --accept-package-agreements --accept-source-agreements"
-	Write-Verbose "$($MyInvocation.InvocationName): exitCode from winget.exe =|$exitCode"
+	$type = if ($installerType) { "--installer-type $installerType" } else { '' }
+	$exitCode = RunApplication -fileToRun 'winget.exe' -arguments "install --id $appId --exact --source $source $interactive $type --accept-package-agreements --accept-source-agreements"
+	WriteVerboseMessage -message 'exitCode from winget.exe = |{0}|' -formatParams $exitCode
 }
 
 function DownloadAndInstallFromGithub {
