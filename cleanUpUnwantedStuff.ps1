@@ -320,6 +320,7 @@ function CleanUpDesktopIcons {
 		'Koodo Reader'
 		'QuickLook'
 		'YTDownloader'
+		'LibreOffice*'
 	) |	ForEach-Object { RemoveDesktopIcon $_ }
 }
 
@@ -621,6 +622,7 @@ function CleanUpStartMenuAutoruns {
 	WriteHeaderMessage 'cleaning up unwanted StartMenu Autoruns'
 	$autorunsToLookFor = @(
 		'Send to OneNote'
+		'LibreOffice*'
 	);
 	$placesToCheck = @(
 		[Environment]::GetFolderPath([Environment+SpecialFolder]::Startup),
@@ -634,7 +636,7 @@ function CleanUpStartMenuAutoruns {
 			if (Test-Path $filepath) {
 				WriteStatusMessage "disabling Autorun |$app| from |$location|"
 				$disabledLocation = Join-Path $location 'AutorunsDisabled';
-				$disabledFilepath = Join-Path $disabledLocation $filename;
+				#$disabledFilepath = Join-Path $disabledLocation $filename;
 				# make sure disabled folder exists
 				if (!(Test-Path $disabledLocation)) {
 					WriteVerboseMessage 'creating folder location |{0}|' $disabledLocation
@@ -645,14 +647,15 @@ function CleanUpStartMenuAutoruns {
 						$temp.Attributes = $temp.Attributes -bor [System.IO.FileAttributes]::Hidden; # 'Hidden';
 					}
 				}
-				# if already exists in disabled folder, remove it
-				if (Test-Path $disabledFilepath) {
-					WriteVerboseMessage 'removing existing disabled entry |{0}| from |{1}|' $app,$disabledLocation
-					Remove-Item -Path $disabledFilepath -WhatIf:$WhatIfPreference;
-				}
+				## if already exists in disabled folder, remove it
+				#if (Test-Path $disabledFilepath) {
+				#	WriteVerboseMessage 'removing existing disabled entry |{0}| from |{1}|' $app,$disabledLocation
+				#	Remove-Item -Path $disabledFilepath -WhatIf:$WhatIfPreference;
+				#}
 				# now move to disabled folder
 				WriteVerboseMessage 'moving entry |{0}| to |{1}|' $app,$disabledLocation
-				Move-Item -Path $filepath -Destination $disabledFilepath -WhatIf:$WhatIfPreference;
+				#Move-Item -Path $filepath -Destination $disabledFilepath -WhatIf:$WhatIfPreference;
+				Move-Item -Path $filepath -Destination $disabledLocation -Force -WhatIf:$WhatIfPreference;
 			}
 		}
 	}
@@ -777,6 +780,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Logitech\Logitech Options.lnk', $systemApps, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Logi Firmware Update Tool\BRIO.lnk', $systemApps, 'Logitech BRIO Firmware Update.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Logitech Camera Settings\Logitech Camera Settings.lnk', $systemApps, $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('LibreOffice\LibreOffice*.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 5 (AnyCPU).lnk', $development, 'LINQPad 5.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 6 (x86).lnk', $development)
 		[StartMenuCleanupItem]::FromCommonPrograms('LINQPad\LINQPad 6 (x64).lnk', $development, 'LINQPad 6.lnk')
