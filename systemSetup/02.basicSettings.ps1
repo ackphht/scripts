@@ -183,13 +183,16 @@ function ConfigureWindowsAndExplorer {
 	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iDate' -v '2' -t 'String'
 	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iTime' -v '1' -t 'String'
 	SetRegistryEntry -p $hkcuCtrlPnlIntl -n 'iTLZero' -v '1' -t 'String'
-	# enable new sudo command:
-	SetRegistryEntry -p "$hklmCurrentVersion\Sudo" -n 'Enabled' -v 3 -t 'DWord'							# 0 = ??, 1 = in a new window, 2 = "with input disabled"(??), 3 = inline mode
+	# enable new sudo command (added with Win11 24H2):
+	if ($osDetails.BuildNumber -ge 26100) {
+		SetRegistryEntry -p "$hklmCurrentVersion\Sudo" -n 'Enabled' -v 3 -t 'DWord'						# 0 = ??, 1 = in a new window, 2 = "with input disabled"(??), 3 = inline mode
+	}
 	# enable DeveloperMode:
 	SetRegistryEntry -p "$hklmCurrentVersion\AppModelUnlock" -n 'AllowDevelopmentWithoutDevLicense' -v 1 -t 'DWord'
 	# Explorer options:
 	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowRecent' -v 0 -t 'DWord'						# don't show recent files in Quick Access
-	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowFrequent' -v 1 -t 'DWord'					# do show frequent folders in Quick Access
+	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowFrequent' -v 0 -t 'DWord'					# don't show frequent folders in Quick Access
+	SetRegistryEntry -p $hkcuCurrentVersionExplorer -n 'ShowCloudFilesInQuickAccess' -v 0 -t 'DWord'	# disable "include account-based insights, recent, favorite, and recommended files"
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'Hidden' -v 1 -t 'DWord'						# show hidden files
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'HideFileExt' -v 0 -t 'DWord'					# don't hide file extensions
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'PersistBrowsers' -v 1 -t 'DWord'				# do restore previous windows at login
@@ -199,9 +202,18 @@ function ConfigureWindowsAndExplorer {
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'LaunchTo' -v 1 -t 'DWord'					# Open File Explorer to "This PC" (2 = Quick Access)
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'SeparateProcess' -v 0 -t 'DWord'				# disable launch folders in separate process
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'ShowTaskViewButton' -v 0 -t 'DWord'			# hide Task View button on taskbar
-	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'NavPaneShowVersionControl' -v 1 -t 'DWord'	# ??? not sure yet what this does, but it sounds good to have
-	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\CabinetState" -n 'FullPath' -v 1 -t 'DWord'		# show full path in titlebar
-	#SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'NavPaneShowAllFolders' -v 1 -t 'DWord'
+	# next one is lame: <https://learn.microsoft.com/en-us/windows/advanced-settings/fe-version-control>; thought it would be something cool;
+	# have to manually enable it in Settings (System>Advanced>File Explorer) for ONE folder, and all it does is add a couple columns in Details view;
+	# maybe it will get better...
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'NavPaneShowVersionControl' -v 1 -t 'DWord'
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'ShowSyncProviderNotifications' -v 0 -t 'DWord'	# "Disable sync provider notifications (tips)" ??? not sure yet what this is, but the WindowsDevConfig is setting it ??
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'TaskbarDa' -v 0 -t 'DWord'					# disable Widgets button on the taskbar
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'TaskbarEndTask' -v 1 -t 'DWord'				# enable End Task right click on the taskbar
+	$value = if ($osDetails.BuildNumber -lt 22621) { 1 } else { 0 }	# Win11 22H2 added tabs to File Explorer and full paths isn't good with tabs
+	SetRegistryEntry -p "$hkcuCurrentVersionExplorer\CabinetState" -n 'FullPath' -v $value -t 'DWord'		# show full path in titlebar
+	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'NavPaneShowAllFolders' -v 0 -t 'DWord'		# disable "Show all folders" in the navigation pane
+	# disable bluetooth icon in systray:
+	SetRegistryEntry -p $hkcuCtrlPnl -n 'Notification Area Icon' -v 0 -t 'DWord'
 	# screen saver grace period before locking system:
 	SetRegistryEntry -p "$hkcuCurrentVersion\Winlogon" -n 'ScreenSaverGracePeriod' -v 10 -t 'DWord'
 	# disable saving zone information in downloads (that Sophia app/module/whatever writes to somewhere else [function 'SaveZoneInformation'], but below has always worked for me)
@@ -257,14 +269,14 @@ function ConfigureWindowsAndExplorer {
 	SetRegistryEntry -p "$hkcuCurrentVersion\Applets\Regedit\Favorites" -n 'HKLM > CurrentVersion' -v 'Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion' -t 'String'
 	SetRegistryEntry -p "$hkcuCurrentVersion\Applets\Regedit\Favorites" -n 'HKLM > WinNT > CurrentVersion' -v 'Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -t 'String'
 
-	if ($osDetails.ReleaseVersion.Major -ge 6) {	# Vista and up
+	if ($osDetails.BuildNumber -ge 6000) {	# Vista and up
 		# make sure current account has user right to create symlinks:
 		[AckWare.LsaHelper]::AddUserRight($env:Username, 'SeCreateSymbolicLinkPrivilege')
 		# enable "Lock pages in memory" priv (needed for Large Page Support):
 		[AckWare.LsaHelper]::AddUserRight($env:Username, 'SeLockMemoryPrivilege')
 	}
 
-	if ($osDetails.ReleaseVersion.Major -in @(10, 11)) {	# TODO?: maybe could check based on build number, so it would for servers, too, and handle future version of Windows
+	if ($osDetails.BuildNumber -ge 10240) {	# Win10 and up
 		# set default color mode to Dark:
 		SetRegistryEntry -p "$hkcuCurrentVersion\Themes\Personalize" -n 'SystemUsesLightTheme' -v 0 -t 'DWord'
 		SetRegistryEntry -p "$hkcuCurrentVersion\Themes\Personalize" -n 'AppsUseLightTheme' -v 0 -t 'DWord'
@@ -272,7 +284,7 @@ function ConfigureWindowsAndExplorer {
 		SetRegistryEntry -p $hkcuCtrlDesktop -n 'AutoColorization' -v 1 -t 'DWord'						# automatically select accent color from background
 		SetRegistryEntry -p "$hkcuSoftwareMicrosoft\Windows\DWM" -n 'ColorPrevalence' -v 1 -t 'DWord'	# show accent colors on title bars and window borders
 		# set dark wallpaper if it's currently Windows 11 light wallpaper:
-		if ($osDetails.ReleaseVersion.Major -eq 11) {
+		if ($osDetails.ReleaseVersion.Major -ge 11) {
 			<#
 			# this doesn't always work anymore, sometimes they turn on Spotlight:
 			$wp = GetRegPropertyValue -registryPath $hkcuCtrlDesktop -propertyName 'WallPaper'
@@ -307,18 +319,35 @@ function ConfigureWindowsAndExplorer {
 		SetRegistryEntry -p "$hklmCurrCtrlSet\Control\Terminal Server" -n 'fDenyTSConnections' -v 0 -t 'DWord'
 		# enable long paths
 		SetRegistryEntry -p "$hklmCurrCtrlSet\Control\FileSystem" -n 'LongPathsEnabled' -v 1 -t 'DWord'
-		# disable Connected Standby:
+		# disable Connected Standby:	giving up on this...
 		#SetRegistryEntry -p "$hklmCurrCtrlSet\Control\Power" -n 'CsEnabled' -v 0 -t 'DWord'
-		if ($osDetails.ReleaseVersion.Major -eq 10) {
-			# hide the People taskbar button
-			SetRegistryEntry -p "$hkcuCurrentVersionExplorer\Advanced\People" -n 'PeopleBand' -v 0 -t 'DWord'
-		} elseif ($osDetails.ReleaseVersion.Major -eq 11) {
+		# hide the People taskbar button
+		SetRegistryEntry -p "$hkcuCurrentVersionExplorer\Advanced\People" -n 'PeopleBand' -v 0 -t 'DWord'
+		if ($osDetails.ReleaseVersion.Major -ge 11) {
 			# turn on 'Compact view':
 			SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'UseCompactMode' -v 1 -t 'DWord'
 			# taskbar alignment: 1 = Center, 0 = Left
 			SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'TaskbarAl' -v 1 -t 'DWord'
 			# start menu layout: 0 = default; 1 = more pins, 2 = more recommendations
 			SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'Start_Layout' -v 1 -t 'DWord'
+			if ($osDetails.BuildNumber -ge 26300 <# 26H2 #>) {
+				# "Show all installed apps and system components in Start":
+				SetRegistryEntry -p "$hkcuCurrentVersion\Start" -n 'ShowAllAppsSection' -v 1 -t 'DWord'
+				# view: 0 = Default; 1 = Grid, 2 = List
+				SetRegistryEntry -p "$hkcuCurrentVersion\Start" -n 'AllAppsViewMode' -v 1 -t 'DWord'
+				# size: 0 = Automatic; 1 = Small, 2 = Large
+				SetRegistryEntry -p "$hkcuCurrentVersion\Start" -n 'StartMenuSize' -v 0 -t 'DWord'
+				# "Show most used apps":
+				SetRegistryEntry -p "$hkcuCurrentVersion\Start" -n 'ShowFrequentList' -v 0 -t 'DWord'
+				# "Show recently added apps":
+				SetRegistryEntry -p "$hkcuCurrentVersion\Start" -n 'ShowRecentList' -v 0 -t 'DWord'
+				# "Show recent and suggested files":
+				SetRegistryEntry -p "$hkcuCurrentVersion\Start" -n 'ShowSuggestedFiles' -v 0 -t 'DWord'
+				#
+				# TODO: need to find the setting for the taskbar location (bottom, top, left, right); not seeing option in Settings yet
+				#       there's $hkcuCurrentVersionExplorerAdv\@TaskbarLocation but not sure if that's it
+				#
+			}
 			# disable Teams autostarting: 0 = default (?); 1 = disabled, 2 = enabled
 			SetRegistryEntry -p "$hkcuClasses\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask" -n 'State' -v 1 -t 'DWord'
 		}
