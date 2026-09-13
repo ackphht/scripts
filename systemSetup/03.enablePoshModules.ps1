@@ -44,11 +44,10 @@ function Main {
 		}
 	}
 
-	#Install-Module -Name Pscx -Scope CurrentUser -AllowClobber
-
 	$yn = $Host.UI.PromptForChoice('Add repository', 'do you want to add a package repositories for wallach9?', $('&Yes', '&No'), 1)
 	if ($yn -eq 0) {
-		Read-Host -Prompt "`nmake sure system is connected to wallach9 and logged in...`n`npress Enter to continue..."
+		Start-Process -FilePath '\\wallach9\home'
+		Read-Host -Prompt "`nmaking sure system is connected to wallach9 and logged in...`n`npress Enter to continue..."
 
 		$wallach9Repo = Get-PSRepository -Name 'wallach9' -ErrorAction 'SilentlyContinue'
 		if (-not $wallach9Repo) {
