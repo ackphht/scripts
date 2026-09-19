@@ -331,6 +331,10 @@ function ConfigureWindowsAndExplorer {
 			# start menu layout: 0 = default; 1 = more pins, 2 = more recommendations
 			SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'Start_Layout' -v 1 -t 'DWord'
 			if ($osDetails.BuildNumber -ge 26300 <# 26H2 #>) {
+				# "Taskbar position": 0 = left, 1 = top, 2 = right, 3 = bottom
+				SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'TaskbarLocation' -v 3 -t 'DWord'
+				# "Taskbar size": 0 = Default, 1 = Small
+				SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'TaskbarSize' -v 0 -t 'DWord'
 				# "Show all installed apps and system components in Start":
 				SetRegistryEntry -p "$hkcuCurrentVersion\Start" -n 'ShowAllAppsSection' -v 1 -t 'DWord'
 				# view: 0 = Default; 1 = Grid, 2 = List
@@ -343,10 +347,6 @@ function ConfigureWindowsAndExplorer {
 				SetRegistryEntry -p "$hkcuCurrentVersion\Start" -n 'ShowRecentList' -v 0 -t 'DWord'
 				# "Show recent and suggested files":
 				SetRegistryEntry -p "$hkcuCurrentVersion\Start" -n 'ShowSuggestedFiles' -v 0 -t 'DWord'
-				#
-				# TODO: need to find the setting for the taskbar location (bottom, top, left, right); not seeing option in Settings yet
-				#       there's $hkcuCurrentVersionExplorerAdv\@TaskbarLocation but not sure if that's it
-				#
 			}
 			# disable Teams autostarting: 0 = default (?); 1 = disabled, 2 = enabled
 			SetRegistryEntry -p "$hkcuClasses\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask" -n 'State' -v 1 -t 'DWord'
