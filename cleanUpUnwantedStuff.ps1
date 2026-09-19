@@ -967,6 +967,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('Java')
 		[StartMenuCleanupItem]::FromCommonPrograms('Java Development Kit')
 		[StartMenuCleanupItem]::FromCommonPrograms('Logi')		# logitech options installing some app for some other device, Logi Bolt ??
+		[StartMenuCleanupItem]::FromCommonPrograms('Logi Download Assistant')
 		[StartMenuCleanupItem]::FromUserPrograms('Amazon')
 		[StartMenuCleanupItem]::FromUserPrograms('docker-desktop')
 		[StartMenuCleanupItem]::FromUserPrograms('docker-desktop-data')
