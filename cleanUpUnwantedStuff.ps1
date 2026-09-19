@@ -170,8 +170,27 @@ function UninstallUnwantedStoreApps {
 			WriteVerboseMessage 'check for store app "{0}"' $_
 			$a = Get-AppxPackage -Name $_
 			if ($a) {
-				WriteStatusMessage "uninstalling store app '$_'"
-				Remove-AppxPackage -Package $a -WhatIf:$WhatIfPreference <#-Confirm:$ConfirmPreference#>
+				WriteStatusMessage "unregistering store appx '$_'"
+				try {
+					Remove-AppxPackage -Package $a -WhatIf:$WhatIfPreference <#-Confirm:$ConfirmPreference#> -ErrorAction Stop
+				} catch {
+					if ($_.Exception) { WriteStatusMessageWarning "error removing user appx '$($appx.Name)': $($_.Exception.Message)" } else { throw }
+				}
+			}
+			if ($PSEdition -ne 'Core') {
+				# Get-AppxProvisionedPackage and/or Remove-AppxProvisionedPackage don't work on PowerShell Core (yet??)
+				# TODO?: maybe if we're running on Core, we could fire off a powershell.exe to do this??
+				foreach ($appx in (Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $_ })) {
+					# Remove-AppxProvisionedPackage doesn't support -Confirm for some reason, so have to check ourselves:
+					WriteStatusMessage "removing system appx '$($appx.DisplayName)" -ForegroundColor DarkYellow
+					if ($PSCmdLet.ShouldProcess($appx.DisplayName, 'Remove provisioned package')) {
+						try {
+							$appx | Remove-AppxProvisionedPackage -Online
+						} catch {
+							if ($_.Exception) { WriteStatusMessageWarning "error removing system appx '$($appx.DisplayName)': $($_.Exception.Message)" } else { throw }
+						}
+					}
+				}
 			}
 		}
 }
