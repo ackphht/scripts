@@ -3,11 +3,6 @@
 # except these:
 *.bat		text eol=crlf
 *.cmd		text eol=crlf
-# for powershell, might run some of these on older versions of windows, so be safe:
-*.ps1		text eol=crlf
-*.psd1		text eol=crlf
-*.psm1		text eol=crlf
-*.ps1xml	text eol=crlf
 # i don't know what these diff thingies actually do or if they actually make any difference, but can't hurt ??
 *.css		text diff=css
 *.html		text diff=html
