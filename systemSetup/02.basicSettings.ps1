@@ -255,6 +255,8 @@ function ConfigureWindowsAndExplorer {
 	SetRegistryEntry -p "$hklmSoftware\Microsoft\WindowsUpdate\UX\Settings" -n 'IsExpedited' -v 0 -t 'DWord'
 	# disable expand to open folder on navigation pane
 	SetRegistryEntry -p $hkcuCurrentVersionExplorerAdv -n 'NavPaneExpandToCurrentFolder' -v 0 -t 'DWord'
+	# always show scrollbars:
+	SetRegistryEntry -p "$hkcuCtrlPnl\Accessibility" -n 'DynamicScrollbars' -v '0' -t 'DWord'
 	# always underline access key menu shortcuts:
 	SetRegistryEntry -p "$hkcuCtrlPnl\Accessibility\Keyboard Preference" -n 'On' -v '1' -t 'String'
 	# turn on NumLock by default
