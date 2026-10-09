@@ -294,6 +294,7 @@
 		"names": {},
 		"versions": [],
 		"codenames": [
+			{ "major": 27, "minor": -1, "codename": "Golden Gate", "build": 0 },
 			{ "major": 26, "minor": -1, "codename": "Tahoe", "build": 0 },
 			// ??? apps built targeting v15 and lower will see '16', while apps targeting newer will see '26' ???:
 			{ "major": 16, "minor": -1, "codename": "Tahoe", "build": 0 },
