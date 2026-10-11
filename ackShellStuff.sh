@@ -197,7 +197,7 @@ elif hasCmd brew; then
 	# https://docs.brew.sh/Manpage
 	alias aptr='brew update'
 	alias aptul='brew outdated'
-	alias aptu='brew upgrade'
+	alias aptu='brew upgrade --yes'
 	alias aptc='brew autoremove && brew cleanup'
 	alias apts='brew search'
 	alias aptn='brew desc'		# ???
