@@ -38,6 +38,7 @@ class TagNames:
 	MusicBrainzAlbumArtistId = "MusicBrainzAlbumArtistId"
 	MusicBrainzAlbumId = "MusicBrainzAlbumId"
 	MusicBrainzAlbumReleaseCountry = "MusicBrainzAlbumReleaseCountry"
+	MusicBrainzComposerId = "MusicBrainzComposerId"
 	MusicBrainzReleaseStatus = "MusicBrainzReleaseStatus"
 	MusicBrainzReleaseType = "MusicBrainzReleaseType"
 	MusicBrainzDiscId = "MusicBrainzDiscId"
@@ -62,6 +63,7 @@ class TagNames:
 	ReplayGainAlbumPeak = "ReplayGainAlbumPeak"
 	ReplayGainTrackGain = "ReplayGainTrackGain"
 	ReplayGainTrackPeak = "ReplayGainTrackPeak"
+	ReplayGainAlgorithm = "ReplayGainAlgorithm"
 	Script = "Script"
 	SubTitle = "SubTitle"
 	TrackArtist = "TrackArtist"
@@ -90,6 +92,7 @@ class TagNames:
 	DiscogsAlbumId = "DiscogsAlbumId"
 	# junk tags
 	Artists = "Artists"
+	AlbumArtists = "AlbumArtists"
 	Codec = "Codec"
 	EncodedBy = "EncodedBy"
 	Encoder = "Encoder"

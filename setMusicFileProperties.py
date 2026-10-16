@@ -231,7 +231,7 @@ class MusicFolderHandler:
 					TagNames.Barcode, TagNames.CatalogNumber, TagNames.OriginalArtist, TagNames.OriginalAlbumTitle, TagNames.OriginalReleaseYear,
 					TagNames.MusicianCredits, TagNames.Engineer, TagNames.MixedBy, TagNames.Arranger, TagNames.RemixedBy,
 					TagNames.RecordedDate, TagNames.ReleasedDate, TagNames.MediaType, TagNames.ISRC,
-					TagNames.MusicBrainzAlbumArtistId, TagNames.MusicBrainzAlbumId, TagNames.MusicBrainzAlbumReleaseCountry,
+					TagNames.MusicBrainzAlbumArtistId, TagNames.MusicBrainzAlbumId, TagNames.MusicBrainzAlbumReleaseCountry, TagNames.MusicBrainzComposerId,
 					TagNames.MusicBrainzReleaseStatus, TagNames.MusicBrainzDiscId, TagNames.MusicBrainzReleaseGroupId,
 					TagNames.MusicBrainzReleaseTrackId, TagNames.MusicBrainzReleaseType, TagNames.MusicBrainzTrackArtistId, TagNames.MusicBrainzTrackId,
 					TagNames.MusicBrainzWorkId, TagNames.WorkTitle, TagNames.DiscogsReleaseId, TagNames.AmazonId,
@@ -241,7 +241,7 @@ class MusicFolderHandler:
 					TagNames.DiscogsArtistId, TagNames.DiscogsAlbumId, ]
 	_junkTagsToClean = [ TagNames.iTunSMPB, TagNames.Genre, TagNames.Cover, TagNames.Codec, TagNames.Encoder, TagNames.EncodedBy,
 					 	TagNames.EncodingSettings, TagNames.Source, TagNames.RippingTool, TagNames.RipDate,
-						TagNames.UPC, TagNames.Rating, TagNames.Script, TagNames.Artists,
+						TagNames.UPC, TagNames.Rating, TagNames.Script, TagNames.Artists, TagNames.AlbumArtists,
 						TagNames.Performer, TagNames.OriginalReleaseDate,		# think we've got a conflict with names from Picard and what i'm adding in Mp3tag ??
 						TagNames.OriginalReleaseYear, TagNames.AlbumTitleSort, TagNames.TrackTitleSort, TagNames.AlbumArtistSort,
 						TagNames.TrackArtistSort, TagNames.ComposerSort, TagNames.FileOwner, TagNames.OriginalFileName, ]
@@ -256,7 +256,7 @@ class MusicFolderHandler:
 	_approvedTags = ApprovedTagsList()
 	_keepOnCleanAll = [ TagNames.AlbumTitle, TagNames.TrackTitle, TagNames.AlbumArtist, TagNames.TrackArtist, TagNames.TrackNumber,
 						TagNames.ReplayGainTrackGain, TagNames.ReplayGainTrackPeak, TagNames.ReplayGainAlbumGain, TagNames.ReplayGainAlbumPeak,
-						TagNames.R128TrackGain, TagNames.R128AlbumGain, ]
+						TagNames.R128TrackGain, TagNames.R128AlbumGain, TagNames.ReplayGainAlgorithm, ]
 	_approvedTagsNativeNamesCache: dict[TagType, list[str]] = dict()
 	_keepOnCleanNativeNamesCache: dict[TagType, list[str]] = dict()
 	#endregion
