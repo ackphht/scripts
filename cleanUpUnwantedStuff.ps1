@@ -314,7 +314,7 @@ function CleanUpDesktopIcons {
 		'Configure FileMenu Tools'
 		'foobar2000'
 		'AIMP'
-		'Audacity'
+		'Audacity*'
 		'Mp3tag'
 		'Sigil'
 		'JetBrains*'
@@ -752,6 +752,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('AIMP\AIMP.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Attribute Changer\Attribute Changer.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Audacity\Audacity.lnk', $applications, $true)
+		[StartMenuCleanupItem]::FromCommonPrograms('Audacity 4.0\Audacity 4.0.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('AudioShell\AudioShell Settings.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('AutoHotkey\AutoHotkey Help File.lnk', $applications)
 		[StartMenuCleanupItem]::FromCommonPrograms('AutoHotkey\AutoHotkey.lnk', $applications, $true)
@@ -926,6 +927,7 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromUserPrograms('YTDownloader.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('Amazon\Amazon Kindle\Kindle.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Atlassian\Sourcetree.lnk', $development, $true)
+		[StartMenuCleanupItem]::FromUserPrograms('Audacity 4.0\Audacity 4.0.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey\AutoHotkey Window Spy.lnk', $applications)
 		[StartMenuCleanupItem]::FromUserPrograms('AutoHotkey\AutoHotkey.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromUserPrograms('Azure Data Studio\Azure Data Studio.lnk', $development, $true)
