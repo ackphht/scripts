@@ -71,6 +71,7 @@ call :CleanTempFileType *.xpi
 call :CleanTempFileType *.xsl
 call :CleanTempFileType *.zip
 call :CleanTempFileType _CL_*
+call :CleanTempFileType gpgme-*
 call :CleanTempFileType zeal*
 call :CleanTempFileType ~clean.ack
 call :CleanTempFileType *.diagsession
@@ -97,6 +98,7 @@ call :CleanTempFolder JetBrains
 call :CleanTempFolder JetLogs
 call :CleanTempFolder LCFEM
 call :CleanTempFolder LinqPad
+call :CleanTempFolder ListSync
 call :CleanTempFolder Low
 call :CleanTempFolder lptmp
 call :CleanTempFolder MicroThemePackDir
@@ -165,6 +167,7 @@ call :CleanTempMultiFolder scoped_dir*
 call :CleanTempMultiFolder Sigil*
 call :CleanTempMultiFolder ssh-*
 call :CleanTempMultiFolder TCD*.tmp
+call :CleanTempMultiFolder VivaldiUpdate-*
 call :CleanTempMultiFolder VS*
 call :CleanTempMultiFolder WebCompiler*
 call :CleanTempMultiFolder {*}
