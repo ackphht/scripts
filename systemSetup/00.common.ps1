@@ -304,6 +304,9 @@ function LocateLgpoExe {
 	WriteVerboseMessage -message 'creating lgpo temp folder: |{0}|' -formatParams $tmpFolder
 	[void](New-Item -Path $tmpFolder -ItemType Directory -Force)
 	# download lgpo.zip:
+	# main download page: https://www.microsoft.com/en-us/download/details.aspx?id=55319
+	# main info page: https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/windows-security-configuration-framework/security-compliance-toolkit-10#what-is-the-local-group-policy-object-lgpo-tool
+	# also available with winget: id = Microsoft.SecurityComplianceToolkit.LGPO
 	$lgpoDownloadUrl = 'https://download.microsoft.com/download/8/5/C/85C25433-A1B0-4FFA-9429-7E023E7DA8D8/LGPO.zip'
 	$tmpZipPath = Join-Path $tmpFolder 'lgpo.zip'
 	WriteVerboseMessage -message 'downloading |{0}| to file |{1}|' -formatParams $lgpoDownloadUrl, $tmpZipPath
