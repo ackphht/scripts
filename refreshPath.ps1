@@ -13,6 +13,8 @@ from https://github.com/microsoft/WindowsDeveloperConfig/blob/main/Workloads/_co
 
 $ErrorActionPreference = 'Stop'
 
+throw 'this doesn''t work yet: it''s not keeping the entries that powershell adds to the beginning of PATH'
+
 if (-not (($PSEdition -ne 'Core'<# old desktop powershell, win only #> -or $IsWindows))) {
 	Write-Warning "This script is only intended for Windows; exiting"
 	return
