@@ -3,8 +3,13 @@
 	// nerd font icons: https://www.nerdfonts.com/cheat-sheet
 	"$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
 	"version": 3,
-	"upgrade_notice": false,		// disable upgrade notice (>= v24.0.0)
-	"auto_upgrade": false,			// disable auto upgrade (>= v24.0.0)
+	"upgrade": {
+		//"disable_notice": true,		// disable upgrade notice (>= v19.27.0)
+		//"upgrade_notice": false,		// disable upgrade notice (>= v24.0.0)
+		"notice": false,				// disable upgrade notice (>= v24.0.0); name/location changed at some point
+		//"auto_upgrade": false,			// disable auto upgrade (>= v24.0.0)
+		"auto": false,					// disable auto upgrade (>= v24.0.0); name/location changed at some point
+	}
 	"blocks": [
 		{
 			"type": "prompt",
