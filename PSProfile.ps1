@@ -184,37 +184,9 @@ if (-not $ackIsWsl) {	# would probably be nice to have on WSL too, but Get-Modul
 	#	Import-Module -Name $moduleName -NoClobber
 	#}
 
-	# Teminal-Icons has gotten *really* slow to load, and project seems to be dead
-	# found way to load in the background, prompt comes up quicker, but still sits
-	# there not accepting input until Terminal-Icons is loaded, so that's not gonna work
-	# the icons and the colors are nice, but not that nice
-	<#
-	$moduleName = 'Terminal-Icons'
-	#$currentNow = _getts
-	if ((Get-Module -Name $moduleName -ListAvailable)) {
-		#Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
-		#Import-Module -Name $moduleName
-		#$theme = Get-TerminalIconsTheme
-		#if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-fa-book') }
-		#if (-not $theme.Color.Types.Files.ContainsKey('.epub')) { $theme.Color.Types.Files.Add('.epub', '9e7a41') }
-		#if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-fa-book') }
-		#if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9e7a41') }
-
-		Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`" with PowerShell.OnIdle"
-		# load in OnIdle: from https://github.com/devblackops/Terminal-Icons/issues/150
-		Register-EngineEvent -SourceIdentifier 'PowerShell.OnIdle' -MaxTriggerCount 1 -Action {
-			Import-Module -Name 'Terminal-Icons' -Global
-			$theme = Get-TerminalIconsTheme
-			#if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-fa-book') }
-			if (-not $theme.Icon.Types.Files.ContainsKey('.epub')) { $theme.Icon.Types.Files.Add('.epub', 'nf-oct-book') }
-			if (-not $theme.Color.Types.Files.ContainsKey('.epub')) { $theme.Color.Types.Files.Add('.epub', '9E7A41') }
-			#if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-fa-book') }
-			if (-not $theme.Icon.Types.Files.ContainsKey('.mobi')) { $theme.Icon.Types.Files.Add('.mobi', 'nf-oct-book') }
-			if (-not $theme.Color.Types.Files.ContainsKey('.mobi')) { $theme.Color.Types.Files.Add('.mobi', '9E7A41') }
-		} | Out-Null
-	}
-	_showTime $currentNow 'checking/adding Terminal-Icons module'
-	#>
+	#
+	# loading TerminalGlyphs below; something we're loading later is preventing it from working, so doing it last
+	#
 
 	$moduleName = 'AckWare.AckLib'
 	$currentNow = _getts
@@ -452,7 +424,6 @@ _showTime $currentNow 'checking/adding pip aliases'
 #
 # some tab completions:
 #
-
 if (-not $ackIsWsl) {
 	# dotnet CLI (https://learn.microsoft.com/en-us/dotnet/core/tools/enable-tab-autocomplete#powershell)
 	$currentNow = _getts
@@ -491,6 +462,18 @@ if ($ackIsWindows) {
 		dsc.exe completer powershell | Out-String | Invoke-Expression
 	}
 	_showTime $currentNow 'checking/adding dsc autocompletes'
+}
+#
+# import TerminalGlyphs module (for some reason, need to do this last; something above is preventing it from working properly):
+#
+if (-not $ackIsWsl) {
+	$moduleName = 'TerminalGlyphs'
+	$currentNow = _getts
+	if ((Get-Module -Name $moduleName -ListAvailable)) {
+		Write-Verbose "$($MyInvocation.InvocationName): importing module `"$moduleName`""
+		Import-Module -Name $moduleName
+	}
+	_showTime $currentNow 'checking/adding TerminalGlyphs module'
 }
 
 # some more aliases:
