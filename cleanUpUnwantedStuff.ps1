@@ -783,7 +783,8 @@ function CleanUpStartMenuItems {
 		[StartMenuCleanupItem]::FromCommonPrograms('AutoHotkey\AutoHotkey.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Battle.net\Battle.net.lnk', 'Games', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('C989M Application Software\C989M Application Software.lnk', $systemApps, $true)
-		[StartMenuCleanupItem]::FromCommonPrograms('calibre 64bit - E-book Management\E-book viewer 64bit.lnk', $applications, 'calibre E-book viewer.lnk')
+		[StartMenuCleanupItem]::FromCommonPrograms('calibre 64bit - E-book Management\E-book viewer 64bit.lnk', $applications, 'calibre E-book Viewer.lnk')
+		[StartMenuCleanupItem]::FromCommonPrograms('calibre 64bit - E-book Management\Edit E-book 64bit.lnk', $applications, 'calibre E-book Editor.lnk')
 		[StartMenuCleanupItem]::FromCommonPrograms('calibre 64bit - E-book Management\calibre 64bit - E-book management.lnk', $applications, 'calibre.lnk', $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('Clink\Clink.lnk', $applications, $true)
 		[StartMenuCleanupItem]::FromCommonPrograms('ConEmu\ConEmu (x64).lnk', $applications, 'ConEmu.lnk', $true)
@@ -1281,7 +1282,7 @@ function CleanUpPathVars {
 		'*\Python\Launcher\'
 		'*\TortoiseGit\bin'
 		#'*\gsudo\*'
-		'*\PowerToys\DSCModules'
+		'*\PowerToys\*'
 		'*\PowerToys'
 		'*\UltraEdit'
 		'*\UltraCompare'
