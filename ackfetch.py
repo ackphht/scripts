@@ -68,4 +68,10 @@ def _initLogging(verbose : bool = False, useLocalTime : bool = False):
 	logging.basicConfig(level=loglevel, format=f"{logTimeFormat}|{{levelname:8}}|{{module}}|{{funcName}}|{{message}}", style='{', datefmt='%Y-%m-%d %H:%M:%S')
 
 if __name__ == "__main__":
-	sys.exit(main())
+	try:
+		sys.exit(main())
+	except KeyboardInterrupt:
+		print('')
+		print('')
+		print(f"\033[22m\033[33m******** CANCELLED ********\033[0m")
+		sys.exit(130) # See <http://www.tldp.org/LDP/abs/html/exitcodes.html>

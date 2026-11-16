@@ -1125,3 +1125,4 @@ if __name__ == "__main__":
 		print('')
 		print('')
 		print(f"\033[22m\033[33m******** CANCELLED ********\033[0m")
+		sys.exit(130) # See <http://www.tldp.org/LDP/abs/html/exitcodes.html>
