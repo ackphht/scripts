@@ -62,6 +62,7 @@ function Main {
 	if ($all) {
 		CleanUpNvidiaFiles
 		CleanUpOtherFiles
+		CleanUpAutoUpdates
 	}
 	if ($all -or $onlyServices) {
 		DisableUnwantedServices
@@ -238,14 +239,38 @@ function CleanUpOtherFiles {
 	param ()
 	WriteHeaderMessage 'cleaning up various files'
 	@(
+		"$env:LocalAppData\koodo-reader-updater\installer.exe"
+		"$env:LocalAppData\obsidian-updater\installer.exe"
+	) |	ForEach-Object { DeleteUnwantedFiles -filePattern $_ }
+}
+
+function CleanUpAutoUpdates {
+	[CmdletBinding(SupportsShouldProcess=$true)]
+	param ()
+	WriteHeaderMessage 'cleaning up auto updaters'
+	@(
 		"$env:LocalAppData\GitHubDesktop\Update.exe"
 		"$env:LocalAppData\GitKraken\Update.exe"
 		"$env:LocalAppData\Postman\Update.exe"
 		"$env:LocalAppData\SourceTree\Update.exe"
 	) |	ForEach-Object { RenameUnwantedFiles -filePattern $_ }
+
 	@(
-		"$env:LocalAppData\koodo-reader-updater\installer.exe"
-	) |	ForEach-Object { DeleteUnwantedFiles -filePattern $_ }
+		'ohmyposh.cli_96v55e8n804z4'
+		'PythonSoftwareFoundation.PythonManager_3847v3x7pw1km'
+		'Microsoft.WinDbg_8wekyb3d8bbwe'
+	) |	ForEach-Object {
+		$pkgName = $_
+		WriteVerboseMessage 'checking msix auto updates for |{0}|' $pkgName
+		$msixPkg = Get-AppxPackageAutoUpdateSettings -PackageFamilyName $pkgName -ErrorAction Ignore
+		if ($msixPkg -and ($msixPkg.IsAutoRepairEnabled -or $msixPkg.AutomaticBackgroundTaskUpdatesEnabled -or `
+							$msixPkg.CheckForUpdatesOnLaunch -or $msixPkg.AutomaticBackgroundTaskUpdatesEnabled))
+		{
+			WriteStatusMessage "disabling MSIX auto updates for package `"$pkgName`""
+			Set-AppxPackageAutoUpdateSettings -PackageFamilyName $pkgName -DisableAutoRepairs $true -EnableAutomaticBackgroundTask $false `
+					-CheckOnLaunch $false -EnableAutomaticBackgroundTask $false -ErrorAction Continue
+		}
+	}
 }
 
 function CleanUpCrapFolders {
