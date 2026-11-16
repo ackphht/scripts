@@ -1534,6 +1534,7 @@ class IconsToCopy:
 				Icon("font-woff2", extensions=["woff2"]),
 				Icon("application-x-font-afm", extensions=["afm"]),
 				Icon("application-x-font-type1", extensions=["pfa", "pfb"]),
+				Icon("image-avif", ["application-images"], ["avif"]),
 				Icon("image-bmp", ["image-x-bmp", "application-image-bmp"], ["bmp", "dib"]),
 				Icon("image-gif", ["application-image-gif"], ["gif"]),
 				Icon("image-jpeg", ["application-image-jpeg", "application-image-jpg"], ["jpeg", "jpg"]),
