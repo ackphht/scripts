@@ -31,5 +31,6 @@ hasCmd perl    && echo "perl    = |$(perl --version 2>/dev/null | head -n 2 | ta
 hasCmd ruby    && echo "ruby    = |$(ruby --version | awk '{print $2}')|" ||				echo "ruby    = |<n/a>|"
 hasCmd go      && echo "go      = |$(go version | awk '{print $3}' | sed -E 's/^go//')|" ||	echo "go      = |<n/a>|"
 hasCmd rustc   && echo "rustc   = |$(rustc --version | awk '{print $2}')|" ||				echo "rustc   = |<n/a>|"
+hasCmd dotnet  && echo "dotnet  = |$(dotnet --version)|" ||									echo "dotnet  = |<n/a>|"
 hasCmd pwsh    && echo "pwsh    = |$(pwsh --version | awk '{print $2}')|" ||				echo "pwsh    = |<n/a>|"
 hasCmd code    && echo "code    = |$(code --version | head -n 1)|" ||						echo "code    = |<n/a>|"
